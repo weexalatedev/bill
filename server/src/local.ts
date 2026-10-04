@@ -1,4 +1,4 @@
-import { createApp } from './app.js';
+import app from './app.js';
 import { connectDb } from './db.js';
 import { clerkEnabled, r2Enabled, env } from './env.js';
 
@@ -12,7 +12,6 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  const app = createApp();
   app.listen(env.port, () => {
     console.log(`EnerOS API listening on http://localhost:${env.port}`);
     console.log(`  auth mode: ${clerkEnabled ? 'Clerk' : 'dev (demo credentials)'}`);
