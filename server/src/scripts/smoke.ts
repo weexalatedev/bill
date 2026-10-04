@@ -3,10 +3,11 @@
  *
  *   cd server && npm run smoke
  *
- * Boots an in-memory MongoDB, seeds the demo workspace, starts the API on an
- * ephemeral port and exercises auth, workspace, invoice audit, action
+ * Boots an in-memory MongoDB, starts the API on an ephemeral port and exercises
+ * Clerk-authenticated workspace, invoice audit, action
  * progression, control mode and recovery — proving web + mobile share one source
- * of truth. Cloudflare R2 is skipped unless R2_* env vars are configured.
+ * of truth. Set CLERK_TEST_TOKEN to a valid session token. Cloudflare R2 is
+ * skipped unless R2_* env vars are configured.
  */
 import type { AddressInfo } from 'node:net';
 import { MongoMemoryServer } from 'mongodb-memory-server';
@@ -18,17 +19,16 @@ function check(name: string, ok: boolean, detail?: string): void {
 }
 
 async function main(): Promise<void> {
+  const token = process.env.CLERK_TEST_TOKEN;
+  if (!token) throw new Error('Set CLERK_TEST_TOKEN to a valid Clerk session token.');
+
   const mongod = await MongoMemoryServer.create();
   process.env.MONGODB_URI = mongod.getUri('eneros');
 
   const { connectDb, disconnectDb } = await import('../db.js');
-  const { env } = await import('../env.js');
-  const { ownerIdFromEmail } = await import('../auth.js');
-  const { provisionWorkspace } = await import('../services/workspace.js');
   const { createApp } = await import('../app.js');
 
   await connectDb();
-  await provisionWorkspace(ownerIdFromEmail(env.demo.email), true);
 
   const servers = createApp().listen(0);
   await new Promise((resolve) => servers.once('listening', resolve));
@@ -52,30 +52,16 @@ async function main(): Promise<void> {
   const health = await api('/api/health');
   check('health endpoint', health.status === 200 && health.body.ok === true);
   check('mongo connected', health.body.db === true);
-  check('auth mode is dev', health.body.auth === 'dev', `storage=${health.body.storage}`);
+  check('auth mode is Clerk', health.body.auth === 'clerk', `storage=${health.body.storage}`);
 
   const config = await api('/api/config');
-  check('config exposes demo login', config.body.authMode === 'dev' && !!config.body.demo.email);
+  check('config exposes Clerk publishable key', !!config.body.clerkPublishableKey);
 
   // 2. Unauthorised access is rejected
   const unauth = await api('/api/workspace');
   check('workspace rejects anonymous', unauth.status === 401);
 
-  // 3. Demo login
-  const login = await api('/api/auth/login', {
-    method: 'POST',
-    body: JSON.stringify({ email: env.demo.email, password: env.demo.password }),
-  });
-  check('demo login succeeds', login.status === 200 && !!login.body.token);
-  const token: string = login.body.token;
-
-  const badLogin = await api('/api/auth/login', {
-    method: 'POST',
-    body: JSON.stringify({ email: env.demo.email, password: 'wrong' }),
-  });
-  check('wrong password rejected', badLogin.status === 401);
-
-  // 4. Workspace is seeded and scoped to the demo owner
+  // 3. Workspace is auto-provisioned for the authenticated Clerk user
   const ws = await api('/api/workspace', {}, token);
   const workspace = ws.body.workspace;
   check('workspace loads', ws.status === 200);
@@ -91,7 +77,7 @@ async function main(): Promise<void> {
       workspace.sites.reduce((s: number, x: any) => s + x.monthExpected, 0) === 91600,
   );
 
-  // 5. Invoice audit + recovery
+  // 4. Invoice audit + recovery
   const created = await api(
     '/api/invoices',
     {
@@ -124,7 +110,7 @@ async function main(): Promise<void> {
     recovered.status === 200 && recovered.body.invoice.status === 'Recovered',
   );
 
-  // 6. Action progression (pick a fresh 'Recommended' action)
+  // 5. Action progression (pick a fresh 'Recommended' action)
   const freshAction = workspace.actions.find((a: any) => a.status === 'Recommended');
   check('seeded data includes a recommended action', !!freshAction);
   const actionId = freshAction.id;
@@ -133,7 +119,7 @@ async function main(): Promise<void> {
   const advanced2 = await api(`/api/actions/${actionId}/advance`, { method: 'POST' }, token);
   check('action advanced to Automated', advanced2.body.action.status === 'Automated');
 
-  // 7. Control mode persists
+  // 6. Control mode persists
   const mode = await api(
     '/api/workspace/control-mode',
     { method: 'PUT', body: JSON.stringify({ mode: 'Automate' }) },
@@ -143,7 +129,7 @@ async function main(): Promise<void> {
   const ws2 = await api('/api/workspace', {}, token);
   check('control mode persisted', ws2.body.workspace.controlMode === 'Automate');
 
-  // 8. Uploads endpoint degrades gracefully when R2 is not configured
+  // 7. Uploads endpoint degrades gracefully when R2 is not configured
   const uploads = await api('/api/uploads', {}, token);
   check(
     'uploads endpoint responds',

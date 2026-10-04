@@ -7,7 +7,7 @@ import { colors, font, fontWeight, spacing } from '../theme';
 
 /** Shows who is signed in and lets them sign out (shared credentials with web). */
 export default function AccountCard() {
-  const { user, mode, signOut } = useAuth();
+  const { user, signOut } = useAuth();
 
   return (
     <Card>
@@ -20,8 +20,8 @@ export default function AccountCard() {
       </View>
 
       <View style={s.badges}>
-        <Badge tone={mode === 'clerk' ? 'violet' : 'slate'} Icon={ShieldCheck}>
-          {mode === 'clerk' ? 'Clerk auth' : 'Dev auth'}
+        <Badge tone="violet" Icon={ShieldCheck}>
+          Clerk auth
         </Badge>
       </View>
 

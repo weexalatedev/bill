@@ -2,10 +2,11 @@ import express, { type NextFunction, type Request, type Response } from 'express
 import cors from 'cors';
 import { clerkMiddleware } from '@clerk/express';
 import { apiRouter } from './routes/index.js';
-import { clerkEnabled, r2Enabled, env } from './env.js';
+import { assertClerkConfigured, r2Enabled, env } from './env.js';
 import { connectDb, isDbConnected } from './db.js';
 
 export function createApp(): express.Express {
+  assertClerkConfigured();
   const app = express();
 
   app.use(
@@ -24,17 +25,13 @@ export function createApp(): express.Express {
 
   app.use(express.json({ limit: '2mb' }));
 
-  // Clerk middleware is only attached when Clerk is configured; otherwise the
-  // API runs in dev-auth mode and `requireUser` validates our own tokens.
-  if (clerkEnabled) {
-    app.use(clerkMiddleware());
-  }
+  app.use(clerkMiddleware());
 
   app.get('/api/health', (_req, res) => {
     res.json({
       ok: true,
       db: isDbConnected(),
-      auth: clerkEnabled ? 'clerk' : 'dev',
+      auth: 'clerk',
       storage: r2Enabled ? 'r2' : 'disabled',
       time: new Date().toISOString(),
     });

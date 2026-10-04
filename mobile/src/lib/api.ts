@@ -1,6 +1,6 @@
 // REST client for the EnerOS API (React Native / Expo). Base URL comes from
 // EXPO_PUBLIC_API_URL (defaults to the local API). The store attaches a bearer
-// token obtained from the active auth provider (Clerk or dev mode).
+// token obtained from Clerk.
 import type {
   Account,
   AssetSlice,
@@ -17,10 +17,8 @@ export const API_URL: string =
   'http://localhost:4000';
 
 export interface ApiConfig {
-  authMode: 'clerk' | 'dev';
-  clerkPublishableKey: string | null;
+  clerkPublishableKey: string;
   r2Enabled: boolean;
-  demo: { email: string; password?: string };
 }
 
 export interface UploadedDocument {
@@ -109,14 +107,8 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
 export const api = {
   getConfig: (): Promise<ApiConfig> => request<ApiConfig>('/api/config'),
 
-  devLogin: (email: string, password: string) =>
-    request<{ token: string; user: { email: string; name: string }; mode: 'dev' }>(
-      '/api/auth/login',
-      { method: 'POST', body: { email, password } },
-    ),
-
   getMe: (token: string) =>
-    request<{ user: { email: string; name: string }; mode: 'clerk' | 'dev' }>('/api/auth/me', {
+    request<{ user: { email: string; name: string } }>('/api/auth/me', {
       token,
     }),
 

@@ -1,6 +1,6 @@
 /**
- * Zero-config local API: boots an in-memory MongoDB, seeds the demo workspace,
- * then serves the API. Handy when you don't have a mongod running.
+ * Local API with in-memory MongoDB. Clerk credentials are still required;
+ * authenticated users receive a demo workspace automatically.
  *
  *   cd server && npm run dev:memory
  *
@@ -15,17 +15,12 @@ async function main(): Promise<void> {
   // env.ts / db.ts read process.env at import time, so import them only now.
   const { connectDb } = await import('../db.js');
   const { env } = await import('../env.js');
-  const { ownerIdFromEmail } = await import('../auth.js');
-  const { provisionWorkspace } = await import('../services/workspace.js');
-  const { createApp } = await import('../app.js');
+  const { default: app } = await import('../app.js');
 
   await connectDb();
-  await provisionWorkspace(ownerIdFromEmail(env.demo.email), true);
-
-  const app = createApp();
   app.listen(env.port, () => {
     console.log(`EnerOS API (in-memory) on http://localhost:${env.port}`);
-    console.log(`  demo login: ${env.demo.email} / ${env.demo.password}`);
+    console.log('  auth mode: Clerk');
   });
 }
 

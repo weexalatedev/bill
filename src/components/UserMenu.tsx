@@ -5,7 +5,7 @@ import { cx } from '../lib/cx';
 
 /** Compact account menu — shows who is signed in and allows sign-out. */
 export default function UserMenu() {
-  const { user, mode, signOut } = useAuth();
+  const { user, signOut } = useAuth();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -52,13 +52,11 @@ export default function UserMenu() {
               <span
                 className={cx(
                   'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ring-1 ring-inset',
-                  mode === 'clerk'
-                    ? 'bg-violet-50 text-violet-700 ring-violet-600/20'
-                    : 'bg-slate-100 text-slate-600 ring-slate-500/20',
+                  'bg-violet-50 text-violet-700 ring-violet-600/20',
                 )}
               >
                 <ShieldCheck className="h-3 w-3" />
-                {mode === 'clerk' ? 'Clerk' : 'Dev auth'}
+                Clerk
               </span>
             </p>
           </div>

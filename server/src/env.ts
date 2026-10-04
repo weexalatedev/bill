@@ -39,12 +39,14 @@ export const env = {
     name: str(process.env.DEMO_NAME, 'Demo Operator'),
     org: str(process.env.DEMO_ORG, 'Harbour Hospitality Group'),
   },
-  devAuthSecret: str(process.env.DEV_AUTH_SECRET, 'eneros-dev-secret'),
   autoProvision: bool(process.env.AUTO_PROVISION, true),
 };
 
-/** Clerk is considered wired only when both keys are present. */
-export const clerkEnabled = Boolean(env.clerkPublishableKey && env.clerkSecretKey);
+export function assertClerkConfigured(): void {
+  if (!env.clerkPublishableKey || !env.clerkSecretKey) {
+    throw new Error('CLERK_PUBLISHABLE_KEY and CLERK_SECRET_KEY are required; dev auth is disabled.');
+  }
+}
 
 /** Cloudflare R2 is considered wired only when the full credential set is present. */
 export const r2Enabled = Boolean(

@@ -21,7 +21,7 @@ import AuthGate from './src/AuthGate';
 import DataGate from './src/components/DataGate';
 import { ToastHost } from './src/components/Layout';
 import { api, API_URL, type ApiConfig } from './src/lib/api';
-import { clerkTokenCache, ClerkAuthProvider, DevAuthProvider } from './src/lib/auth';
+import { clerkTokenCache, ClerkAuthProvider } from './src/lib/auth';
 import { colors, font, fontWeight, shadow } from './src/theme';
 
 import DashboardScreen from './src/screens/DashboardScreen';
@@ -146,7 +146,7 @@ function BootScreen({ error }: { error?: string | null }) {
   );
 }
 
-/** Wraps the app in the correct auth provider for the server's auth mode. */
+/** Wraps the app in the Clerk auth provider. */
 function AppProviders({ config }: { config: ApiConfig }) {
   const shell = (
     <AuthGate>
@@ -158,15 +158,15 @@ function AppProviders({ config }: { config: ApiConfig }) {
     </AuthGate>
   );
 
-  if (config.authMode === 'clerk' && config.clerkPublishableKey) {
-    return (
-      <ClerkProvider publishableKey={config.clerkPublishableKey} tokenCache={clerkTokenCache}>
-        <ClerkAuthProvider config={config}>{shell}</ClerkAuthProvider>
-      </ClerkProvider>
-    );
+  if (!config.clerkPublishableKey) {
+    return <BootScreen error="Clerk is not configured on the API." />;
   }
 
-  return <DevAuthProvider config={config}>{shell}</DevAuthProvider>;
+  return (
+    <ClerkProvider publishableKey={config.clerkPublishableKey} tokenCache={clerkTokenCache}>
+      <ClerkAuthProvider>{shell}</ClerkAuthProvider>
+    </ClerkProvider>
+  );
 }
 
 export default function App() {

@@ -7,7 +7,7 @@ import App from './App.tsx';
 import { AppProvider } from './store.tsx';
 import AuthGate from './components/AuthGate.tsx';
 import { api, type ApiConfig } from './lib/api.ts';
-import { ClerkAuthProvider, DevAuthProvider } from './lib/auth.tsx';
+import { ClerkAuthProvider } from './lib/auth.tsx';
 import './index.css';
 
 function BootScreen({ error }: { error?: string | null }) {
@@ -62,15 +62,15 @@ function Bootstrap() {
     </AuthGate>
   );
 
-  if (config.authMode === 'clerk' && config.clerkPublishableKey) {
-    return (
-      <ClerkProvider publishableKey={config.clerkPublishableKey}>
-        <ClerkAuthProvider config={config}>{app}</ClerkAuthProvider>
-      </ClerkProvider>
-    );
+  if (!config.clerkPublishableKey) {
+    return <BootScreen error="Clerk is not configured on the API." />;
   }
 
-  return <DevAuthProvider config={config}>{app}</DevAuthProvider>;
+  return (
+    <ClerkProvider publishableKey={config.clerkPublishableKey}>
+      <ClerkAuthProvider>{app}</ClerkAuthProvider>
+    </ClerkProvider>
+  );
 }
 
 const container = document.getElementById('root');

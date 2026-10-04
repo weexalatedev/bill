@@ -15,7 +15,7 @@ import { useAuth } from './lib/auth';
 import { Button } from './components/ui';
 import { colors, font, fontWeight, radius, shadow, spacing } from './theme';
 
-/** Presentational email/password form shared by the dev and Clerk sign-in flows. */
+/** Presentational email/password form for Clerk sign-in. */
 function CredentialsForm({
   email,
   password,
@@ -87,48 +87,12 @@ function CredentialsForm({
   );
 }
 
-/** Dev-mode sign-in — used only when Clerk is not configured. */
-function DevSignIn() {
-  const { config, signInWithPassword } = useAuth();
-  const [email, setEmail] = useState(config.demo.email);
-  const [password, setPassword] = useState(config.demo.password ?? '');
-  const [error, setError] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
-
-  const submit = async () => {
-    if (!signInWithPassword) return;
-    setBusy(true);
-    setError(null);
-    try {
-      await signInWithPassword(email, password);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Sign-in failed.');
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  return (
-    <CredentialsForm
-      email={email}
-      password={password}
-      setEmail={setEmail}
-      setPassword={setPassword}
-      error={error}
-      busy={busy}
-      onSubmit={submit}
-      hint="Dev auth mode — Clerk is not configured. These demo credentials open the seeded workspace and are identical on web and mobile."
-    />
-  );
-}
-
 /** Clerk sign-in using the native password flow. */
 function ClerkSignIn() {
-  const { config } = useAuth();
   const { isLoaded, signIn } = useSignIn();
   const { setActive } = useClerk();
-  const [email, setEmail] = useState(config.demo.email);
-  const [password, setPassword] = useState(config.demo.password ?? '');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -162,7 +126,7 @@ function ClerkSignIn() {
       error={error}
       busy={busy}
       onSubmit={submit}
-      hint="Signed in with Clerk. Use the same demo credentials on web and mobile to see the same workspace."
+      hint="Sign in with your Clerk account."
     />
   );
 }
@@ -183,7 +147,7 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
   }
 
   if (!auth.isSignedIn) {
-    return auth.mode === 'clerk' ? <ClerkSignIn /> : <DevSignIn />;
+    return <ClerkSignIn />;
   }
 
   return <>{children}</>;

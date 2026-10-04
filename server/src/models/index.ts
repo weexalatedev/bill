@@ -9,10 +9,9 @@ import type {
 } from '../types.js';
 
 /**
- * Every document is scoped to an owner (`ownerId`). In Clerk mode the owner is
- * `clerk:<userId>`; in dev-auth mode it is `user:<email>`. Both the web and the
- * mobile client resolve to the same owner when they sign in with the same
- * credentials, which is what keeps the two apps in sync.
+ * Every document is scoped to a Clerk owner (`clerk:<userId>`). Both the web
+ * and mobile clients resolve to the same owner when signed into the same
+ * account, which keeps the two apps in sync.
  */
 const baseFields = {
   ownerId: { type: String, required: true },

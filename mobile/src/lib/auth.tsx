@@ -1,18 +1,12 @@
-// Unified auth for the mobile app, mirroring the web app. When the API reports
-// `authMode: 'clerk'` the app signs in with Clerk; otherwise the dev-auth demo
-// login is used. Same credentials as the web app → same workspace.
 import {
   createContext,
-  useCallback,
   useContext,
-  useEffect,
   useMemo,
-  useState,
   type ReactNode,
 } from 'react';
 import * as SecureStore from 'expo-secure-store';
 import { useAuth as useClerkAuth, useUser } from '@clerk/clerk-expo';
-import { api, API_URL, type ApiConfig } from './api';
+import { API_URL } from './api';
 
 export interface AuthUser {
   email: string;
@@ -20,13 +14,10 @@ export interface AuthUser {
 }
 
 export interface AuthValue {
-  mode: 'clerk' | 'dev';
-  config: ApiConfig;
   isLoaded: boolean;
   isSignedIn: boolean;
   user: AuthUser | null;
   getToken: () => Promise<string | null>;
-  signInWithPassword?: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -70,78 +61,12 @@ export const clerkTokenCache = {
   },
 };
 
-const TOKEN_KEY = 'eneros.dev.token';
-const USER_KEY = 'eneros.dev.user';
-
-// ── Dev-mode provider ─────────────────────────────────────────────────────────
-export function DevAuthProvider({ config, children }: { config: ApiConfig; children: ReactNode }) {
-  const [token, setToken] = useState<string | null>(null);
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [isLoaded, setIsLoaded] = useState(false);
-
-  useEffect(() => {
-    (async () => {
-      const stored = await storage.get(TOKEN_KEY);
-      if (!stored) {
-        setIsLoaded(true);
-        return;
-      }
-      try {
-        const data = await api.getMe(stored);
-        setToken(stored);
-        setUser(data.user);
-      } catch {
-        await storage.remove(TOKEN_KEY);
-        await storage.remove(USER_KEY);
-      } finally {
-        setIsLoaded(true);
-      }
-    })();
-  }, []);
-
-  const signInWithPassword = useCallback(async (email: string, password: string) => {
-    const result = await api.devLogin(email, password);
-    await storage.set(TOKEN_KEY, result.token);
-    await storage.set(USER_KEY, JSON.stringify(result.user));
-    setToken(result.token);
-    setUser(result.user);
-  }, []);
-
-  const signOut = useCallback(async () => {
-    await storage.remove(TOKEN_KEY);
-    await storage.remove(USER_KEY);
-    setToken(null);
-    setUser(null);
-  }, []);
-
-  const getToken = useCallback(() => Promise.resolve(token), [token]);
-
-  const value = useMemo<AuthValue>(
-    () => ({
-      mode: 'dev',
-      config,
-      isLoaded,
-      isSignedIn: Boolean(token),
-      user,
-      getToken,
-      signInWithPassword,
-      signOut,
-    }),
-    [config, isLoaded, token, user, getToken, signInWithPassword, signOut],
-  );
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}
-
-// ── Clerk provider ────────────────────────────────────────────────────────────
-export function ClerkAuthProvider({ config, children }: { config: ApiConfig; children: ReactNode }) {
+export function ClerkAuthProvider({ children }: { children: ReactNode }) {
   const { isLoaded, isSignedIn, getToken, signOut } = useClerkAuth();
   const { user } = useUser();
 
   const value = useMemo<AuthValue>(
     () => ({
-      mode: 'clerk',
-      config,
       isLoaded,
       isSignedIn: Boolean(isSignedIn),
       user: user
@@ -153,7 +78,7 @@ export function ClerkAuthProvider({ config, children }: { config: ApiConfig; chi
       getToken: () => getToken(),
       signOut: () => signOut(),
     }),
-    [config, isLoaded, isSignedIn, user, getToken, signOut],
+    [isLoaded, isSignedIn, user, getToken, signOut],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

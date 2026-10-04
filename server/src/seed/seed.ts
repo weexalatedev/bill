@@ -3,15 +3,13 @@
  *
  *   cd server && npm run seed
  *
- * Creates the demo account (in Clerk when configured, or as a dev-auth identity)
- * and populates MongoDB with the EnerOS demo dataset for that owner. Because the
- * owner id is derived from the demo email, both the web and the mobile app land
- * on exactly the same data when they sign in with the demo credentials.
+ * Creates the demo account in Clerk and populates MongoDB with the EnerOS demo
+ * dataset for that Clerk user. Both clients then access the same workspace.
  */
 import { createClerkClient } from '@clerk/backend';
 import { connectDb, disconnectDb } from '../db.js';
-import { clerkEnabled, env } from '../env.js';
-import { ownerIdFromClerkUser, ownerIdFromEmail } from '../auth.js';
+import { assertClerkConfigured, env } from '../env.js';
+import { ownerIdFromClerkUser } from '../auth.js';
 import { provisionWorkspace } from '../services/workspace.js';
 import { AccountModel, ActionModel, InvoiceModel, SiteModel } from '../models/index.js';
 
@@ -44,17 +42,12 @@ async function ensureClerkDemoUser(): Promise<string> {
 }
 
 async function main(): Promise<void> {
+  assertClerkConfigured();
   await connectDb();
   console.log('✓ Connected to MongoDB');
 
-  let ownerId: string;
-  if (clerkEnabled) {
-    const clerkId = await ensureClerkDemoUser();
-    ownerId = ownerIdFromClerkUser(clerkId);
-  } else {
-    ownerId = ownerIdFromEmail(env.demo.email);
-    console.log('• Clerk not configured — using dev-auth identity for the demo user');
-  }
+  const clerkId = await ensureClerkDemoUser();
+  const ownerId = ownerIdFromClerkUser(clerkId);
 
   console.log(`• Seeding workspace for ${ownerId}…`);
   await provisionWorkspace(ownerId, true);
@@ -74,7 +67,7 @@ async function main(): Promise<void> {
   console.log('\n  ── Demo login (use on BOTH web and mobile) ──');
   console.log(`  email    : ${env.demo.email}`);
   console.log(`  password : ${env.demo.password}`);
-  console.log(`  auth mode: ${clerkEnabled ? 'Clerk' : 'dev'}\n`);
+  console.log('  auth mode: Clerk\n');
 
   await disconnectDb();
 }
