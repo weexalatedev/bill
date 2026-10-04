@@ -6,6 +6,7 @@ import { Calculator, Check, CreditCard, ShieldCheck, Sparkles } from 'lucide-rea
 import { useApp } from '../store';
 import { Badge, Button, Card, SectionHeading, StatCard } from '../components/ui';
 import { Screen, ScreenHeader, Row } from '../components/Layout';
+import AccountCard from '../components/AccountCard';
 import { gbp } from '../lib/format';
 import { colors, font, fontWeight, radius, spacing } from '../theme';
 
@@ -38,6 +39,8 @@ export default function PlansScreen() {
     <>
       <ScreenHeader title="Plans" subtitle="Commercials · Performance-based pricing" Icon={CreditCard} />
       <Screen>
+        <AccountCard />
+
         <Row>
           <StatCard
             label="Current plan"

@@ -6,7 +6,7 @@ import type {
   OptimisationAction,
   Plan,
   Site,
-} from '../types';
+} from '../types.js';
 
 /**
  * Demo dataset for a 12-site multi-site hospitality group — the plan's

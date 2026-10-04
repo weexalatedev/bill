@@ -22,6 +22,7 @@ import {
   StatCard,
 } from '../components/ui';
 import { Screen, ScreenHeader, Row } from '../components/Layout';
+import DocumentsCard from '../components/DocumentsCard';
 import { gbp, gbp2, kwh, num, pence, signedGbp } from '../lib/format';
 import { colors, font, fontWeight, radius, spacing } from '../theme';
 
@@ -89,7 +90,7 @@ export default function BillsScreen() {
     .flatMap((inv) => inv.issues)
     .reduce((total, issue) => total + Math.abs(issue.impact), 0);
 
-  const submit = () => {
+  const submit = async () => {
     const consumptionKwh = Number(form.consumptionKwh);
     const unitRateP = Number(form.unitRateP);
     const standingChargeP = Number(form.standingChargeP);
@@ -98,7 +99,7 @@ export default function BillsScreen() {
     if (!Number.isFinite(unitRateP) || unitRateP <= 0) return;
     if (!Number.isFinite(standingChargeP) || standingChargeP < 0) return;
 
-    const created = analyseUpload({
+    const created = await analyseUpload({
       siteId: form.siteId,
       supplier: form.supplier,
       period: form.period,
@@ -216,6 +217,8 @@ export default function BillsScreen() {
 
           <Button label="Run AI audit" onPress={submit} variant="primary" Icon={Upload} full />
         </Card>
+
+        <DocumentsCard />
 
         {/* Invoice list */}
         <Card>

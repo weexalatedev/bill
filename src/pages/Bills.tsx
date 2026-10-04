@@ -1,10 +1,14 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import {
   AlertTriangle,
   CheckCircle2,
+  Cloud,
   FileSearch,
+  FileText,
+  Loader2,
   Search,
   ShieldCheck,
+  Trash2,
   Upload,
 } from 'lucide-react';
 import { useApp } from '../store';
@@ -32,6 +36,95 @@ interface FormState {
 const field =
   'w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20';
 const labelCls = 'mb-1 block text-xs font-medium text-slate-500';
+
+/** Cloudflare R2 document store for invoice PDFs / photos. */
+function DocumentsCard() {
+  const { uploads, uploadDocument, deleteUpload, documentUrl, pushToast } = useApp();
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [busy, setBusy] = useState(false);
+
+  const onFile = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    setBusy(true);
+    try {
+      await uploadDocument(file);
+    } catch (err) {
+      pushToast(err instanceof Error ? err.message : 'Upload failed');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const open = async (id: string) => {
+    try {
+      const url = await documentUrl(id);
+      window.open(url, '_blank', 'noopener');
+    } catch (err) {
+      pushToast(err instanceof Error ? err.message : 'Could not open document');
+    }
+  };
+
+  return (
+    <Card>
+      <SectionHeading
+        title="Invoice documents"
+        subtitle="PDFs and photos are stored in Cloudflare R2, scoped to your account."
+        action={<Badge tone="sky">Cloudflare R2</Badge>}
+      />
+      <input
+        ref={inputRef}
+        type="file"
+        accept="application/pdf,image/*"
+        className="hidden"
+        onChange={onFile}
+      />
+      <button
+        type="button"
+        onClick={() => inputRef.current?.click()}
+        disabled={busy}
+        className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-60"
+      >
+        {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Cloud className="h-4 w-4" />}
+        Upload PDF or photo
+      </button>
+
+      {uploads.length === 0 ? (
+        <p className="mt-3 text-xs text-slate-400">No documents yet.</p>
+      ) : (
+        <ul className="mt-3 space-y-2">
+          {uploads.map((upload) => (
+            <li
+              key={upload.id}
+              className="flex items-center gap-2 rounded-xl border border-slate-100 bg-slate-50/60 px-3 py-2"
+            >
+              <FileText className="h-4 w-4 shrink-0 text-slate-400" />
+              <button
+                type="button"
+                onClick={() => void open(upload.id)}
+                className="min-w-0 flex-1 truncate text-left text-sm text-slate-700 hover:text-emerald-700"
+              >
+                {upload.filename}
+              </button>
+              <span className="shrink-0 text-[11px] text-slate-400">
+                {(upload.size / 1024).toFixed(0)} KB
+              </span>
+              <button
+                type="button"
+                onClick={() => void deleteUpload(upload.id)}
+                aria-label="Delete document"
+                className="shrink-0 text-slate-400 transition-colors hover:text-rose-600"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Card>
+  );
+}
 
 export default function Bills() {
   const { invoices, sites, suppliers, metrics, analyseUpload, recoverInvoice, getSiteById } = useApp();
@@ -69,7 +162,7 @@ export default function Bills() {
     .flatMap((inv) => inv.issues)
     .reduce((total, issue) => total + Math.abs(issue.impact), 0);
 
-  const submit = () => {
+  const submit = async () => {
     const consumptionKwh = Number(form.consumptionKwh);
     const unitRateP = Number(form.unitRateP);
     const standingChargeP = Number(form.standingChargeP);
@@ -78,7 +171,7 @@ export default function Bills() {
     if (!Number.isFinite(unitRateP) || unitRateP <= 0) return;
     if (!Number.isFinite(standingChargeP) || standingChargeP < 0) return;
 
-    const created = analyseUpload({
+    const created = await analyseUpload({
       siteId: form.siteId,
       supplier: form.supplier,
       period: form.period,
@@ -212,6 +305,8 @@ export default function Bills() {
               </button>
             </div>
           </Card>
+
+          <DocumentsCard />
 
           <Card padded={false}>
             <div className="flex flex-wrap items-center justify-between gap-3 p-4">

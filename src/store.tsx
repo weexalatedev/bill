@@ -2,27 +2,18 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useRef,
   useState,
   type ReactNode,
 } from 'react';
-import {
-  account as accountData,
-  actions as actionsData,
-  annualSpendTotal,
-  assetMix,
-  invoices as invoicesData,
-  monthly,
-  plans,
-  sites as sitesData,
-  suppliers,
-} from './data/mock';
+import { api, type UploadedDocument, type WorkspaceData } from './lib/api';
+import { useAuth } from './lib/auth';
 import type {
   Account,
   ActionStatus,
   AssetSlice,
-  BillIssue,
   ControlMode,
   Invoice,
   MonthlyPoint,
@@ -66,11 +57,18 @@ interface AppContextValue {
   suppliers: string[];
   annualSpendTotal: number;
   controlMode: ControlMode;
-  setControlMode: (mode: ControlMode) => void;
-  setActionStatus: (id: string, status: ActionStatus) => void;
-  advanceAction: (id: string) => void;
-  recoverInvoice: (id: string) => void;
-  analyseUpload: (payload: UploadPayload) => Invoice;
+  uploads: UploadedDocument[];
+  loading: boolean;
+  error: string | null;
+  refresh: () => Promise<void>;
+  setControlMode: (mode: ControlMode) => Promise<void>;
+  setActionStatus: (id: string, status: ActionStatus) => Promise<void>;
+  advanceAction: (id: string) => Promise<void>;
+  recoverInvoice: (id: string) => Promise<void>;
+  analyseUpload: (payload: UploadPayload) => Promise<Invoice>;
+  uploadDocument: (file: File, invoiceId?: string) => Promise<UploadedDocument>;
+  deleteUpload: (id: string) => Promise<void>;
+  documentUrl: (id: string) => Promise<string>;
   metrics: Metrics;
   toast: string | null;
   pushToast: (message: string) => void;
@@ -81,43 +79,34 @@ const AppContext = createContext<AppContextValue | null>(null);
 
 const sum = (values: number[]): number => values.reduce((total, value) => total + value, 0);
 
-/** Heuristic "AI audit" of a freshly uploaded invoice. */
-function auditInvoice(payload: UploadPayload, site: Site | undefined): BillIssue[] {
-  const issues: BillIssue[] = [];
-  const benchmarkKwh = site ? Math.round(site.monthActual / 0.26) : 20000;
+const EMPTY_ACCOUNT: Account = {
+  name: '—',
+  planId: 'starter',
+  sites: 0,
+  contractStart: '',
+  performanceFeePct: 0,
+  flexibilitySharePct: 0,
+};
 
-  if (payload.consumptionKwh > benchmarkKwh * 1.1) {
-    const overKwh = payload.consumptionKwh - benchmarkKwh;
-    issues.push({
-      type: 'Abnormal consumption',
-      detail: `Consumption is ${Math.round((overKwh / benchmarkKwh) * 100)}% above comparable sites.`,
-      impact: -Math.round((overKwh * payload.unitRateP) / 100),
-    });
-  }
-
-  if (payload.unitRateP > 26) {
-    issues.push({
-      type: 'Tariff discrepancy',
-      detail: `Unit rate of ${payload.unitRateP.toFixed(1)}p/kWh is above your contracted rate.`,
-      impact: -Math.round(((payload.unitRateP - 26) * payload.consumptionKwh) / 100),
-    });
-  }
-
-  if (payload.standingChargeP > 100) {
-    issues.push({
-      type: 'Standing charge',
-      detail: 'Standing charge looks high for a meter with this profile — worth querying.',
-      impact: -Math.round((payload.standingChargeP - 100) * 0.31),
-    });
-  }
-
-  return issues;
-}
+const emptyWorkspace = (): WorkspaceData => ({
+  account: EMPTY_ACCOUNT,
+  sites: [],
+  invoices: [],
+  actions: [],
+  monthly: [],
+  assetMix: [],
+  plans: [],
+  suppliers: [],
+  annualSpendTotal: 0,
+  controlMode: 'Approve',
+  uploads: [],
+});
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [invoices, setInvoices] = useState<Invoice[]>(invoicesData);
-  const [actions, setActions] = useState<OptimisationAction[]>(actionsData);
-  const [controlMode, setControlMode] = useState<ControlMode>('Approve');
+  const { getToken, isSignedIn } = useAuth();
+  const [workspace, setWorkspace] = useState<WorkspaceData>(emptyWorkspace);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const toastTimer = useRef<number | null>(null);
 
@@ -129,78 +118,129 @@ export function AppProvider({ children }: { children: ReactNode }) {
     toastTimer.current = window.setTimeout(() => setToast(null), 3600);
   }, []);
 
-  const setActionStatus = useCallback((id: string, status: ActionStatus) => {
-    setActions((prev) => prev.map((a) => (a.id === id ? { ...a, status } : a)));
-  }, []);
+  /** Resolve the bearer token and run an authenticated API call. */
+  const withToken = useCallback(
+    async <T,>(fn: (token: string) => Promise<T>): Promise<T> => {
+      const token = await getToken();
+      if (!token) throw new Error('Not signed in');
+      return fn(token);
+    },
+    [getToken],
+  );
+
+  const refresh = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const { workspace: data } = await withToken((token) => api.getWorkspace(token));
+      setWorkspace(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load workspace');
+    } finally {
+      setLoading(false);
+    }
+  }, [withToken]);
+
+  useEffect(() => {
+    if (isSignedIn) void refresh();
+  }, [isSignedIn, refresh]);
+
+  const setControlMode = useCallback(
+    async (mode: ControlMode) => {
+      setWorkspace((prev) => ({ ...prev, controlMode: mode }));
+      await withToken((token) => api.setControlMode(token, mode));
+    },
+    [withToken],
+  );
+
+  const setActionStatus = useCallback(
+    async (id: string, status: ActionStatus) => {
+      setWorkspace((prev) => ({
+        ...prev,
+        actions: prev.actions.map((a) => (a.id === id ? { ...a, status } : a)),
+      }));
+      await withToken((token) => api.setActionStatus(token, id, status));
+    },
+    [withToken],
+  );
 
   const advanceAction = useCallback(
-    (id: string) => {
-      setActions((prev) =>
-        prev.map((a) => {
-          if (a.id !== id) return a;
-          if (a.status === 'Recommended') {
-            pushToast(`Approved: ${a.title}`);
-            return { ...a, status: 'Approved' };
-          }
-          if (a.status === 'Approved') {
-            pushToast(`Automated: ${a.title} — EnerOS will now control this asset.`);
-            return { ...a, status: 'Automated' };
-          }
-          return a;
-        }),
-      );
+    async (id: string) => {
+      const current = workspace.actions.find((a) => a.id === id);
+      if (current) {
+        if (current.status === 'Recommended') pushToast(`Approved: ${current.title}`);
+        else if (current.status === 'Approved')
+          pushToast(`Automated: ${current.title} — EnerOS will now control this asset.`);
+      }
+      const { action } = await withToken((token) => api.advanceAction(token, id));
+      setWorkspace((prev) => ({
+        ...prev,
+        actions: prev.actions.map((a) => (a.id === id ? action : a)),
+      }));
     },
-    [pushToast],
+    [workspace.actions, withToken, pushToast],
   );
 
   const recoverInvoice = useCallback(
-    (id: string) => {
-      setInvoices((prev) =>
-        prev.map((inv) => (inv.id === id ? { ...inv, status: 'Recovered' } : inv)),
-      );
+    async (id: string) => {
+      const { invoice } = await withToken((token) => api.recoverInvoice(token, id));
+      setWorkspace((prev) => ({
+        ...prev,
+        invoices: prev.invoices.map((inv) => (inv.id === id ? invoice : inv)),
+      }));
       pushToast('Recovery requested — EnerOS will challenge this invoice with the supplier.');
     },
-    [pushToast],
+    [withToken, pushToast],
   );
 
   const analyseUpload = useCallback(
-    (payload: UploadPayload): Invoice => {
-      const site = sitesData.find((s) => s.id === payload.siteId);
-      const issues = auditInvoice(payload, site);
-      const total =
-        (payload.consumptionKwh * payload.unitRateP) / 100 + (payload.standingChargeP * 31) / 100;
-      const invoice: Invoice = {
-        id: `INV-2026-${Math.floor(1000 + Math.random() * 8999)}`,
-        siteId: payload.siteId,
-        supplier: payload.supplier,
-        period: payload.period,
-        consumptionKwh: payload.consumptionKwh,
-        unitRateP: payload.unitRateP,
-        standingChargeP: payload.standingChargeP,
-        total: Math.round(total * 100) / 100,
-        status: issues.length > 0 ? 'Flagged' : 'Clean',
-        issues,
-      };
-      setInvoices((prev) => [invoice, ...prev]);
+    async (payload: UploadPayload): Promise<Invoice> => {
+      const { invoice } = await withToken((token) => api.createInvoice(token, { ...payload }));
+      setWorkspace((prev) => ({ ...prev, invoices: [invoice, ...prev.invoices] }));
       pushToast(
-        issues.length > 0
-          ? `AI audit complete — ${issues.length} issue${issues.length > 1 ? 's' : ''} found on ${invoice.id}.`
+        invoice.issues.length > 0
+          ? `AI audit complete — ${invoice.issues.length} issue${invoice.issues.length > 1 ? 's' : ''} found on ${invoice.id}.`
           : `AI audit complete — ${invoice.id} is clean.`,
       );
       return invoice;
     },
-    [pushToast],
+    [withToken, pushToast],
+  );
+
+  const uploadDocument = useCallback(
+    async (file: File, invoiceId?: string) => {
+      const { upload } = await withToken((token) => api.uploadDocument(token, file, invoiceId));
+      setWorkspace((prev) => ({ ...prev, uploads: [upload, ...prev.uploads] }));
+      pushToast(`Uploaded ${upload.filename} to Cloudflare R2.`);
+      return upload;
+    },
+    [withToken, pushToast],
+  );
+
+  const deleteUpload = useCallback(
+    async (id: string) => {
+      await withToken((token) => api.deleteUpload(token, id));
+      setWorkspace((prev) => ({ ...prev, uploads: prev.uploads.filter((u) => u.id !== id) }));
+    },
+    [withToken],
+  );
+
+  const documentUrl = useCallback(
+    async (id: string) => {
+      const { url } = await withToken((token) => api.documentUrl(token, id));
+      return url;
+    },
+    [withToken],
   );
 
   const metrics = useMemo<Metrics>(() => {
-    const spendActual = sum(sitesData.map((s) => s.monthActual));
-    const spendExpected = sum(sitesData.map((s) => s.monthExpected));
+    const { sites, invoices, actions, monthly } = workspace;
+    const spendActual = sum(sites.map((s) => s.monthActual));
+    const spendExpected = sum(sites.map((s) => s.monthExpected));
     const savings = spendExpected - spendActual;
     const previousMonthSpend = monthly[monthly.length - 2]?.actual ?? spendActual;
     const flagged = invoices.filter((i) => i.status === 'Flagged');
-    const issuesValue = Math.abs(
-      sum(flagged.flatMap((i) => i.issues.map((issue) => issue.impact))),
-    );
+    const issuesValue = Math.abs(sum(flagged.flatMap((i) => i.issues.map((issue) => issue.impact))));
     const potentialMonthlySaving = sum(actions.map((a) => a.monthlySaving));
     const committedSaving = sum(
       actions.filter((a) => a.status !== 'Recommended').map((a) => a.monthlySaving),
@@ -226,26 +266,36 @@ export function AppProvider({ children }: { children: ReactNode }) {
       committedSaving,
       automatedSaving,
     };
-  }, [invoices, actions]);
+  }, [workspace]);
 
-  const getSiteById = useCallback((id: string) => sitesData.find((s) => s.id === id), []);
+  const getSiteById = useCallback(
+    (id: string) => workspace.sites.find((s) => s.id === id),
+    [workspace.sites],
+  );
 
   const value: AppContextValue = {
-    account: accountData,
-    sites: sitesData,
-    invoices,
-    actions,
-    monthly,
-    assetMix,
-    plans,
-    suppliers,
-    annualSpendTotal,
-    controlMode,
+    account: workspace.account,
+    sites: workspace.sites,
+    invoices: workspace.invoices,
+    actions: workspace.actions,
+    monthly: workspace.monthly,
+    assetMix: workspace.assetMix,
+    plans: workspace.plans,
+    suppliers: workspace.suppliers,
+    annualSpendTotal: workspace.annualSpendTotal,
+    controlMode: workspace.controlMode,
+    uploads: workspace.uploads,
+    loading,
+    error,
+    refresh,
     setControlMode,
     setActionStatus,
     advanceAction,
     recoverInvoice,
     analyseUpload,
+    uploadDocument,
+    deleteUpload,
+    documentUrl,
     metrics,
     toast,
     pushToast,
@@ -262,3 +312,5 @@ export function useApp(): AppContextValue {
   }
   return ctx;
 }
+
+

@@ -1,19 +1,23 @@
 import { useState } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import {
+  AlertTriangle,
   Bell,
   Bot,
   Building2,
   CreditCard,
   LayoutDashboard,
+  Loader2,
   Menu,
   Radio,
   Receipt,
+  RefreshCw,
   Search,
   Sparkles,
   Zap,
 } from 'lucide-react';
 import { cx } from '../lib/cx';
+import UserMenu from './UserMenu';
 import { useApp } from '../store';
 
 interface NavItem {
@@ -59,9 +63,45 @@ const PAGE_META: Record<string, { title: string; subtitle: string }> = {
 
 export default function Layout() {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { account, metrics, toast, controlMode } = useApp();
+  const { account, sites, metrics, toast, controlMode, loading, error, refresh } = useApp();
   const location = useLocation();
   const meta = PAGE_META[location.pathname] ?? PAGE_META['/'];
+
+  // First load: the workspace is still coming back from MongoDB.
+  if (loading && sites.length === 0) {
+    return (
+      <div className="grid min-h-screen place-items-center bg-slate-100">
+        <div className="flex flex-col items-center gap-3 text-slate-500">
+          <div className="grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600">
+            <Zap className="h-5 w-5 text-ink-900" strokeWidth={2.5} />
+          </div>
+          <p className="flex items-center gap-2 text-sm">
+            <Loader2 className="h-4 w-4 animate-spin" /> Loading your energy workspace…
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // API unreachable after boot (e.g. the backend restarted).
+  if (error && sites.length === 0) {
+    return (
+      <div className="grid min-h-screen place-items-center bg-slate-100 px-4">
+        <div className="max-w-md rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-sm">
+          <AlertTriangle className="mx-auto h-6 w-6 text-amber-500" />
+          <p className="mt-2 text-sm font-semibold text-slate-800">Could not load your data</p>
+          <p className="mt-1 text-xs text-slate-500">{error}</p>
+          <button
+            type="button"
+            onClick={() => void refresh()}
+            className="mt-4 inline-flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800"
+          >
+            <RefreshCw className="h-4 w-4" /> Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const badgeCount: Record<string, number | undefined> = {
     issues: metrics.issuesOpen,
@@ -206,6 +246,8 @@ export default function Layout() {
                 </span>
               )}
             </button>
+
+            <UserMenu />
           </div>
         </header>
 
@@ -214,7 +256,8 @@ export default function Layout() {
         </main>
 
         <footer className="border-t border-slate-200 px-4 py-4 text-center text-xs text-slate-400 sm:px-6">
-          EnerOS demo · figures are illustrative · the autonomous energy manager for UK SMEs
+          EnerOS · MongoDB · Clerk auth · Cloudflare R2 storage · the autonomous energy manager for
+          UK SMEs
         </footer>
       </div>
 

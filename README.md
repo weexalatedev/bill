@@ -1,13 +1,26 @@
 # EnerOS — AI Energy Manager (billing & optimisation console)
 
-A React front-end for **EnerOS**, *“the autonomous energy manager for Britain’s small and
-medium businesses.”* It implements the product described in the attached business plan,
-with a focus on the **energy billing** workflow: monitoring spend, auditing invoices,
-optimising energy use and billing the customer.
+**EnerOS** is a web + mobile console for *“the autonomous energy manager for Britain’s small and
+medium businesses.”* It implements the product described in the attached business plan, with a
+focus on the **energy billing** workflow: monitoring spend, auditing invoices, optimising energy
+use and billing the customer.
 
-> All figures are illustrative mock data. The dataset is deliberately *internally consistent*
-> so the numbers reconcile: site spend sums to **£81,420**, expected spend to **£91,600**,
-> therefore the dashboard reports **£10,180 saved** — exactly the plan’s example.
+A monorepo with three parts that share **one source of truth** (MongoDB) and **one set of
+credentials**:
+
+| Folder | App | Stack |
+| --- | --- | --- |
+| `/` (root) | Web console | React 19 + Vite + Tailwind |
+| `mobile/` | iOS / Android app | React Native (Expo) |
+| `server/` | Shared API | Node + Express + MongoDB (Mongoose) |
+
+Sign in with the **demo account** on web *and* mobile and you land on the exact same seeded
+workspace — persisted in MongoDB, keyed by the authenticated user.
+
+> The seeded dataset is deliberately *internally consistent* so the numbers reconcile: site
+> spend sums to **£81,420**, expected spend to **£91,600**, therefore the dashboard reports
+> **£10,180 saved** — exactly the plan’s example. It lives in MongoDB (not the bundle) and is
+> written by `server/src/seed/seed.ts`.
 
 ## Feature overview (mapped to the plan)
 
@@ -25,14 +38,45 @@ invoice and re-computes KPIs, and the fee calculator recalculates live.
 
 ## Tech stack
 
-- **React 19** + **TypeScript**
-- **Vite 8** (build tooling / dev server)
-- **Tailwind CSS v4** (via `@tailwindcss/vite`)
-- **React Router v7** (client-side routing)
-- **Recharts** (charts)
-- **lucide-react** (icons)
+**Web** — React 19 + TypeScript, Vite 8, Tailwind CSS v4 (`@tailwindcss/vite`), React Router v7,
+Recharts, lucide-react, `@clerk/clerk-react`.
+
+**Mobile** — React Native (Expo 57), React Navigation (bottom tabs), `react-native-svg` charts,
+lucide-react-native, `@clerk/clerk-expo`.
+
+**Server** — Node + Express 4, MongoDB via Mongoose 8, Zod validation, `multer` multipart
+uploads, `@clerk/express` for session verification, `@aws-sdk/client-s3` for Cloudflare R2.
 
 ## Getting started
+
+### 1. Backend (required by both clients)
+
+```bash
+cd server
+npm install
+cp .env.example .env         # optional — sensible defaults work out of the box
+npm run seed                 # create the demo account + workspace in MongoDB
+npm run dev                  # http://localhost:4000
+```
+
+No local `mongod`? Use the zero-config in-memory variant (data is ephemeral):
+
+```bash
+cd server
+npm run dev:memory           # boots an in-memory MongoDB, seeds, then serves the API
+```
+
+Server scripts:
+
+```bash
+npm run dev        # tsx watch src/index.ts
+npm run dev:memory # in-memory MongoDB + seed + serve (no mongod required)
+npm run seed       # (re)create the demo account + dataset in MongoDB
+npm run smoke      # end-to-end API test against an in-memory MongoDB (24 checks)
+npm run build      # tsc --noEmit
+```
+
+### 2. Web app
 
 ```bash
 npm install
@@ -47,36 +91,92 @@ npm run preview    # preview the production build
 npm run typecheck  # type-check only
 ```
 
+### 3. Mobile app
+
+```bash
+cd mobile
+npm install
+npm run start      # Expo dev server — press a / i for Android / iOS
+npm run typecheck  # tsc --noEmit
+```
+
+## Demo login (identical on web **and** mobile)
+
+`npm run seed` prints the credentials; the defaults are:
+
+| Field | Value |
+| --- | --- |
+| Email | `demo@eneros.app` |
+| Password | `EnerOS-demo-2026` |
+
+Both clients call `GET /api/config` on boot, discover the auth mode, and attach the same bearer
+token (Clerk session JWT, or a dev-auth token when Clerk is unconfigured) to every API call. The
+server derives a stable owner id (`clerk:<userId>` or `user:<email>`) from that identity, so the
+web console and the phone app read and write the **same** MongoDB documents.
+
+## Configuration
+
+Everything is env-driven with safe local defaults.
+
+**`server/.env`** (see `server/.env.example`): `MONGODB_URI`, `CLERK_PUBLISHABLE_KEY` /
+`CLERK_SECRET_KEY`, `R2_ACCOUNT_ID` / `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` / `R2_BUCKET`
+(+ optional `R2_PUBLIC_BASE_URL`), `CORS_ORIGINS`, and the `DEMO_*` account. Clerk and R2 are
+each *optional* — the server degrades gracefully when they are absent.
+
+**`.env`** (web) and **`mobile/.env`** only need `VITE_API_URL` / `EXPO_PUBLIC_API_URL`. Clerk
+keys are **not** duplicated there — clients read them from the API’s `/api/config`.
+
 ## Project structure
 
 ```
-src/
+server/                    # shared API (single source of truth)
+├─ src/
+│  ├─ index.ts             # boot: connect MongoDB, start Express
+│  ├─ app.ts               # express app: CORS, JSON, Clerk middleware, routes
+│  ├─ env.ts               # typed env + clerkEnabled / r2Enabled flags
+│  ├─ db.ts                # Mongoose connection helpers
+│  ├─ auth.ts              # requireUser / resolveIdentity (Clerk + dev tokens)
+│  ├─ r2.ts                # Cloudflare R2 put / delete / presigned GET
+│  ├─ models/index.ts      # Mongoose schemas (owner-scoped documents)
+│  ├─ services/
+│  │  ├─ workspace.ts      # load / provision / mutate a workspace
+│  │  └─ catalog.ts        # plan + supplier catalogue
+│  ├─ lib/audit.ts         # deterministic invoice-audit heuristic
+│  ├─ routes/              # auth · workspace · invoices · actions · uploads · config
+│  ├─ seed/
+│  │  ├─ data.ts           # the consistent 12-site demo dataset
+│  │  └─ seed.ts           # `npm run seed` — creates demo user + workspace
+│  └─ scripts/             # smoke.ts (e2e) · memory.ts (in-memory dev API)
+└─ .env.example
+
+src/                       # web console
 ├─ App.tsx                 # routes
-├─ main.tsx                # entry (BrowserRouter + AppProvider)
-├─ store.tsx               # app state, derived metrics, mutations (Context)
-├─ types.ts                # domain model
+├─ main.tsx                # entry (fetches config, mounts auth provider)
+├─ store.tsx               # API-backed state, derived metrics, mutations
+├─ types.ts                # domain model (mirrors server/src/types.ts)
 ├─ index.css               # Tailwind v4 + design tokens
 ├─ lib/
+│  ├─ api.ts               # REST client (bearer token per call)
+│  ├─ auth.tsx             # unified Clerk / dev auth provider
 │  ├─ format.ts            # en-GB £ / kWh / % formatting
 │  └─ cx.ts                # classname joiner
-├─ data/mock.ts            # 12 sites, invoices, actions, plans (consistent figures)
 ├─ components/
+│  ├─ AuthGate.tsx         # sign-in gate
+│  ├─ UserMenu.tsx         # account menu + sign-out
 │  ├─ Layout.tsx           # sidebar nav, top bar, toast host
 │  └─ ui.tsx               # Card, StatCard, Badge, ProgressBar, EmptyState
-└─ pages/
-   ├─ Dashboard.tsx        # Module A
-   ├─ Bills.tsx            # Module B
-   ├─ Optimiser.tsx        # Module C / D
-   ├─ Sites.tsx            # Layer 1
-   ├─ Copilot.tsx          # Layer 2
-   └─ Plans.tsx            # Pricing & billing
+└─ pages/                  # Dashboard · Bills · Optimiser · Sites · Copilot · Plans
+
+mobile/                    # React Native / Expo app (same API, same credentials)
 ```
 
 ## Mobile app (React Native / Expo)
 
-`mobile/` is a React Native port of the same product. It **reuses the domain logic** — the
-store, mock dataset, types and formatting helpers were ported from `src/`, and the UI kit,
-hand-rolled SVG charts and six screens were rebuilt for a phone viewport.
+`mobile/` is a React Native port of the same product. It consumes the **same API** as the web
+app — the store, types and formatting helpers are mirrored from `src/`, and the UI kit, hand-rolled
+SVG charts and six screens were rebuilt for a phone viewport. Auth is shared: the Expo app signs in
+with Clerk (`@clerk/clerk-expo`, tokens cached in `expo-secure-store`) when configured, otherwise
+with the same dev-auth demo login as the web app.
 
 ```bash
 cd mobile
@@ -90,7 +190,7 @@ npm run export       # expo export --platform ios (proves the bundle compiles)
 | Web page | Mobile screen | Notes |
 | --- | --- | --- |
 | Dashboard | `src/screens/DashboardScreen.tsx` | KPI row, spend/expected area chart, asset + site bars, findings |
-| Bill Auditor | `src/screens/BillsScreen.tsx` | Filter chips, audit sheet, issue recovery |
+| Bill Auditor | `src/screens/BillsScreen.tsx` | Filter chips, audit sheet, issue recovery, Cloudflare R2 document upload |
 | Optimiser | `src/screens/OptimiserScreen.tsx` | Recommend → Approve → Automate flow |
 | Sites | `src/screens/SitesScreen.tsx` | Portfolio, controllable loads, status |
 | Copilot | `src/screens/CopilotScreen.tsx` | Chat thread + suggestion chips + keyboard handling |
@@ -100,21 +200,31 @@ Mobile-specific adaptations:
 
 - **No Tailwind / DOM.** Design tokens live in `src/theme.ts` and are mirrored into
   `StyleSheet.create`; charts are hand-written with `react-native-svg` (Recharts is DOM-only).
+- **Shared auth.** `src/lib/auth.tsx` mirrors the web provider — Clerk via `@clerk/clerk-expo`
+  (tokens cached in `expo-secure-store`, with an in-memory fallback on web) or the dev demo login.
 - **`Intl` is not trusted on Hermes.** `src/lib/format.ts` provides RN-safe formatting and a
   hand-rolled `compactGbp`, since `notation: 'compact'` is not reliable.
 - **`Chips` replaces `<select>`** and `KeyboardAvoidingView` wraps the Copilot thread.
+- **`expo-document-picker`** powers the Bills screen’s “Upload PDF or photo” button (graceful
+  `503` toast when the server has no R2 credentials); downloads open via the presigned URL.
 - Six bottom tabs via `@react-navigation/bottom-tabs`, wrapped in `SafeAreaProvider` +
   `AppProvider`; `ToastHost` floats above the tab bar.
 
 ## Notes & assumptions
 
-- **No backend.** Data lives in `src/data/mock.ts`; state is held in a React Context
-  (`src/store.tsx`). Swapping in a real API means replacing the store’s data source and
-  mutation functions — the pages consume the store through the `useApp()` hook only.
-- **The “AI” is a deterministic demo** (keyword matching in `Copilot.tsx` and a small
-  heuristic in `store.tsx#auditInvoice`) so the app runs offline and predictably.
+- **Data lives in MongoDB.** The server seeds a demo workspace per owner; both clients hydrate
+  their store from `GET /api/workspace` and persist mutations through the API, so web and mobile
+  always agree. `getWorkspace()` auto-provisions any new user if `AUTO_PROVISION=true`.
+- **Auth & storage are optional.** With Clerk keys set, `requireUser` trusts the Clerk session
+  JWT; without them the server issues its own signed dev tokens. Invoice PDFs/photos are stored
+  in **Cloudflare R2** (private buckets are read back through short-lived presigned URLs); with no
+  `R2_*` vars, uploads return `503` and the rest of the API still works.
+- **The “AI” is a deterministic demo** (keyword matching in `Copilot.tsx` and a server-side
+  heuristic in `server/src/lib/audit.ts`) so behaviour is predictable and identical across clients.
 - **Currency is GBP** and formatting is en-GB throughout, matching the UK SME focus.
 - Pricing, the 15% performance fee and the 20–30% flexibility share follow the plan and are
   presented as *testable assumptions*, not fixed commitments — as the plan itself notes.
-- The production bundle is a single chunk (~700 kB, mostly Recharts). Code-splitting per
+- Run `cd server && npm run smoke` to exercise auth, workspace, audit, action progression,
+  control mode and recovery end-to-end (24 checks) against an in-memory MongoDB.
+- The web production bundle is a single chunk (~790 kB, mostly Recharts). Code-splitting per
   route would be the next optimisation if bundle size matters.
