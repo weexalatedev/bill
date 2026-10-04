@@ -69,7 +69,7 @@ npm run dev:memory           # boots an in-memory MongoDB, seeds, then serves th
 Server scripts:
 
 ```bash
-npm run dev        # tsx watch src/index.ts
+npm run dev        # tsx watch src/local.ts
 npm run dev:memory # in-memory MongoDB + seed + serve (no mongod required)
 npm run seed       # (re)create the demo account + dataset in MongoDB
 npm run smoke      # end-to-end API test against an in-memory MongoDB (24 checks)
@@ -150,7 +150,8 @@ Clerk keys are **not** duplicated there — clients read them from the API’s `
 ```
 server/                    # shared API (single source of truth)
 ├─ src/
-│  ├─ index.ts             # boot: connect MongoDB, start Express
+│  ├─ index.ts             # Express app export for Vercel
+│  ├─ local.ts             # local boot: connect MongoDB, start Express
 │  ├─ app.ts               # express app: CORS, JSON, Clerk middleware, routes
 │  ├─ env.ts               # typed env + clerkEnabled / r2Enabled flags
 │  ├─ db.ts                # Mongoose connection helpers

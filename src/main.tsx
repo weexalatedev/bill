@@ -22,9 +22,11 @@ function BootScreen({ error }: { error?: string | null }) {
             <p className="text-sm font-semibold text-slate-800">Cannot reach the EnerOS API</p>
             <p className="mt-1 text-xs text-slate-500">{error}</p>
             <p className="mt-3 text-xs text-slate-400">
-              Start the backend with <code className="rounded bg-slate-200 px-1">cd server &amp;&amp; npm run dev</code>{' '}
-              and make sure the API is available at <code className="rounded bg-slate-200 px-1">/api</code>.
-              Set <code className="rounded bg-slate-200 px-1">VITE_API_URL</code> only when using a separate API host.
+              Make sure the API is available at <code className="rounded bg-slate-200 px-1">/api</code>.
+              For local development, start it with{' '}
+              <code className="rounded bg-slate-200 px-1">cd server &amp;&amp; npm run dev</code>.
+              For Vercel, check the server function logs and confirm <code className="rounded bg-slate-200 px-1">MONGODB_URI</code>{' '}
+              is configured.
             </p>
           </div>
         ) : (
