@@ -1,6 +1,6 @@
-// REST client for the EnerOS API. The base URL comes from VITE_API_URL
-// (defaults to the local API). Each call takes an optional bearer token, which
-// the store obtains from the active auth provider (Clerk or dev mode).
+// REST client for the EnerOS API. Requests use the same origin by default and
+// can target a separate API host through VITE_API_URL. Each call takes an
+// optional bearer token, which the store obtains from the active auth provider.
 import type {
   Account,
   AssetSlice,
@@ -13,7 +13,7 @@ import type {
 } from '../types';
 
 export const API_URL: string =
-  (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '') ?? 'http://localhost:4000';
+  (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '') ?? '';
 
 export interface ApiConfig {
   authMode: 'clerk' | 'dev';

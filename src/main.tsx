@@ -6,7 +6,7 @@ import { Loader2, Zap } from 'lucide-react';
 import App from './App.tsx';
 import { AppProvider } from './store.tsx';
 import AuthGate from './components/AuthGate.tsx';
-import { API_URL, api, type ApiConfig } from './lib/api.ts';
+import { api, type ApiConfig } from './lib/api.ts';
 import { ClerkAuthProvider, DevAuthProvider } from './lib/auth.tsx';
 import './index.css';
 
@@ -23,8 +23,8 @@ function BootScreen({ error }: { error?: string | null }) {
             <p className="mt-1 text-xs text-slate-500">{error}</p>
             <p className="mt-3 text-xs text-slate-400">
               Start the backend with <code className="rounded bg-slate-200 px-1">cd server &amp;&amp; npm run dev</code>{' '}
-              and make sure <code className="rounded bg-slate-200 px-1">VITE_API_URL</code> points at it
-              (currently {API_URL}).
+              and make sure the API is available at <code className="rounded bg-slate-200 px-1">/api</code>.
+              Set <code className="rounded bg-slate-200 px-1">VITE_API_URL</code> only when using a separate API host.
             </p>
           </div>
         ) : (

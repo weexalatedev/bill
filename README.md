@@ -91,6 +91,20 @@ npm run preview    # preview the production build
 npm run typecheck  # type-check only
 ```
 
+### Deploying the web app and API to Vercel
+
+The root [`vercel.json`](./vercel.json) configures two services in one Vercel
+project: the Vite web app serves all non-API paths, and the Express API is
+publicly routed under `/api/*`. The API already mounts its routes at `/api`, so
+the browser uses same-origin `/api/...` requests; leave `VITE_API_URL` unset for
+this deployment. Locally, Vite proxies `/api` to `http://localhost:4000`.
+
+Configure the API service's required secrets and connection settings in Vercel
+environment variables (including `MONGODB_URI` and, when used,
+`CLERK_PUBLISHABLE_KEY` / `CLERK_SECRET_KEY` and the `R2_*` variables). The
+mobile app is not a Vercel service; set `EXPO_PUBLIC_API_URL` to the deployed
+origin when building it so it can reach the public `/api` routes.
+
 ### 3. Mobile app
 
 ```bash
@@ -123,8 +137,10 @@ Everything is env-driven with safe local defaults.
 (+ optional `R2_PUBLIC_BASE_URL`), `CORS_ORIGINS`, and the `DEMO_*` account. Clerk and R2 are
 each *optional* — the server degrades gracefully when they are absent.
 
-**`.env`** (web) and **`mobile/.env`** only need `VITE_API_URL` / `EXPO_PUBLIC_API_URL`. Clerk
-keys are **not** duplicated there — clients read them from the API’s `/api/config`.
+**`.env`** (web) may set `VITE_API_URL` to override the same-origin `/api` path
+when the API is hosted separately. **`mobile/.env`** sets `EXPO_PUBLIC_API_URL`
+to the API origin (for example, `http://localhost:4000` during local development).
+Clerk keys are **not** duplicated there — clients read them from the API’s `/api/config`.
 
 ## Project structure
 
