@@ -102,8 +102,11 @@ this deployment. Locally, Vite proxies `/api` to `http://localhost:4000`.
 Configure the API service's required secrets and connection settings in Vercel
 environment variables (including `MONGODB_URI` and, when used,
 `CLERK_PUBLISHABLE_KEY` / `CLERK_SECRET_KEY` and the `R2_*` variables). The
-mobile app is not a Vercel service; set `EXPO_PUBLIC_API_URL` to the deployed
-origin when building it so it can reach the public `/api` routes.
+Express app is exported as a Vercel function and connects to MongoDB when API
+requests arrive; `/api/health` can be used to verify the function is responding.
+If `MONGODB_URI` is missing in Vercel, API requests return a JSON configuration
+error. The mobile app is not a Vercel service; set `EXPO_PUBLIC_API_URL` to the
+deployed origin when building it so it can reach the public `/api` routes.
 
 ### 3. Mobile app
 

@@ -3,7 +3,7 @@ import cors from 'cors';
 import { clerkMiddleware } from '@clerk/express';
 import { apiRouter } from './routes/index.js';
 import { clerkEnabled, r2Enabled, env } from './env.js';
-import { isDbConnected } from './db.js';
+import { connectDb, isDbConnected } from './db.js';
 
 export function createApp(): express.Express {
   const app = express();
@@ -38,6 +38,15 @@ export function createApp(): express.Express {
       storage: r2Enabled ? 'r2' : 'disabled',
       time: new Date().toISOString(),
     });
+  });
+
+  app.use('/api', async (_req, _res, next) => {
+    try {
+      await connectDb();
+      next();
+    } catch (error) {
+      next(error);
+    }
   });
 
   app.use('/api', apiRouter);

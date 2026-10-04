@@ -84,9 +84,24 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
   });
 
   const text = await res.text();
-  const data = text ? JSON.parse(text) : null;
+  let data: unknown = null;
+  if (text) {
+    try {
+      data = JSON.parse(text);
+    } catch {
+      const message = text.trim().slice(0, 300);
+      throw new ApiError(
+        res.status,
+        res.ok ? 'The API returned an invalid response.' : message || `Request failed (${res.status})`,
+      );
+    }
+  }
   if (!res.ok) {
-    throw new ApiError(res.status, (data && data.error) || `Request failed (${res.status})`);
+    const message =
+      data && typeof data === 'object' && 'error' in data && typeof data.error === 'string'
+        ? data.error
+        : `Request failed (${res.status})`;
+    throw new ApiError(res.status, message);
   }
   return data as T;
 }
