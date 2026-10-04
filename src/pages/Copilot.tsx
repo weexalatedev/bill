@@ -1,0 +1,280 @@
+import { useEffect, useRef, useState } from 'react';
+import { Bot, Lightbulb, Loader2, Send, Sparkles, User } from 'lucide-react';
+import { useApp } from '../store';
+import type { ChatMessage } from '../types';
+import { Card, SectionHeading } from '../components/ui';
+import { gbp } from '../lib/format';
+
+interface CopilotMetrics {
+  spendActual: number;
+  spendExpected: number;
+  savings: number;
+  savingsRate: number;
+  issuesValue: number;
+}
+
+/** Deterministic demo "LLM" — keyword-matched answers grounded in the dataset. */
+function answer(question: string, metrics: CopilotMetrics): { text: string; suggestions: string[] } {
+  const q = question.toLowerCase();
+
+  if (q.includes('spend') || q.includes('cost') || q.includes('bill')) {
+    return {
+      text: `This month you spent ${gbp(metrics.spendActual)} across 12 sites — ${gbp(
+        metrics.savings,
+      )} (${metrics.savingsRate.toFixed(1)}%) below the expected baseline of ${gbp(
+        metrics.spendExpected,
+      )}. The biggest drivers are HVAC (32%) and refrigeration (26%).`,
+      suggestions: ['Which sites are above baseline?', 'Show refrigeration anomalies'],
+    };
+  }
+
+  if (q.includes('saving') || q.includes('save')) {
+    return {
+      text: `I have verified ${gbp(metrics.savings)} this month, plus a further ${gbp(
+        2500,
+      )}/month of identified opportunities waiting for approval in the Optimiser. At a 15% performance fee that costs you ${gbp(
+        Math.round(metrics.savings * 0.15),
+      )} — you keep the rest of the benefit.`,
+      suggestions: ['What should I approve first?', 'How is the saving verified?'],
+    };
+  }
+
+  if (q.includes('refriger') || q.includes('cold') || q.includes('defrost')) {
+    return {
+      text: 'Two refrigeration findings: the Manchester restaurant runs its defrost cycle at 17:00 inside the peak tariff window (moving it to 22:00 saves £420/month), and Northgate Foods has an overnight base load 24% above baseline — that usually points to a failing door seal or a compressor that is about to fail.',
+      suggestions: ['Approve the defrost change', 'Raise a fault on Northgate Foods'],
+    };
+  }
+
+  if (q.includes('ev') || q.includes('charge') || q.includes('fleet')) {
+    return {
+      text: "Your EV fleet at Grand Central Hotel currently charges 19:00–22:00. The price forecast for tomorrow shows a cheap window at 01:00–04:00. Shifting charging there saves an estimated £420/month with no operational impact — the fleet is parked overnight.",
+      suggestions: ['Approve EV charging shift', 'What is the price forecast?'],
+    };
+  }
+
+  if (q.includes('tariff') || q.includes('rate') || q.includes('standing')) {
+    return {
+      text: `I found ${gbp(metrics.issuesValue)} of recoverable value in this month's invoices — including a unit rate 1.8p/kWh above contract in Manchester and a standing charge increased without notice at the hotel. You can challenge both from the Bill Auditor.`,
+      suggestions: ['Challenge the Manchester invoice', 'Who is the most expensive supplier?'],
+    };
+  }
+
+  if (q.includes('flex') || q.includes('battery') || q.includes('demand')) {
+    return {
+      text: 'Your flexible assets (battery, EV fleet, HVAC and refrigeration) can be aggregated into the flexibility market. At a 25% platform share that is a second revenue stream on top of the energy savings.',
+      suggestions: ['Which assets are flexible?', 'Show flexibility revenue'],
+    };
+  }
+
+  if (q.includes('verify') || q.includes('measure') || q.includes('baseline')) {
+    return {
+      text: 'Every site gets a 12-month baseline model. After an intervention we normalise for weather and trading hours, then compare actual usage against that baseline. No savings are claimed without this methodology.',
+      suggestions: ['Show the baseline for Manchester', 'When is the next measurement?'],
+    };
+  }
+
+  return {
+    text: `Here's the picture: ${gbp(metrics.spendActual)} spent this month, ${gbp(
+      metrics.savings,
+    )} saved against baseline, and ${gbp(
+      metrics.issuesValue,
+    )} of billing issues to recover. Ask me about spend, savings, refrigeration, EV charging or tariffs.`,
+    suggestions: ['Where are we spending most?', 'What should I approve first?'],
+  };
+}
+
+const INITIAL: ChatMessage = {
+  id: 'm0',
+  role: 'assistant',
+  text: "Hi — I'm the EnerOS Copilot. I have read your meters, bills and operating patterns. Ask me anything about your energy, or pick a suggestion below.",
+  suggestions: ['Where are we spending most?', 'What should I approve first?', 'Any billing issues?'],
+};
+
+const CODEX = [
+  'Where are we spending most?',
+  'Any billing issues this month?',
+  'What should I approve first?',
+  'Explain the refrigeration anomaly',
+  'When should we charge the EV fleet?',
+  'How is the saving verified?',
+];
+
+export default function Copilot() {
+  const { metrics } = useApp();
+  const [messages, setMessages] = useState<ChatMessage[]>([INITIAL]);
+  const [input, setInput] = useState('');
+  const [thinking, setThinking] = useState(false);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const lastSuggestions = [...messages]
+    .reverse()
+    .find((m) => m.role === 'assistant' && m.suggestions?.length)?.suggestions;
+
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
+  }, [messages, thinking]);
+
+  const send = (text: string) => {
+    const trimmed = text.trim();
+    if (!trimmed || thinking) return;
+    const userMessage: ChatMessage = { id: `u${Date.now()}`, role: 'user', text: trimmed };
+    setMessages((prev) => [...prev, userMessage]);
+    setInput('');
+    setThinking(true);
+
+    window.setTimeout(() => {
+      const reply = answer(trimmed, metrics);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `a${Date.now()}`,
+          role: 'assistant',
+          text: reply.text,
+          suggestions: reply.suggestions,
+        },
+      ]);
+      setThinking(false);
+    }, 750);
+  };
+
+  return (
+    <div className="grid gap-4 lg:grid-cols-3">
+      <Card padded={false} className="flex h-[70vh] flex-col overflow-hidden lg:col-span-2">
+        <div className="flex items-center gap-3 border-b border-slate-100 px-5 py-4">
+          <div className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600">
+            <Bot className="h-5 w-5 text-white" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-slate-900">EnerOS Copilot</p>
+            <p className="flex items-center gap-1.5 text-xs text-slate-500">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              Grounded in your live energy data
+            </p>
+          </div>
+        </div>
+
+        <div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto px-5 py-5">
+          {messages.map((message) => (
+            <div
+              key={message.id}
+              className={'flex gap-3 ' + (message.role === 'user' ? 'flex-row-reverse' : '')}
+            >
+              <div
+                className={
+                  'grid h-8 w-8 shrink-0 place-items-center rounded-lg ' +
+                  (message.role === 'user'
+                    ? 'bg-slate-900 text-white'
+                    : 'bg-emerald-500/10 text-emerald-600')
+                }
+              >
+                {message.role === 'user' ? (
+                  <User className="h-4 w-4" />
+                ) : (
+                  <Sparkles className="h-4 w-4" />
+                )}
+              </div>
+              <div
+                className={
+                  'max-w-[80%] rounded-2xl px-4 py-2.5 text-sm ' +
+                  (message.role === 'user'
+                    ? 'bg-slate-900 text-white'
+                    : 'bg-slate-100 text-slate-700')
+                }
+              >
+                {message.text}
+              </div>
+            </div>
+          ))}
+
+          {thinking && (
+            <div className="flex gap-3">
+              <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-emerald-500/10 text-emerald-600">
+                <Sparkles className="h-4 w-4" />
+              </div>
+              <div className="flex items-center gap-2 rounded-2xl bg-slate-100 px-4 py-2.5 text-sm text-slate-500">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Analysing your energy data…
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="border-t border-slate-100 px-5 py-4">
+          {lastSuggestions && lastSuggestions.length > 0 && (
+            <div className="mb-3 flex flex-wrap gap-2">
+              {lastSuggestions.map((suggestion) => (
+                <button
+                  key={suggestion}
+                  type="button"
+                  onClick={() => send(suggestion)}
+                  className="rounded-full border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:border-emerald-300 hover:bg-emerald-50/60 hover:text-emerald-700"
+                >
+                  {suggestion}
+                </button>
+              ))}
+            </div>
+          )}
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              send(input);
+            }}
+            className="flex items-center gap-2"
+          >
+            <input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Ask about your energy…"
+              className="flex-1 rounded-xl border border-slate-200 px-4 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+            />
+            <button
+              type="submit"
+              disabled={thinking || input.trim().length === 0}
+              className="grid h-11 w-11 place-items-center rounded-xl bg-emerald-600 text-white transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-40"
+              aria-label="Send message"
+            >
+              <Send className="h-5 w-5" />
+            </button>
+          </form>
+        </div>
+      </Card>
+
+      <div className="space-y-4">
+        <Card>
+          <SectionHeading title="Try asking" subtitle="Grounded questions about this account." />
+          <ul className="space-y-2">
+            {CODEX.map((item) => (
+              <li key={item}>
+                <button
+                  type="button"
+                  onClick={() => send(item)}
+                  className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-left text-sm text-slate-700 transition-colors hover:border-emerald-300 hover:bg-emerald-50/50"
+                >
+                  {item}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </Card>
+
+        <Card className="bg-ink-900 text-white">
+          <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-emerald-300">
+            <Lightbulb className="h-3.5 w-3.5" /> How it works
+          </div>
+          <p className="text-sm text-slate-300">
+            The Copilot explains decisions; a deterministic optimisation engine makes them. Ask
+            “why” and it shows the reasoning behind a control change.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <span className="rounded-full bg-emerald-500/15 px-2.5 py-1 text-xs font-semibold text-emerald-300">
+              Explain the decision
+            </span>
+            <span className="rounded-full bg-sky-500/15 px-2.5 py-1 text-xs font-semibold text-sky-300">
+              Engine makes the decision
+            </span>
+          </div>
+        </Card>
+      </div>
+    </div>
+  );
+}

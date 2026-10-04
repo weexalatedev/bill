@@ -1,0 +1,26 @@
+{
+  "expo": {
+    "name": "EnerOS",
+    "slug": "eneros-mobile",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "eneros",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "backgroundColor": "#f1f5f9",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.eneros.mobile"
+    },
+    "android": {
+      "package": "com.eneros.mobile",
+      "edgeToEdgeEnabled": true,
+      "adaptiveIcon": {
+        "backgroundColor": "#0b1220"
+      }
+    },
+    "web": {
+      "bundler": "metro"
+    }
+  }
+}
