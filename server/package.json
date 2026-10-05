@@ -9,6 +9,7 @@
     "dev:memory": "tsx src/scripts/memory.ts",
     "start": "tsx src/local.ts",
     "seed": "tsx src/seed/seed.ts",
+    "seed:user": "tsx src/scripts/seed-user.ts",
     "smoke": "tsx src/scripts/smoke.ts",
     "verify:analysis": "tsx src/scripts/verify-analysis.ts",
     "typecheck": "tsc --noEmit",
