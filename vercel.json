@@ -19,6 +19,20 @@
     },
     {
       "source": "/(.*)",
+      "has": [
+        {
+          "type": "header",
+          "key": "accept",
+          "value": ".*text/html.*"
+        }
+      ],
+      "destination": {
+        "service": "app",
+        "path": "/"
+      }
+    },
+    {
+      "source": "/(.*)",
       "destination": {
         "service": "app"
       }

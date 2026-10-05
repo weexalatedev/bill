@@ -103,10 +103,13 @@ npm run typecheck  # type-check only
 ### Deploying the web app and API to Vercel
 
 The root [`vercel.json`](./vercel.json) configures two services in one Vercel
-project: the Vite web app serves all non-API paths, and the Express API is
-publicly routed under `/api/*`. The API already mounts its routes at `/api`, so
-the browser uses same-origin `/api/...` requests; leave `VITE_API_URL` unset for
-this deployment. Locally, Vite proxies `/api` to `http://localhost:4000`.
+project: HTML navigations are rewritten to the Vite app's SPA entry so nested
+client routes (including Clerk's `/sign-in/*` and `/sign-up/*` routes) work on
+direct visits and refreshes; other non-API requests are served by the Vite app
+as-is, and the Express API is publicly routed under `/api/*`. The API already
+mounts its routes at `/api`, so the browser uses same-origin `/api/...` requests;
+leave `VITE_API_URL` unset for this deployment. Locally, Vite proxies `/api` to
+`http://localhost:4000`.
 
 Configure the API service's required secrets and connection settings in Vercel
 environment variables (including `MONGODB_URI` and, when used,
