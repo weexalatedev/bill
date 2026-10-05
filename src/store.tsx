@@ -8,7 +8,7 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import { api, type UploadedDocument, type WorkspaceData } from './lib/api';
+import { api, type SiteDraft, type UploadedDocument, type WorkspaceData } from './lib/api';
 import { useAuth } from './lib/auth';
 import type {
   Account,
@@ -65,6 +65,8 @@ interface AppContextValue {
   setActionStatus: (id: string, status: ActionStatus) => Promise<void>;
   advanceAction: (id: string) => Promise<void>;
   recoverInvoice: (id: string) => Promise<void>;
+  addSite: (draft: SiteDraft) => Promise<Site>;
+  removeSite: (id: string) => Promise<void>;
   analyseUpload: (payload: UploadPayload) => Promise<Invoice>;
   uploadDocument: (file: File, invoiceId?: string) => Promise<UploadedDocument>;
   deleteUpload: (id: string) => Promise<void>;
@@ -225,6 +227,46 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [withToken],
   );
 
+  const addSite = useCallback(
+    async (draft: SiteDraft): Promise<Site> => {
+      const { site } = await withToken((token) => api.createSite(token, draft));
+      // `annualSpendTotal` is derived from the site list, so recompute it here
+      // rather than refetching the whole workspace on every add.
+      setWorkspace((prev) => {
+        const sites = [...prev.sites, site];
+        return {
+          ...prev,
+          sites,
+          account: { ...prev.account, sites: sites.length },
+          annualSpendTotal: sites.reduce((sum, s) => sum + s.annualSpend, 0),
+        };
+      });
+      pushToast(`${site.name} added to the portfolio.`);
+      return site;
+    },
+    [withToken, pushToast],
+  );
+
+  const removeSite = useCallback(
+    async (id: string) => {
+      const snapshot = workspace.sites;
+      await withToken((token) => api.deleteSite(token, id));
+      setWorkspace((prev) => {
+        const sites = prev.sites.filter((s) => s.id !== id);
+        return {
+          ...prev,
+          sites,
+          invoices: prev.invoices.filter((i) => i.siteId !== id),
+          actions: prev.actions.filter((a) => a.siteId !== id),
+          account: { ...prev.account, sites: sites.length },
+          annualSpendTotal: sites.reduce((sum, s) => sum + s.annualSpend, 0),
+        };
+      });
+      pushToast(`Removed ${snapshot.find((s) => s.id === id)?.name ?? 'site'} from the portfolio.`);
+    },
+    [withToken, workspace.sites, pushToast],
+  );
+
   const documentUrl = useCallback(
     async (id: string) => {
       const { url } = await withToken((token) => api.documentUrl(token, id));
@@ -292,6 +334,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setActionStatus,
     advanceAction,
     recoverInvoice,
+    addSite,
+    removeSite,
     analyseUpload,
     uploadDocument,
     deleteUpload,

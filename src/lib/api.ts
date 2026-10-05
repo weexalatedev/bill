@@ -94,6 +94,25 @@ export interface PortfolioRisk {
 
 export type { AnalysisFinding, BillAnalysis, SiteRisk };
 
+/**
+ * The writable subset of a site — the server mints `id` and validates the same
+ * shape, so this stays a structural mirror of `Site` minus the read-only bits.
+ */
+export interface SiteDraft {
+  name: string;
+  city: string;
+  region: string;
+  type: Site['type'];
+  annualSpend: number;
+  monthActual: number;
+  monthExpected?: number;
+  meterType: Site['meterType'];
+  status?: Site['status'];
+  postcode?: string;
+  loads: string[];
+  lastSynced?: string;
+}
+
 export interface UploadedDocument {
   id: string;
   key: string;
@@ -190,6 +209,19 @@ export const api = {
     request<{ workspace: WorkspaceData; user: { email: string; name: string } }>('/api/workspace', {
       token,
     }),
+
+  createSite: (token: string, payload: SiteDraft) =>
+    request<{ site: Site }>('/api/workspace/sites', { method: 'POST', body: payload, token }),
+
+  updateSite: (token: string, id: string, payload: Partial<SiteDraft>) =>
+    request<{ site: Site }>(`/api/workspace/sites/${id}`, {
+      method: 'PATCH',
+      body: payload,
+      token,
+    }),
+
+  deleteSite: (token: string, id: string) =>
+    request<null>(`/api/workspace/sites/${id}`, { method: 'DELETE', token }),
 
   createInvoice: (token: string, payload: Record<string, unknown>) =>
     request<{ invoice: Invoice }>('/api/invoices', { method: 'POST', body: payload, token }),

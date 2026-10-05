@@ -1,5 +1,5 @@
-import type { ReactNode } from 'react';
-import { ArrowDownRight, ArrowUpRight } from 'lucide-react';
+import { useEffect, type ReactNode } from 'react';
+import { ArrowDownRight, ArrowUpRight, X } from 'lucide-react';
 import { cx } from '../lib/cx';
 
 export type Tone = 'emerald' | 'amber' | 'rose' | 'sky' | 'slate' | 'violet';
@@ -97,7 +97,8 @@ export function StatCard({
   label: string;
   value: string;
   sub?: string;
-  icon: ReactNode;
+  /** Optional. Omit for a plain text-only tile. */
+  icon?: ReactNode;
   tone?: Tone;
   /** Percentage change; negative is "good" for spend metrics. */
   trend?: { value: number; goodWhenNegative?: boolean };
@@ -127,9 +128,11 @@ export function StatCard({
           {sub && <span className="truncate text-xs text-slate-400">{sub}</span>}
         </div>
       </div>
-      <div className={cx('grid h-11 w-11 shrink-0 place-items-center rounded-xl', iconTones[tone])}>
-        {icon}
-      </div>
+      {icon && (
+        <div className={cx('grid h-11 w-11 shrink-0 place-items-center rounded-xl', iconTones[tone])}>
+          {icon}
+        </div>
+      )}
     </Card>
   );
 }
@@ -169,3 +172,113 @@ export function EmptyState({ title, hint }: { title: string; hint?: string }) {
     </div>
   );
 }
+/**
+ * Centred dialog used for the Add-site form.
+ *
+ * Closes on Escape and on a click that lands on the backdrop itself — `e.target`
+ * is compared against the panel so clicks inside the form do not dismiss it.
+ * The body is scroll-locked while open so the page behind cannot move.
+ */
+export function Modal({
+  open,
+  onClose,
+  title,
+  description,
+  children,
+  footer,
+}: {
+  open: boolean;
+  onClose: () => void;
+  title: string;
+  description?: string;
+  children: ReactNode;
+  footer?: ReactNode;
+}) {
+  useEffect(() => {
+    if (!open) return undefined;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', onKeyDown);
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', onKeyDown);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [open, onClose]);
+
+  if (!open) return null;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-900/40 p-4 sm:p-6"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        className="my-8 w-full max-w-2xl animate-fade-in rounded-2xl border border-slate-200 bg-white shadow-xl shadow-slate-900/10"
+      >
+        <div className="flex items-start justify-between gap-4 border-b border-slate-100 px-6 py-5">
+          <div>
+            <h2 className="text-base font-semibold text-slate-900">{title}</h2>
+            {description && <p className="mt-1 text-sm text-slate-500">{description}</p>}
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close dialog"
+            className="-mr-1 -mt-1 grid h-8 w-8 shrink-0 place-items-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="px-6 py-5">{children}</div>
+
+        {footer && (
+          <div className="flex items-center justify-end gap-2 border-t border-slate-100 bg-slate-50/70 px-6 py-4">
+            {footer}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/** Labelled form control used by the site form. */
+export function Field({
+  label,
+  hint,
+  error,
+  children,
+}: {
+  label: string;
+  hint?: string;
+  error?: string;
+  children: ReactNode;
+}) {
+  return (
+    <label className="block">
+      <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">
+        {label}
+      </span>
+      {children}
+      {error ? (
+        <span className="mt-1 block text-xs font-medium text-rose-600">{error}</span>
+      ) : (
+        hint && <span className="mt-1 block text-xs text-slate-400">{hint}</span>
+      )}
+    </label>
+  );
+}
+
+/** Shared input/select styling so the form fields match the rest of the app. */
+export const controlClass =
+  'w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 ' +
+  'transition-colors placeholder:text-slate-400 focus:border-emerald-500 focus:outline-none ' +
+  'focus:ring-2 focus:ring-emerald-500/20';

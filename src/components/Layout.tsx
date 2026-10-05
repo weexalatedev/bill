@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { NavLink, Outlet, useLocation } from 'react-router-dom';
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
   AlertTriangle,
   Bell,
@@ -18,6 +18,8 @@ import {
   Zap,
 } from 'lucide-react';
 import { cx } from '../lib/cx';
+import { gbp } from '../lib/format';
+import { Badge } from './ui';
 import UserMenu from './UserMenu';
 import { useApp } from '../store';
 
@@ -69,9 +71,15 @@ const PAGE_META: Record<string, { title: string; subtitle: string }> = {
 
 export default function Layout() {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { account, sites, metrics, toast, controlMode, loading, error, refresh } = useApp();
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [globalQuery, setGlobalQuery] = useState('');
+  const { account, sites, invoices, metrics, toast, controlMode, loading, error, refresh } = useApp();
   const location = useLocation();
+  const navigate = useNavigate();
   const meta = PAGE_META[location.pathname] ?? PAGE_META['/'];
+
+  /** Open issues drive the notifications panel — the only live alerts we have. */
+  const flaggedInvoices = invoices.filter((invoice) => invoice.status === 'Flagged');
 
   // First load: the workspace is still coming back from MongoDB.
   if (loading && sites.length === 0) {
@@ -218,14 +226,27 @@ export default function Layout() {
               <p className="hidden truncate text-xs text-slate-500 sm:block">{meta.subtitle}</p>
             </div>
 
-            <div className="hidden items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 md:flex">
+            <form
+              className="hidden items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 md:flex"
+              onSubmit={(event) => {
+                event.preventDefault();
+                // The search only has one meaningful target today: the sites
+                // index. Navigating there with the term in the URL keeps the
+                // query shareable and survives a refresh.
+                const term = globalQuery.trim();
+                navigate(term ? `/sites?q=${encodeURIComponent(term)}` : '/sites');
+              }}
+            >
               <Search className="h-4 w-4 text-slate-400" />
               <input
                 type="search"
-                placeholder="Search sites, invoices…"
+                value={globalQuery}
+                onChange={(event) => setGlobalQuery(event.target.value)}
+                placeholder="Search sites…"
+                aria-label="Search sites"
                 className="w-40 bg-transparent text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none lg:w-56"
               />
-            </div>
+            </form>
 
             <span
               className={cx(
@@ -240,24 +261,104 @@ export default function Layout() {
               {controlMode} mode
             </span>
 
-            <button
-              type="button"
-              className="relative grid h-9 w-9 place-items-center rounded-lg border border-slate-200 text-slate-600"
-              aria-label="Notifications"
-            >
-              <Bell className="h-[18px] w-[18px]" />
-              {metrics.issuesOpen > 0 && (
-                <span className="absolute -right-0.5 -top-0.5 grid h-4 w-4 place-items-center rounded-full bg-rose-500 text-[10px] font-bold text-white">
-                  {metrics.issuesOpen}
-                </span>
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setNotifOpen((open) => !open)}
+                className="relative grid h-9 w-9 place-items-center rounded-lg border border-slate-200 text-slate-600 transition-colors hover:bg-slate-50"
+                aria-label="Notifications"
+                aria-expanded={notifOpen}
+              >
+                <Bell className="h-[18px] w-[18px]" />
+                {metrics.issuesOpen > 0 && (
+                  <span className="absolute -right-0.5 -top-0.5 grid h-4 w-4 place-items-center rounded-full bg-rose-500 text-[10px] font-bold text-white">
+                    {metrics.issuesOpen}
+                  </span>
+                )}
+              </button>
+
+              {notifOpen && (
+                <>
+                  {/* Click-away layer — a full-screen transparent backdrop, so
+                      the panel can be dismissed without a listener. */}
+                  <button
+                    type="button"
+                    aria-label="Close notifications"
+                    className="fixed inset-0 z-40 cursor-default"
+                    onClick={() => setNotifOpen(false)}
+                  />
+                  <div className="absolute right-0 z-50 mt-2 w-80 animate-fade-in overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg shadow-slate-900/10">
+                    <div className="border-b border-slate-100 px-4 py-3">
+                      <p className="text-sm font-semibold text-slate-800">Notifications</p>
+                      <p className="mt-0.5 text-xs text-slate-500">
+                        {flaggedInvoices.length === 0
+                          ? 'Nothing needs your attention.'
+                          : `${flaggedInvoices.length} invoice${
+                              flaggedInvoices.length > 1 ? 's' : ''
+                            } flagged by the auditor.`}
+                      </p>
+                    </div>
+
+                    {flaggedInvoices.length === 0 ? (
+                      <p className="px-4 py-8 text-center text-xs text-slate-400">
+                        No open issues.
+                      </p>
+                    ) : (
+                      <ul className="max-h-72 overflow-y-auto">
+                        {flaggedInvoices.map((invoice) => {
+                          const siteName =
+                            sites.find((s) => s.id === invoice.siteId)?.name ?? invoice.siteId;
+                          return (
+                            <li key={invoice.id} className="border-b border-slate-50 last:border-0">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setNotifOpen(false);
+                                  navigate('/bills');
+                                }}
+                                className="flex w-full items-start justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-slate-50"
+                              >
+                                <div className="min-w-0">
+                                  <p className="truncate text-xs font-semibold text-slate-800">
+                                    {invoice.id} · {siteName}
+                                  </p>
+                                  <p className="mt-0.5 truncate text-xs text-slate-500">
+                                    {invoice.issues.length} issue
+                                    {invoice.issues.length > 1 ? 's' : ''} · {invoice.supplier}
+                                  </p>
+                                </div>
+                                <Badge tone="rose" className="shrink-0">
+                                  {gbp(invoice.total)}
+                                </Badge>
+                              </button>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    )}
+
+                    <div className="border-t border-slate-100 bg-slate-50/70 px-4 py-2.5">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setNotifOpen(false);
+                          navigate('/bills');
+                        }}
+                        className="text-xs font-semibold text-slate-600 transition-colors hover:text-slate-900"
+                      >
+                        Open the Bill Auditor →
+                      </button>
+                    </div>
+                  </div>
+                </>
               )}
-            </button>
+            </div>
 
             <UserMenu />
           </div>
         </header>
 
-        <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6">
+        <main className="mx-auto w-full max-w-[110rem] flex-1 px-4 py-6 sm:px-6">
           <Outlet />
         </main>
 

@@ -55,6 +55,87 @@ export async function provisionWorkspace(ownerId: string, wipe = false): Promise
   await AccountModel.create({ ...demoAccount, ownerId, controlMode: 'Approve' });
 }
 
+/** Fields a client may supply when adding or editing a site. */
+export interface SiteInput {
+  name: string;
+  city: string;
+  region: string;
+  type: Site['type'];
+  annualSpend: number;
+  monthActual: number;
+  monthExpected: number;
+  meterType: Site['meterType'];
+  status: Site['status'];
+  postcode?: string;
+  loads: string[];
+  lastSynced: string;
+}
+
+/**
+ * Mint a site id that cannot collide with the demo dataset (`s1`…`s12`) or with
+ * anything already stored for this owner. The `(ownerId, id)` index is unique, so
+ * a clash would throw; probing keeps creation total instead of failing.
+ */
+async function nextSiteId(ownerId: string): Promise<string> {
+  for (let attempt = 0; attempt < 8; attempt += 1) {
+    const candidate = `s-${Math.random().toString(36).slice(2, 8)}`;
+    const clash = await SiteModel.exists({ ownerId, id: candidate });
+    if (!clash) return candidate;
+  }
+  return `s-${Date.now().toString(36)}`;
+}
+
+/** Create a site for an owner and keep the account's site count in step. */
+export async function addSite(ownerId: string, input: SiteInput): Promise<Site> {
+  const created = await SiteModel.create({ ...input, ownerId, id: await nextSiteId(ownerId) });
+  const site = strip(created.toObject()) as unknown as Site;
+  // `account.sites` is denormalised for the dashboard; recompute rather than
+  // increment so it self-heals if earlier counts ever drifted.
+  const total = await SiteModel.countDocuments({ ownerId });
+  await AccountModel.updateOne({ ownerId }, { $set: { sites: total } }, { upsert: true }).exec();
+  return site;
+}
+
+/** Update the editable fields of a site. Returns null when it does not exist. */
+export async function updateSite(
+  ownerId: string,
+  id: string,
+  patch: Partial<SiteInput>,
+): Promise<Site | null> {
+  const doc = await SiteModel.findOneAndUpdate(
+    { ownerId, id },
+    { $set: patch },
+    { new: true, runValidators: true },
+  )
+    .lean()
+    .exec();
+  return doc ? (strip(doc as unknown as Record<string, unknown>) as unknown as Site) : null;
+}
+
+/**
+ * Delete a site and everything scoped to it.
+ *
+ * Invoices and actions carry `siteId`, so removing a site without clearing them
+ * would leave rows the UI can never resolve to a name. `MonthlyPoint` and
+ * `AssetSlice` are deliberately left alone: both are portfolio-wide aggregates
+ * (one doc per month / per asset), not per-site, so they have no `siteId` to
+ * match on and would survive regardless.
+ */
+export async function removeSite(ownerId: string, id: string): Promise<boolean> {
+  const existing = await SiteModel.exists({ ownerId, id });
+  if (!existing) return false;
+
+  await Promise.all([
+    SiteModel.deleteOne({ ownerId, id }),
+    InvoiceModel.deleteMany({ ownerId, siteId: id }),
+    ActionModel.deleteMany({ ownerId, siteId: id }),
+  ]);
+
+  const total = await SiteModel.countDocuments({ ownerId });
+  await AccountModel.updateOne({ ownerId }, { $set: { sites: total } }).exec();
+  return true;
+}
+
 /** Load the full workspace for an owner, provisioning a demo dataset on first run. */
 export async function getWorkspace(ownerId: string, autoProvision: boolean): Promise<Workspace> {
   if (autoProvision && !(await hasWorkspace(ownerId))) {
