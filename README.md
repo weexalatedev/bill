@@ -103,13 +103,22 @@ npm run typecheck  # type-check only
 ### Deploying the web app and API to Vercel
 
 The root [`vercel.json`](./vercel.json) configures two services in one Vercel
-project: HTML navigations are rewritten to the Vite app's SPA entry so nested
-client routes (including Clerk's `/sign-in/*` and `/sign-up/*` routes) work on
-direct visits and refreshes; other non-API requests are served by the Vite app
-as-is, and the Express API is publicly routed under `/api/*`. The API already
-mounts its routes at `/api`, so the browser uses same-origin `/api/...` requests;
-leave `VITE_API_URL` unset for this deployment. Locally, Vite proxies `/api` to
-`http://localhost:4000`.
+project. All `/api/*` requests route to the Express service; everything else
+routes to the Vite service. Because the app is a client-routed SPA, the `app`
+service declares its own `rewrites` rule sending any path that is not a real
+static file to `/index.html`. That fallback is what makes direct visits and
+refreshes on nested client routes work — notably Clerk's `/sign-in/*` and
+`/sign-up/*` routes and their own sub-routes such as
+`/sign-up/verify-email/:code`. Do **not** try to fix a 404 on those paths by
+adding top-level rewrites with `destination: { "service": "app", "path": "/" }`:
+per Vercel's Services routing docs, a destination `path` only selects which
+route runs inside the service and does not change the path the service's own
+filesystem lookup sees, so the static handler still 404s. The fallback has to
+live inside the `app` service to work.
+
+The API already mounts its routes at `/api`, so the browser uses same-origin
+`/api/...` requests; leave `VITE_API_URL` unset for this deployment. Locally,
+Vite proxies `/api` to `http://localhost:4000`.
 
 Configure the API service's required secrets and connection settings in Vercel
 environment variables (including `MONGODB_URI` and, when used,

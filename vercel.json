@@ -3,7 +3,14 @@
   "services": {
     "app": {
       "root": ".",
-      "framework": "vite"
+      "framework": "vite",
+      "outputDirectory": "dist",
+      "rewrites": [
+        {
+          "source": "/(.*)",
+          "destination": "/index.html"
+        }
+      ]
     },
     "server": {
       "root": "server",
@@ -15,34 +22,6 @@
       "source": "/api/(.*)",
       "destination": {
         "service": "server"
-      }
-    },
-    {
-      "source": "/sign-in(.*)",
-      "destination": {
-        "service": "app",
-        "path": "/"
-      }
-    },
-    {
-      "source": "/sign-up(.*)",
-      "destination": {
-        "service": "app",
-        "path": "/"
-      }
-    },
-    {
-      "source": "/(.*)",
-      "has": [
-        {
-          "type": "header",
-          "key": "accept",
-          "value": ".*text/html.*"
-        }
-      ],
-      "destination": {
-        "service": "app",
-        "path": "/"
       }
     },
     {
