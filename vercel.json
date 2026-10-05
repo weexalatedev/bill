@@ -18,6 +18,20 @@
       }
     },
     {
+      "source": "/sign-in(.*)",
+      "destination": {
+        "service": "app",
+        "path": "/"
+      }
+    },
+    {
+      "source": "/sign-up(.*)",
+      "destination": {
+        "service": "app",
+        "path": "/"
+      }
+    },
+    {
       "source": "/(.*)",
       "has": [
         {
