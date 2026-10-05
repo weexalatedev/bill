@@ -18,7 +18,16 @@ export const env = {
   port: Number(str(process.env.PORT, '4000')),
   mongoUri: str(process.env.MONGODB_URI, 'mongodb://127.0.0.1:27017/eneros'),
   mongoDb: process.env.MONGODB_DB?.trim() || undefined,
-  clerkPublishableKey: str(process.env.CLERK_PUBLISHABLE_KEY, ''),
+  /**
+   * Clerk publishable key. Two names are accepted because the canonical Clerk
+   * variable in Next.js docs is `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` while the
+   * Vite/Express convention is `CLERK_PUBLISHABLE_KEY`. Reading only one of them
+   * silently disabled Clerk in production, so both are honoured.
+   */
+  clerkPublishableKey: str(
+    process.env.CLERK_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
+    '',
+  ),
   clerkSecretKey: str(process.env.CLERK_SECRET_KEY, ''),
   r2: {
     accountId: str(process.env.R2_ACCOUNT_ID, ''),
@@ -39,7 +48,26 @@ export const env = {
     name: str(process.env.DEMO_NAME, 'Demo Operator'),
     org: str(process.env.DEMO_ORG, 'Harbour Hospitality Group'),
   },
+  devAuthSecret: str(process.env.DEV_AUTH_SECRET, 'eneros-dev-secret'),
   autoProvision: bool(process.env.AUTO_PROVISION, true),
+
+  /**
+   * Smart Analysis — optional enrichment layers. Everything here degrades
+   * gracefully: with no keys the deterministic engine still runs, it simply
+   * cannot narrate bills with an LLM or enrich with half-hourly weather.
+   */
+  analysis: {
+    /** Anthropic API key — enables bill text → structured extraction. */
+    anthropicApiKey: str(process.env.ANTHROPIC_API_KEY, ''),
+    anthropicModel: str(process.env.ANTHROPIC_MODEL, 'claude-sonnet-4-5'),
+    /** Elexon Insights API. Public and key-less, but allow-listable. */
+    elexonBaseUrl: str(
+      process.env.ELEXON_BASE_URL,
+      'https://api.elexon.co.uk/insights/api',
+    ),
+    /** Network timeout for outbound reference-data calls. */
+    upstreamTimeoutMs: Number(str(process.env.UPSTREAM_TIMEOUT_MS, '6000')),
+  },
 };
 
 export function assertClerkConfigured(): void {
@@ -48,7 +76,13 @@ export function assertClerkConfigured(): void {
   }
 }
 
+/** Clerk is considered wired only when both keys are present. */
+export const clerkEnabled = Boolean(env.clerkPublishableKey && env.clerkSecretKey);
+
 /** Cloudflare R2 is considered wired only when the full credential set is present. */
 export const r2Enabled = Boolean(
   env.r2.accountId && env.r2.accessKeyId && env.r2.secretAccessKey && env.r2.bucket,
 );
+
+/** LLM-assisted bill extraction is optional; the rules engine never depends on it. */
+export const llmEnabled = Boolean(env.analysis.anthropicApiKey);

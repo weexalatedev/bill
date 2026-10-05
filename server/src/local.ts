@@ -1,6 +1,6 @@
 import app from './app.js';
 import { connectDb } from './db.js';
-import { r2Enabled, env } from './env.js';
+import { clerkEnabled, r2Enabled, env } from './env.js';
 
 async function main(): Promise<void> {
   try {
@@ -14,8 +14,11 @@ async function main(): Promise<void> {
 
   app.listen(env.port, () => {
     console.log(`EnerOS API listening on http://localhost:${env.port}`);
-    console.log('  auth mode: Clerk');
+    console.log(`  auth mode: ${clerkEnabled ? 'Clerk' : 'dev (demo credentials)'}`);
     console.log(`  storage:   ${r2Enabled ? 'Cloudflare R2' : 'disabled'}`);
+    if (!clerkEnabled) {
+      console.log(`  demo login: ${env.demo.email} / ${env.demo.password}`);
+    }
   });
 }
 

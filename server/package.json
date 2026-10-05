@@ -10,6 +10,7 @@
     "start": "tsx src/local.ts",
     "seed": "tsx src/seed/seed.ts",
     "smoke": "tsx src/scripts/smoke.ts",
+    "verify:analysis": "tsx src/scripts/verify-analysis.ts",
     "typecheck": "tsc --noEmit",
     "build": "tsc --noEmit"
   },
@@ -23,6 +24,7 @@
     "express": "^4.21.2",
     "mongoose": "^8.9.5",
     "multer": "^2.4.0",
+    "pdf-parse": "^2.4.5",
     "zod": "^3.24.1"
   },
   "devDependencies": {

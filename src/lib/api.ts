@@ -3,22 +3,96 @@
 // optional bearer token, which the store obtains from the active auth provider.
 import type {
   Account,
+  AnalysisFinding,
   AssetSlice,
+  BillAnalysis,
   ControlMode,
   Invoice,
   MonthlyPoint,
   OptimisationAction,
   Plan,
   Site,
+  SiteRisk,
 } from '../types';
 
 export const API_URL: string =
   (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '') ?? '';
 
 export interface ApiConfig {
-  clerkPublishableKey: string;
+  authMode: 'clerk' | 'dev';
+  clerkPublishableKey: string | null;
   r2Enabled: boolean;
+  /** True when LLM bill extraction is configured on the API. */
+  llmEnabled: boolean;
+  demo: { email: string; password?: string };
 }
+
+/** One row of the Ofgem cap table. */
+export interface CapRegion {
+  id: string;
+  name: string;
+  rank: number;
+  unitRateP: number;
+  standingChargeP: number;
+  prepaymentUnitRateP: number;
+  standardCreditUnitRateP: number;
+}
+
+export interface CapPeriod {
+  id: string;
+  label: string;
+  start: string;
+  end: string;
+  averageUnitRateP: number;
+  averageStandingChargeP: number;
+  changePct: number;
+  electricityVatPct: number;
+  source: string;
+}
+
+export interface OnboardingProfile {
+  companyName: string;
+  siteCount: number;
+  postcode: string;
+  regionId: string;
+  onboarded: boolean;
+}
+
+/** Payload accepted by `POST /api/analysis/bill`. */
+export interface BillQuery {
+  siteId?: string;
+  supplier?: string;
+  periodStart?: string;
+  periodEnd?: string;
+  consumptionKwh?: number;
+  unitRateP?: number;
+  standingChargeP?: number;
+  totalGbp?: number;
+  vatGbp?: number;
+  paymentMethod?: 'direct-debit' | 'standard-credit' | 'prepayment';
+  nightShare?: number;
+  businessContract?: boolean;
+  includeWeather?: boolean;
+}
+
+export interface WeatherSummary {
+  meanTempC: number | null;
+  degreeDays: number | null;
+  normalised: boolean;
+  note?: string;
+}
+
+export interface PortfolioRisk {
+  risks: SiteRisk[];
+  totals: {
+    analysed: number;
+    withFindings: number;
+    recoverableGbp: number;
+  };
+  capPeriod: string;
+}
+
+export type { AnalysisFinding, BillAnalysis, SiteRisk };
 
 export interface UploadedDocument {
   id: string;
@@ -101,8 +175,14 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
 export const api = {
   getConfig: (): Promise<ApiConfig> => request<ApiConfig>('/api/config'),
 
+  devLogin: (email: string, password: string) =>
+    request<{ token: string; user: { email: string; name: string }; mode: 'dev' }>(
+      '/api/auth/login',
+      { method: 'POST', body: { email, password } },
+    ),
+
   getMe: (token: string) =>
-    request<{ user: { email: string; name: string } }>('/api/auth/me', {
+    request<{ user: { email: string; name: string }; mode: 'clerk' | 'dev' }>('/api/auth/me', {
       token,
     }),
 
@@ -155,4 +235,57 @@ export const api = {
 
   deleteUpload: (token: string, id: string) =>
     request<null>(`/api/uploads/${id}`, { method: 'DELETE', token }),
+
+  // ── Smart Analysis ───────────────────────────────────────────────────────────
+
+  /** The published Ofgem cap table. Public — no token needed. */
+  getPriceCap: () =>
+    request<{ period: CapPeriod; regions: CapRegion[]; extractionAvailable: boolean }>(
+      '/api/analysis/price-cap',
+    ),
+
+  /** Postcode → cap region. Public, used live on the welcome screen. */
+  getRegion: (postcode: string) =>
+    request<{ region: CapRegion | null; estimated?: boolean; note?: string }>(
+      `/api/analysis/region?postcode=${encodeURIComponent(postcode)}`,
+    ),
+
+  /** Run the rules engine over a bill. Nothing is persisted. */
+  analyseBill: (token: string, payload: BillQuery) =>
+    request<{ analysis: BillAnalysis; weather: WeatherSummary | null }>('/api/analysis/bill', {
+      method: 'POST',
+      body: payload,
+      token,
+    }),
+
+  /** Paste raw bill text and have the LLM extract + analyse it. */
+  extractBill: (token: string, text: string) =>
+    request<{ analysis: BillAnalysis; extracted: Record<string, unknown> }>(
+      '/api/analysis/extract',
+      { method: 'POST', body: { text }, token },
+    ),
+
+  /** Re-run the engine across every stored invoice. */
+  getPortfolioRisk: (token: string) =>
+    request<PortfolioRisk>('/api/analysis/portfolio', { token }),
+
+  // ── Onboarding profile ───────────────────────────────────────────────────────
+
+  getProfile: (token: string) =>
+    request<{ profile: OnboardingProfile }>('/api/account/profile', { token }),
+
+  saveProfile: (
+    token: string,
+    payload: {
+      companyName: string;
+      siteCount: number;
+      postcode: string;
+      regionId?: string;
+    },
+  ) =>
+    request<{ profile: OnboardingProfile }>('/api/account/profile', {
+      method: 'PUT',
+      body: payload,
+      token,
+    }),
 };

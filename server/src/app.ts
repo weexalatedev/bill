@@ -2,11 +2,10 @@ import express, { type NextFunction, type Request, type Response } from 'express
 import cors from 'cors';
 import { clerkMiddleware } from '@clerk/express';
 import { apiRouter } from './routes/index.js';
-import { assertClerkConfigured, r2Enabled, env } from './env.js';
+import { clerkEnabled, r2Enabled, env, llmEnabled } from './env.js';
 import { connectDb, isDbConnected } from './db.js';
 
 export function createApp(): express.Express {
-  assertClerkConfigured();
   const app = express();
 
   app.use(
@@ -25,14 +24,29 @@ export function createApp(): express.Express {
 
   app.use(express.json({ limit: '2mb' }));
 
-  app.use(clerkMiddleware());
+  // Clerk middleware is only attached when Clerk is configured; otherwise the
+  // API runs in dev-auth mode and `requireUser` validates our own tokens.
+  //
+  // Both keys MUST be passed explicitly. `clerkMiddleware()` defaults to reading
+  // the publishable key from each incoming request (header/query param), which
+  // a browser never sends — so omitting it makes *every* route, including the
+  // public ones, fail with "Publishable key is missing".
+  if (clerkEnabled) {
+    app.use(
+      clerkMiddleware({
+        secretKey: env.clerkSecretKey,
+        publishableKey: env.clerkPublishableKey,
+      }),
+    );
+  }
 
   app.get('/api/health', (_req, res) => {
     res.json({
       ok: true,
       db: isDbConnected(),
-      auth: 'clerk',
+      auth: clerkEnabled ? 'clerk' : 'dev',
       storage: r2Enabled ? 'r2' : 'disabled',
+      analysis: llmEnabled ? 'llm' : 'rules-only',
       time: new Date().toISOString(),
     });
   });

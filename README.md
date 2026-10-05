@@ -14,8 +14,8 @@ credentials**:
 | `mobile/` | iOS / Android app | React Native (Expo) |
 | `server/` | Shared API | Node + Express + MongoDB (Mongoose) |
 
-Sign in with Clerk on web *and* mobile and you land on the same workspace — persisted in MongoDB,
-keyed by the authenticated Clerk user.
+Sign in with the **demo account** on web *and* mobile and you land on the exact same seeded
+workspace — persisted in MongoDB, keyed by the authenticated user.
 
 > The seeded dataset is deliberately *internally consistent* so the numbers reconcile: site
 > spend sums to **£81,420**, expected spend to **£91,600**, therefore the dashboard reports
@@ -26,8 +26,10 @@ keyed by the authenticated Clerk user.
 
 | Page | Plan module | What it does |
 | --- | --- | --- |
+| **Sign up / Login** | Layer 0 | Clerk-hosted auth embedded in the EnerOS shell at `/sign-up` and `/sign-in`, plus a `/welcome` onboarding step that captures the business name, site count and postcode — the postcode is what resolves the Ofgem cap region every benchmark is drawn against. |
 | **Dashboard** – Energy Intelligence | Module A | Spend vs. expected baseline, verified savings, spend by asset and by site, latest AI findings, and the baseline → intervention → outcome methodology. |
-| **Bill Auditor** | Module B | Upload/enter an invoice, run a heuristic “AI audit”, and review detected issues: *incorrect charge, abnormal consumption, tariff discrepancy, standing charge, meter issue, unexpected change*. Challenge a supplier to request recovery. |
+| **Smart Analysis** | Layer 2 – AI Energy Brain | The workbench. Enter a bill and the engine checks it against Ofgem's published price cap for the site's region, re-adds the invoice arithmetic, verifies VAT treatment, and compares consumption with the site's own baseline. Every finding carries its evidence, its £ impact and the licence condition to quote. |
+| **Bill Auditor** | Module B | Upload/enter an invoice, run the audit, and review detected issues: *incorrect charge, abnormal consumption, tariff discrepancy, standing charge, meter issue, unexpected change*. Challenge a supplier to request recovery. |
 | **Optimiser** | Module C & D | Recommended actions with schedule changes, model confidence and £ savings. **Recommend → Approve → Automate** control mode plus a per-action approve/automate flow. |
 | **Sites** | Layer 1 – Energy Data OS | Portfolio of sites with controllable loads, meter type, spend, savings and status (Optimal / Watch / Anomaly). |
 | **Copilot** | Layer 2 – AI Energy Brain | A grounded chat assistant that answers questions about spend, savings, tariffs, refrigeration and EV charging. (The Copilot *explains*; the optimisation engine *decides*.) |
@@ -35,6 +37,13 @@ keyed by the authenticated Clerk user.
 
 Interactive behaviour is real: approving actions updates metrics, running an audit adds an
 invoice and re-computes KPIs, and the fee calculator recalculates live.
+
+> **New here: Smart Analysis is grounded, not simulated.** The findings come from
+> `server/src/lib/analysis.ts`, checked against the real Ofgem price cap table
+> (`server/src/lib/priceCap.ts`) and Elexon half-hourly temperature data
+> (`server/src/lib/weather.ts`). Run `cd server && npm run verify:analysis` to
+> re-validate the engine. See [`docs/IMPLEMENTATION_GUIDE.md`](docs/IMPLEMENTATION_GUIDE.md)
+> for the data-source map and the plan of action.
 
 ## Tech stack
 
@@ -54,25 +63,25 @@ uploads, `@clerk/express` for session verification, `@aws-sdk/client-s3` for Clo
 ```bash
 cd server
 npm install
-cp .env.example .env         # configure MongoDB and Clerk keys
+cp .env.example .env         # optional — sensible defaults work out of the box
 npm run seed                 # create the demo account + workspace in MongoDB
 npm run dev                  # http://localhost:4000
 ```
 
-No local `mongod`? Use the in-memory variant (data is ephemeral; Clerk keys are still required):
+No local `mongod`? Use the zero-config in-memory variant (data is ephemeral):
 
 ```bash
 cd server
-npm run dev:memory           # boots an in-memory MongoDB, then serves the API
+npm run dev:memory           # boots an in-memory MongoDB, seeds, then serves the API
 ```
 
 Server scripts:
 
 ```bash
 npm run dev        # tsx watch src/local.ts
-npm run dev:memory # in-memory MongoDB + serve (no mongod required)
-npm run seed       # (re)create the Clerk demo account + dataset in MongoDB
-npm run smoke      # API test against in-memory MongoDB (requires CLERK_TEST_TOKEN)
+npm run dev:memory # in-memory MongoDB + seed + serve (no mongod required)
+npm run seed       # (re)create the demo account + dataset in MongoDB
+npm run smoke      # end-to-end API test against an in-memory MongoDB (24 checks)
 npm run build      # tsc --noEmit
 ```
 
@@ -100,8 +109,8 @@ the browser uses same-origin `/api/...` requests; leave `VITE_API_URL` unset for
 this deployment. Locally, Vite proxies `/api` to `http://localhost:4000`.
 
 Configure the API service's required secrets and connection settings in Vercel
-environment variables (including `MONGODB_URI`, `CLERK_PUBLISHABLE_KEY`,
-`CLERK_SECRET_KEY`, and optionally the `R2_*` variables). The
+environment variables (including `MONGODB_URI` and, when used,
+`CLERK_PUBLISHABLE_KEY` / `CLERK_SECRET_KEY` and the `R2_*` variables). The
 Express app is exported as a Vercel function and connects to MongoDB when API
 requests arrive; `/api/health` can be used to verify the function is responding.
 If `MONGODB_URI` is missing in Vercel, API requests return a JSON configuration
@@ -117,32 +126,33 @@ npm run start      # Expo dev server — press a / i for Android / iOS
 npm run typecheck  # tsc --noEmit
 ```
 
-## Clerk demo account (identical on web **and** mobile)
+## Demo login (identical on web **and** mobile)
 
-`npm run seed` creates the demo account in Clerk and prints its credentials; defaults are:
+`npm run seed` prints the credentials; the defaults are:
 
 | Field | Value |
 | --- | --- |
 | Email | `demo@eneros.app` |
 | Password | `EnerOS-demo-2026` |
 
-Both clients call `GET /api/config` on boot, sign in directly with Clerk, and attach the Clerk
-session token to every API call. The server derives a stable owner id (`clerk:<userId>`) from that
-identity, so the web console and the phone app read and write the **same** MongoDB documents.
+Both clients call `GET /api/config` on boot, discover the auth mode, and attach the same bearer
+token (Clerk session JWT, or a dev-auth token when Clerk is unconfigured) to every API call. The
+server derives a stable owner id (`clerk:<userId>` or `user:<email>`) from that identity, so the
+web console and the phone app read and write the **same** MongoDB documents.
 
 ## Configuration
 
-Everything is env-driven. Clerk is required for API startup and authentication.
+Everything is env-driven with safe local defaults.
 
 **`server/.env`** (see `server/.env.example`): `MONGODB_URI`, `CLERK_PUBLISHABLE_KEY` /
 `CLERK_SECRET_KEY`, `R2_ACCOUNT_ID` / `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` / `R2_BUCKET`
-(+ optional `R2_PUBLIC_BASE_URL`), `CORS_ORIGINS`, and the `DEMO_*` account used by the seed script.
-R2 is optional; both Clerk keys are required.
+(+ optional `R2_PUBLIC_BASE_URL`), `CORS_ORIGINS`, and the `DEMO_*` account. Clerk and R2 are
+each *optional* — the server degrades gracefully when they are absent.
 
 **`.env`** (web) may set `VITE_API_URL` to override the same-origin `/api` path
 when the API is hosted separately. **`mobile/.env`** sets `EXPO_PUBLIC_API_URL`
 to the API origin (for example, `http://localhost:4000` during local development).
-Clerk keys are **not** duplicated there — clients read the publishable key from `/api/config`.
+Clerk keys are **not** duplicated there — clients read them from the API’s `/api/config`.
 
 ## Project structure
 
@@ -152,39 +162,53 @@ server/                    # shared API (single source of truth)
 │  ├─ index.ts             # Express app export for Vercel
 │  ├─ local.ts             # local boot: connect MongoDB, start Express
 │  ├─ app.ts               # express app: CORS, JSON, Clerk middleware, routes
-│  ├─ env.ts               # typed environment + Clerk / R2 configuration
+│  ├─ env.ts               # typed env + clerkEnabled / r2Enabled flags
 │  ├─ db.ts                # Mongoose connection helpers
-│  ├─ auth.ts              # requireUser / resolveIdentity (Clerk sessions)
+│  ├─ auth.ts              # requireUser / resolveIdentity (Clerk + dev tokens)
 │  ├─ r2.ts                # Cloudflare R2 put / delete / presigned GET
 │  ├─ models/index.ts      # Mongoose schemas (owner-scoped documents)
 │  ├─ services/
 │  │  ├─ workspace.ts      # load / provision / mutate a workspace
 │  │  └─ catalog.ts        # plan + supplier catalogue
-│  ├─ lib/audit.ts         # deterministic invoice-audit heuristic
-│  ├─ routes/              # auth · workspace · invoices · actions · uploads · config
+│  ├─ lib/
+│  │  ├─ priceCap.ts       # Ofgem cap table (14 regions, quarterly) + postcode lookup
+│  │  ├─ analysis.ts       # Smart Analysis engine — the deterministic checks
+│  │  ├─ weather.ts        # Elexon TEMP → heating degree days (degrades gracefully)
+│  │  ├─ llm.ts            # bill text → typed fields (forced tool call, optional)
+│  │  ├─ document.ts       # PDF/text extraction from an uploaded invoice
+│  │  └─ audit.ts          # projects engine findings onto the legacy BillIssue shape
+│  ├─ routes/              # auth · workspace · invoices · actions · uploads · analysis · account · config
 │  ├─ seed/
 │  │  ├─ data.ts           # the consistent 12-site demo dataset
 │  │  └─ seed.ts           # `npm run seed` — creates demo user + workspace
-│  └─ scripts/             # smoke.ts (Clerk-token e2e) · memory.ts (in-memory MongoDB)
+│  └─ scripts/             # smoke.ts (e2e) · memory.ts (in-memory) · verify-analysis.ts (engine checks)
 └─ .env.example
 
 src/                       # web console
-├─ App.tsx                 # routes
-├─ main.tsx                # entry (fetches config, mounts auth provider)
+├─ App.tsx                 # routes (public auth routes + gated console)
+├─ main.tsx                # entry (fetches config, mounts Clerk provider)
 ├─ store.tsx               # API-backed state, derived metrics, mutations
 ├─ types.ts                # domain model (mirrors server/src/types.ts)
 ├─ index.css               # Tailwind v4 + design tokens
 ├─ lib/
 │  ├─ api.ts               # REST client (bearer token per call)
-│  ├─ auth.tsx             # Clerk auth provider
+│  ├─ auth.tsx             # unified Clerk / dev auth provider
+│  ├─ clerkAppearance.ts   # Clerk theme shared by auth pages + user menu
 │  ├─ format.ts            # en-GB £ / kWh / % formatting
 │  └─ cx.ts                # classname joiner
 ├─ components/
-│  ├─ AuthGate.tsx         # sign-in gate
-│  ├─ UserMenu.tsx         # account menu + sign-out
+│  ├─ AuthGate.tsx         # console gate (redirects to /sign-in)
+│  ├─ UserMenu.tsx         # account menu + Clerk sign-out
 │  ├─ Layout.tsx           # sidebar nav, top bar, toast host
-│  └─ ui.tsx               # Card, StatCard, Badge, ProgressBar, EmptyState
-└─ pages/                  # Dashboard · Bills · Optimiser · Sites · Copilot · Plans
+│  ├─ ui.tsx               # Card, StatCard, Badge, ProgressBar, EmptyState
+│  └─ auth/ClerkStates.tsx # Clerk load / failure placeholders
+├─ pages/
+│  ├─ Analysis.tsx         # Smart Analysis workbench
+│  ├─ Bills · Optimiser · Sites · Copilot · Plans · Dashboard
+│  └─ auth/                # SignIn · SignUp · Welcome + the split-screen shell
+└─ …
+
+docs/IMPLEMENTATION_GUIDE.md   # data sources, architecture, phased plan of action
 
 mobile/                    # React Native / Expo app (same API, same credentials)
 ```
@@ -194,7 +218,8 @@ mobile/                    # React Native / Expo app (same API, same credentials
 `mobile/` is a React Native port of the same product. It consumes the **same API** as the web
 app — the store, types and formatting helpers are mirrored from `src/`, and the UI kit, hand-rolled
 SVG charts and six screens were rebuilt for a phone viewport. Auth is shared: the Expo app signs in
-directly with Clerk (`@clerk/clerk-expo`, tokens cached in `expo-secure-store`).
+with Clerk (`@clerk/clerk-expo`, tokens cached in `expo-secure-store`) when configured, otherwise
+with the same dev-auth demo login as the web app.
 
 ```bash
 cd mobile
@@ -219,7 +244,7 @@ Mobile-specific adaptations:
 - **No Tailwind / DOM.** Design tokens live in `src/theme.ts` and are mirrored into
   `StyleSheet.create`; charts are hand-written with `react-native-svg` (Recharts is DOM-only).
 - **Shared auth.** `src/lib/auth.tsx` mirrors the web provider — Clerk via `@clerk/clerk-expo`
-  (tokens cached in `expo-secure-store`, with an in-memory fallback on web).
+  (tokens cached in `expo-secure-store`, with an in-memory fallback on web) or the dev demo login.
 - **`Intl` is not trusted on Hermes.** `src/lib/format.ts` provides RN-safe formatting and a
   hand-rolled `compactGbp`, since `notation: 'compact'` is not reliable.
 - **`Chips` replaces `<select>`** and `KeyboardAvoidingView` wraps the Copilot thread.

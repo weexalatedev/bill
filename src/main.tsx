@@ -5,9 +5,9 @@ import { ClerkProvider } from '@clerk/clerk-react';
 import { Loader2, Zap } from 'lucide-react';
 import App from './App.tsx';
 import { AppProvider } from './store.tsx';
-import AuthGate from './components/AuthGate.tsx';
 import { api, type ApiConfig } from './lib/api.ts';
-import { ClerkAuthProvider } from './lib/auth.tsx';
+import { ClerkAuthProvider, DevAuthProvider } from './lib/auth.tsx';
+import { clerkAppearance } from './lib/clerkAppearance.ts';
 import './index.css';
 
 function BootScreen({ error }: { error?: string | null }) {
@@ -39,7 +39,14 @@ function BootScreen({ error }: { error?: string | null }) {
   );
 }
 
-/** Fetch server config, then mount the app with the right auth provider. */
+/**
+ * Fetch the API config, then mount the app with the matching auth provider.
+ *
+ * The publishable key is read from `/api/config` rather than a build-time env
+ * var so there is exactly one place to rotate it. `ClerkProvider` is mounted
+ * *inside* `BrowserRouter` — Clerk's `routing="path"` components resolve against
+ * React Router's location, which requires that ordering.
+ */
 function Bootstrap() {
   const [config, setConfig] = useState<ApiConfig | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -55,22 +62,28 @@ function Bootstrap() {
   if (!config) return <BootScreen />;
 
   const app = (
-    <AuthGate>
-      <AppProvider>
-        <App />
-      </AppProvider>
-    </AuthGate>
+    <AppProvider>
+      <App />
+    </AppProvider>
   );
 
-  if (!config.clerkPublishableKey) {
-    return <BootScreen error="Clerk is not configured on the API." />;
+  if (config.authMode === 'clerk' && config.clerkPublishableKey) {
+    return (
+      <ClerkProvider
+        publishableKey={config.clerkPublishableKey}
+        appearance={clerkAppearance}
+        signInUrl="/sign-in"
+        signUpUrl="/sign-up"
+        afterSignOutUrl="/sign-in"
+        signInFallbackRedirectUrl="/"
+        signUpFallbackRedirectUrl="/welcome"
+      >
+        <ClerkAuthProvider config={config}>{app}</ClerkAuthProvider>
+      </ClerkProvider>
+    );
   }
 
-  return (
-    <ClerkProvider publishableKey={config.clerkPublishableKey}>
-      <ClerkAuthProvider>{app}</ClerkAuthProvider>
-    </ClerkProvider>
-  );
+  return <DevAuthProvider config={config}>{app}</DevAuthProvider>;
 }
 
 const container = document.getElementById('root');

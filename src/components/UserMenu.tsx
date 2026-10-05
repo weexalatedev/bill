@@ -1,11 +1,52 @@
 import { useEffect, useRef, useState } from 'react';
-import { ChevronDown, LogOut, ShieldCheck, User } from 'lucide-react';
+import { SignOutButton, useClerk } from '@clerk/clerk-react';
+import { ChevronDown, LogOut, Settings, ShieldCheck, User } from 'lucide-react';
 import { useAuth } from '../lib/auth';
 import { cx } from '../lib/cx';
 
-/** Compact account menu — shows who is signed in and allows sign-out. */
+/**
+ * Clerk-only menu actions, split into their own component.
+ *
+ * `useClerk()` throws when there is no `ClerkProvider` above it, and in
+ * dev-auth mode there deliberately is not one. Rendering this component only
+ * when `mode === 'clerk'` keeps the hook inside a component that is guaranteed to
+ * have a provider above it.
+ */
+function ClerkMenuActions() {
+  const clerk = useClerk();
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => void clerk.openUserProfile()}
+        className="flex w-full items-center gap-2 border-b border-slate-100 px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50"
+      >
+        <Settings className="h-4 w-4 text-slate-400" />
+        Manage account
+      </button>
+      <SignOutButton redirectUrl="/sign-in">
+        <button
+          type="button"
+          className="flex w-full items-center gap-2 px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50"
+        >
+          <LogOut className="h-4 w-4 text-slate-400" />
+          Sign out
+        </button>
+      </SignOutButton>
+    </>
+  );
+}
+
+/**
+ * Compact account menu — shows who is signed in and allows sign-out.
+ *
+ * In Clerk mode the sign-out button is Clerk's own `<SignOutButton>`, so the
+ * session is actually terminated at the provider and the client is redirected to
+ * `afterSignOutUrl` (`/sign-in`). Dev-auth mode falls back to clearing the local
+ * token, since there is no remote session to destroy.
+ */
 export default function UserMenu() {
-  const { user, signOut } = useAuth();
+  const { user, mode, signOut } = useAuth();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -23,6 +64,18 @@ export default function UserMenu() {
     .join('')
     .slice(0, 2)
     .toUpperCase();
+
+  const signOutControl =
+    mode === 'clerk' ? null : (
+      <button
+        type="button"
+        onClick={() => void signOut()}
+        className="flex w-full items-center gap-2 px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50"
+      >
+        <LogOut className="h-4 w-4 text-slate-400" />
+        Sign out
+      </button>
+    );
 
   return (
     <div className="relative" ref={ref}>
@@ -60,14 +113,9 @@ export default function UserMenu() {
               </span>
             </p>
           </div>
-          <button
-            type="button"
-            onClick={() => void signOut()}
-            className="flex w-full items-center gap-2 px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50"
-          >
-            <LogOut className="h-4 w-4 text-slate-400" />
-            Sign out
-          </button>
+
+          {mode === 'clerk' && <ClerkMenuActions />}
+          {signOutControl}
         </div>
       )}
     </div>

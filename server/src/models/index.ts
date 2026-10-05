@@ -44,6 +44,7 @@ const siteSchema = new Schema(
     monthExpected: Number,
     meterType: String,
     status: String,
+    postcode: String,
     loads: [String],
     lastSynced: String,
   },
@@ -136,6 +137,11 @@ const accountSchema = new Schema(
     performanceFeePct: Number,
     flexibilitySharePct: Number,
     controlMode: { type: String, default: 'Approve' },
+    /** Captured during onboarding, used for pricing and cap-region benchmarking. */
+    postcode: String,
+    /** Ofgem price-cap region id resolved from the postcode. */
+    region: String,
+    onboarded: { type: Boolean, default: false },
   },
   schemaOptions,
 );

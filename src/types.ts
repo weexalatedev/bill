@@ -125,3 +125,63 @@ export interface Account {
   performanceFeePct: number;
   flexibilitySharePct: number;
 }
+
+// ── Smart Analysis (mirrors server/src/types.ts) ────────────────────────────────
+
+export type FindingSeverity = 'info' | 'low' | 'medium' | 'high';
+
+export type FindingCategory = 'pricing' | 'metering' | 'consumption' | 'opportunity';
+
+export type FindingSource =
+  | 'ofgem-cap'
+  | 'arithmetic'
+  | 'vat'
+  | 'site-baseline'
+  | 'metering-policy'
+  | 'tariff-model'
+  | 'portfolio-trend';
+
+export interface FindingEvidence {
+  label: string;
+  value: string;
+}
+
+export interface AnalysisFinding {
+  code: string;
+  category: FindingCategory;
+  severity: FindingSeverity;
+  title: string;
+  detail: string;
+  evidence: FindingEvidence[];
+  /** Positive = recoverable overcharge. Negative = a real but favourable cost. */
+  impactGbp: number;
+  confidence: number;
+  recommendation: string;
+  source: FindingSource;
+}
+
+export interface BillAnalysis {
+  score: number;
+  findings: AnalysisFinding[];
+  recoverableGbp: number;
+  periodDays: number | null;
+  expectedTotalGbp: number | null;
+  effectiveRateP: number | null;
+  region: { id: string; name: string; estimated: boolean } | null;
+  capPeriod: {
+    id: string;
+    label: string;
+    averageUnitRateP: number;
+    electricityVatPct: number;
+  };
+}
+
+export interface SiteRisk {
+  siteId: string;
+  name: string;
+  score: number;
+  flaggedInvoices: number;
+  recoverableGbp: number;
+  annualisedKwh: number;
+  topCodes: string[];
+}

@@ -12,6 +12,7 @@ import {
   Radio,
   Receipt,
   RefreshCw,
+  ScanSearch,
   Search,
   Sparkles,
   Zap,
@@ -30,6 +31,7 @@ interface NavItem {
 
 const NAV: NavItem[] = [
   { to: '/', label: 'Dashboard', hint: 'Module A', icon: LayoutDashboard },
+  { to: '/analysis', label: 'Smart Analysis', hint: 'AI Energy Brain', icon: ScanSearch },
   { to: '/bills', label: 'Bill Auditor', hint: 'Module B', icon: Receipt, badge: 'issues' },
   { to: '/optimiser', label: 'Optimiser', hint: 'Module C', icon: Sparkles, badge: 'savings' },
   { to: '/sites', label: 'Sites', hint: 'Layer 1 · Data OS', icon: Building2 },
@@ -41,6 +43,10 @@ const PAGE_META: Record<string, { title: string; subtitle: string }> = {
   '/': {
     title: 'Energy Intelligence',
     subtitle: 'What will we consume, what will it cost, what should we change?',
+  },
+  '/analysis': {
+    title: 'Smart Analysis',
+    subtitle: 'Check any invoice against Ofgem’s cap, the licence conditions and your own baseline.',
   },
   '/bills': {
     title: 'AI Bill Auditor',

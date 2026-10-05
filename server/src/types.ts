@@ -28,6 +28,8 @@ export interface Site {
   monthExpected: number;
   meterType: MeterType;
   status: SiteStatus;
+  /** Postcode, used to estimate the site's Ofgem price-cap region. */
+  postcode?: string;
   /** Controllable loads discovered on site (Module D / E). */
   loads: string[];
   /** Last time the AI Energy Brain refreshed this site's model. */
@@ -124,4 +126,93 @@ export interface Account {
   contractStart: string;
   performanceFeePct: number;
   flexibilitySharePct: number;
+}
+
+// ── Smart Analysis ─────────────────────────────────────────────────────────────
+
+export type FindingSeverity = 'info' | 'low' | 'medium' | 'high';
+
+/** Which part of the bill the finding is about — drives the UI grouping. */
+export type FindingCategory = 'pricing' | 'metering' | 'consumption' | 'opportunity';
+
+/** Where the verdict came from, so the UI can show evidence provenance. */
+export type FindingSource =
+  | 'ofgem-cap'
+  | 'arithmetic'
+  | 'vat'
+  | 'site-baseline'
+  | 'metering-policy'
+  | 'tariff-model'
+  | 'portfolio-trend';
+
+export interface FindingEvidence {
+  label: string;
+  value: string;
+}
+
+export interface AnalysisFinding {
+  /** Stable machine code, e.g. `unit-rate-above-cap`. Used for dedupe + tests. */
+  code: string;
+  category: FindingCategory;
+  severity: FindingSeverity;
+  title: string;
+  detail: string;
+  evidence: FindingEvidence[];
+  /**
+   * GBP. Positive = recoverable overcharge (the supplier owes you).
+   * Negative = real but favourable cost (e.g. an avoidable tariff uplift).
+   */
+  impactGbp: number;
+  /** 0–1. Deterministic checks score high; modelled estimates score lower. */
+  confidence: number;
+  recommendation: string;
+  source: FindingSource;
+}
+
+/** Everything the engine needs about one bill. All fields are optional except the core three. */
+export interface BillInput {
+  supplier?: string;
+  /** Billing period start, ISO `YYYY-MM-DD`. */
+  periodStart?: string;
+  periodEnd?: string;
+  consumptionKwh?: number;
+  unitRateP?: number;
+  standingChargeP?: number;
+  /** Total the supplier actually charged, GBP. Drives the arithmetic check. */
+  totalGbp?: number;
+  /** VAT the supplier actually added, GBP (not the rate). */
+  vatGbp?: number;
+  paymentMethod?: 'direct-debit' | 'standard-credit' | 'prepayment';
+  /** Optional: share of usage that falls in cheap off-peak windows, 0–1. */
+  nightShare?: number;
+  tariffName?: string;
+  /** True when the site is known to be on a business (unregulated) contract. */
+  businessContract?: boolean;
+}
+
+export interface BillAnalysis {
+  /** 0–100. 100 = nothing found. */
+  score: number;
+  findings: AnalysisFinding[];
+  /** Sum of positive impacts — the recoverable amount. */
+  recoverableGbp: number;
+  /** Number of days the period actually spans. */
+  periodDays: number | null;
+  /** Recomputed ex-VAT total from kWh × rate + standing charge × days. */
+  expectedTotalGbp: number | null;
+  /** All-in cost per kWh, the single most useful number on a bill. */
+  effectiveRateP: number | null;
+  region: { id: string; name: string; estimated: boolean } | null;
+  capPeriod: { id: string; label: string; averageUnitRateP: number; electricityVatPct: number };
+}
+
+export interface SiteRisk {
+  siteId: string;
+  name: string;
+  score: number;
+  flaggedInvoices: number;
+  recoverableGbp: number;
+  /** Annualised kWh from the most recent bill, used for metering thresholds. */
+  annualisedKwh: number;
+  topCodes: string[];
 }
