@@ -9,6 +9,7 @@ import Analysis from './pages/Analysis';
 import Optimiser from './pages/Optimiser';
 import Sites from './pages/Sites';
 import Copilot from './pages/Copilot';
+import Live from './pages/Live';
 import Plans from './pages/Plans';
 import SignInPage from './pages/auth/SignInPage';
 import SignUpPage from './pages/auth/SignUpPage';
@@ -78,6 +79,7 @@ export default function App() {
         <Route path="optimiser" element={<Optimiser />} />
         <Route path="sites" element={<Sites />} />
         <Route path="copilot" element={<Copilot />} />
+        <Route path="live" element={<Live />} />
         <Route path="plans" element={<Plans />} />
       </Route>
 
