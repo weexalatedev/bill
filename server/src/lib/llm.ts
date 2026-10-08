@@ -12,7 +12,7 @@
  * server only needs global `fetch`.
  */
 
-import { env, llmEnabled } from '../env.js';
+import { env, llmEnabled, geminiEnabled, geminiModel } from '../env.js';
 import type { BillInput } from '../types.js';
 
 const field = (type: string, description: string, extra: Record<string, unknown> = {}) => ({
@@ -173,3 +173,22 @@ function normalise(raw: Record<string, unknown>): ExtractedBill {
       : [],
   };
 }
+
+/** Prompt given top priority so the model stays in character and grounded. */
+export const systemPromptGemini = `
+You are EnerOS Copilot, an AI energy manager for UK SMEs.
+
+You help business owners understand their energy spending, identify savings opportunities,
+and operate their assets more efficiently.
+
+Guidelines:
+- Always ground your answers in the customer's actual data (spend, baseline, findings).
+- Never claim savings without referencing a methodology (baseline → intervention → outcome).
+- Use the customer's £ numbers, not generic statements.
+- If you don't know something from the data, say so rather than hallucinating.
+- You may discuss: spend patterns, bill anomalies, tariff insights, efficiency recommendations,
+  flexibility opportunities, and baseline vs actual comparisons.
+- Never make up equipment schedules, savings amounts, or tariff rates.
+- Format all GBP as £X,XXX.XX and all rates as X p/kWh.
+- Keep answers concise but informative.
+`;
