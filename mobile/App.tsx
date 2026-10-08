@@ -6,6 +6,7 @@ import { NavigationContainer, type Theme as NavTheme } from '@react-navigation/n
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { ClerkProvider } from '@clerk/clerk-expo';
 import {
+  Activity,
   Bot,
   Building2,
   CreditCard,
@@ -30,11 +31,13 @@ import OptimiserScreen from './src/screens/OptimiserScreen';
 import SitesScreen from './src/screens/SitesScreen';
 import CopilotScreen from './src/screens/CopilotScreen';
 import PlansScreen from './src/screens/PlansScreen';
+import LiveScreen from './src/screens/LiveScreen';
 
 export type TabParamList = {
   Dashboard: undefined;
   Bills: undefined;
   Optimiser: undefined;
+  Live: undefined;
   Sites: undefined;
   Copilot: undefined;
   Plans: undefined;
@@ -48,6 +51,7 @@ const TABS: TabDef[] = [
   { name: 'Dashboard', label: 'Dashboard', Icon: LayoutDashboard },
   { name: 'Bills', label: 'Bills', Icon: FileSearch },
   { name: 'Optimiser', label: 'Optimiser', Icon: Sparkles },
+  { name: 'Live', label: 'Live', Icon: Activity },
   { name: 'Sites', label: 'Sites', Icon: Building2 },
   { name: 'Copilot', label: 'Copilot', Icon: Bot },
   { name: 'Plans', label: 'Plans', Icon: CreditCard },
@@ -57,6 +61,7 @@ const SCREENS: Record<keyof TabParamList, React.ComponentType> = {
   Dashboard: DashboardScreen,
   Bills: BillsScreen,
   Optimiser: OptimiserScreen,
+  Live: LiveScreen,
   Sites: SitesScreen,
   Copilot: CopilotScreen,
   Plans: PlansScreen,

@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import { StyleSheet, Text, View, type LayoutChangeEvent } from 'react-native';
-import Svg, { Circle, Defs, Line, LinearGradient, Path, Stop, Text as SvgText } from 'react-native-svg';
+import Svg, { Circle, Defs, Line, LinearGradient, Path, Rect, Stop, Text as SvgText } from 'react-native-svg';
 
 import type { AssetSlice, MonthlyPoint } from '../types';
 import { colors, font, fontWeight, radius, spacing } from '../theme';
@@ -252,3 +252,118 @@ const s = StyleSheet.create({
   },
   stackLegend: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
 });
+
+/* ------------------------------------------------------------- Price curve */
+
+/**
+ * Half-hourly price curve for the Live Market screen. Hand-drawn with
+ * react-native-svg (Recharts is DOM-only), shading the cheapest window green and
+ * the peak window red.
+ */
+export function PriceCurve({
+  points,
+  height = 180,
+  cheapRange,
+  peakRange,
+}: {
+  points: { label: string; price: number }[];
+  height?: number;
+  cheapRange?: [number, number] | null;
+  peakRange?: [number, number] | null;
+}) {
+  const [width, setWidth] = useState(0);
+  const onLayout = (e: LayoutChangeEvent) => setWidth(e.nativeEvent.layout.width);
+
+  const padLeft = 40;
+  const padRight = 10;
+  const padTop = 10;
+  const padBottom = 22;
+  const plotW = Math.max(0, width - padLeft - padRight);
+  const plotH = Math.max(0, height - padTop - padBottom);
+
+  const prices = points.map((p) => p.price);
+  const rawMax = Math.max(1, ...prices);
+  const max = rawMax * 1.08;
+  const min = 0;
+
+  const xAt = (i: number) =>
+    points.length > 1 ? padLeft + (i / (points.length - 1)) * plotW : padLeft + plotW / 2;
+  const yAt = (v: number) => padTop + plotH - ((v - min) / (max - min)) * plotH;
+
+  const band = (range?: [number, number] | null, color: string = colors.emerald500) => {
+    if (!range || points.length < 2) return null;
+    const x1 = xAt(range[0]);
+    const x2 = xAt(range[1]);
+    return (
+      <Rect
+        x={Math.min(x1, x2)}
+        y={padTop}
+        width={Math.max(2, Math.abs(x2 - x1))}
+        height={plotH}
+        fill={color}
+        fillOpacity={0.14}
+      />
+    );
+  };
+
+  const stepPath = points
+    .map((p, i) => `${i === 0 ? 'M' : 'L'}${xAt(i).toFixed(1)},${yAt(p.price).toFixed(1)}`)
+    .join(' ');
+
+  const grid = [0, 0.5, 1].map((f) => ({ v: min + (max - min) * f, y: yAt(min + (max - min) * f) }));
+
+  return (
+    <View onLayout={onLayout} style={{ height }}>
+      {width > 0 ? (
+        <Svg width={width} height={height}>
+          {band(peakRange, colors.rose500)}
+          {band(cheapRange, colors.emerald500)}
+
+          {grid.map((g) => (
+            <Line
+              key={`pg${g.v}`}
+              x1={padLeft}
+              x2={padLeft + plotW}
+              y1={g.y}
+              y2={g.y}
+              stroke={colors.slate200}
+              strokeWidth={1}
+              strokeDasharray="3 4"
+            />
+          ))}
+          {grid.map((g) => (
+            <SvgText
+              key={`pt${g.v}`}
+              x={padLeft - 6}
+              y={g.y + 3.5}
+              fontSize={10}
+              fill={colors.slate400}
+              textAnchor="end"
+            >
+              {`${g.v.toFixed(0)}p`}
+            </SvgText>
+          ))}
+
+          <Path d={stepPath} stroke={colors.ink900} strokeWidth={2} fill="none" />
+
+          {points.length > 1 ? (
+            <>
+              <SvgText x={padLeft} y={height - 6} fontSize={10} fill={colors.slate400}>
+                {points[0].label}
+              </SvgText>
+              <SvgText
+                x={padLeft + plotW}
+                y={height - 6}
+                fontSize={10}
+                fill={colors.slate400}
+                textAnchor="end"
+              >
+                {points[points.length - 1].label}
+              </SvgText>
+            </>
+          ) : null}
+        </Svg>
+      ) : null}
+    </View>
+  );
+}

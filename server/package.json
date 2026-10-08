@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "EnerOS API — MongoDB + Clerk + Cloudflare R2 backend shared by the web and mobile apps.",
+  "description": "EnerOS API \u2014 MongoDB + Clerk + Cloudflare R2 backend shared by the web and mobile apps.",
   "scripts": {
     "dev": "tsx watch src/local.ts",
     "dev:memory": "tsx src/scripts/memory.ts",
@@ -13,7 +13,8 @@
     "smoke": "tsx src/scripts/smoke.ts",
     "verify:analysis": "tsx src/scripts/verify-analysis.ts",
     "typecheck": "tsc --noEmit",
-    "build": "tsc --noEmit"
+    "build": "tsc --noEmit",
+    "verify:live": "tsx src/scripts/verify-live.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.717.0",

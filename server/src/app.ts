@@ -47,6 +47,7 @@ export function createApp(): express.Express {
       auth: clerkEnabled ? 'clerk' : 'dev',
       storage: r2Enabled ? 'r2' : 'disabled',
       analysis: llmEnabled ? 'llm' : 'rules-only',
+      live: 'octopus+carbon',
       time: new Date().toISOString(),
     });
   });

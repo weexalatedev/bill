@@ -68,6 +68,35 @@ export const env = {
     /** Network timeout for outbound reference-data calls. */
     upstreamTimeoutMs: Number(str(process.env.UPSTREAM_TIMEOUT_MS, '6000')),
   },
+
+  /**
+   * Live UK energy data — real-time, key-less public feeds.
+   *
+   * The "real-time" layer pulls actual GB market data rather than a seeded
+   * snapshot:
+   *   • Octopus Energy public tariff API → the half-hourly Agile Octopus unit
+   *     rate for the customer's own distribution region (A–P, which map 1:1 to
+   *     Ofgem's 14 cap regions). No API key, no account.
+   *   • NESO Carbon Intensity API → the current and forecast gCO2/kWh for GB.
+   * Every provider degrades gracefully: with no network the app still runs on
+   * the deterministic engine, it simply reports the live layer as unavailable.
+   */
+  live: {
+    /** Octopus Energy public API root. */
+    octopusBaseUrl: str(process.env.OCTOPUS_BASE_URL, 'https://api.octopus.energy/v1'),
+    /** Agile product code. Latest published at time of writing. */
+    agileProduct: str(process.env.AGILE_PRODUCT, 'AGILE-24-10-01'),
+    /** Agile Outgoing (export) product — sets the live export credit rate. */
+    agileExportProduct: str(process.env.AGILE_EXPORT_PRODUCT, 'AGILE-OUTGOING-19-05-13'),
+    /** Default distribution region letter (A–P) when a site has no postcode. */
+    agileRegion: str(process.env.AGILE_REGION, 'C'),
+    /** NESO Carbon Intensity API root. */
+    carbonBaseUrl: str(process.env.CARBON_BASE_URL, 'https://api.carbonintensity.org.uk'),
+    /** Per-request upstream timeout (ms). */
+    timeoutMs: Number(str(process.env.LIVE_TIMEOUT_MS, '7000')),
+    /** How long a fetched price curve is reused before re-fetching (ms). */
+    cacheTtlMs: Number(str(process.env.LIVE_CACHE_TTL_MS, '900000')),
+  },
 };
 
 export function assertClerkConfigured(): void {

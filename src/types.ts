@@ -28,6 +28,8 @@ export interface Site {
   monthExpected: number;
   meterType: MeterType;
   status: SiteStatus;
+  /** Postcode, used to estimate the site's Ofgem price-cap region. */
+  postcode?: string;
   /** Controllable loads discovered on site (Module D / E). */
   loads: string[];
   /** Last time the AI Energy Brain refreshed this site's model. */

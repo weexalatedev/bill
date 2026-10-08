@@ -94,6 +94,97 @@ export interface PortfolioRisk {
 
 export type { AnalysisFinding, BillAnalysis, SiteRisk };
 
+// ── Live UK energy data ────────────────────────────────────────────────────────
+
+/** One half-hourly unit rate from the live Agile Octopus curve. */
+export interface LiveRate {
+  validFrom: string;
+  validTo: string;
+  unitRateP: number;
+  unitRateExcVatP: number;
+}
+
+export interface LivePriceWindow {
+  from: string;
+  to: string;
+  periods: number;
+  hours: number;
+  avgUnitRateP: number;
+  minUnitRateP: number;
+  maxUnitRateP: number;
+}
+
+export interface LivePriceStats {
+  count: number;
+  minUnitRateP: number;
+  maxUnitRateP: number;
+  meanUnitRateP: number;
+  medianUnitRateP: number;
+  p25UnitRateP: number;
+  p75UnitRateP: number;
+  cheapShare: number;
+}
+
+export interface LiveTariffSnapshot {
+  region: string;
+  regionName: string;
+  productCode: string;
+  tariffCode: string;
+  standingChargeP: number;
+  source: string;
+  fetchedAt: string;
+  cached: boolean;
+  rates: LiveRate[];
+  stats: LivePriceStats;
+  current: LiveRate | null;
+  cheapest: LivePriceWindow[];
+  priciest: LivePriceWindow[];
+  windowStart: string | null;
+  windowEnd: string | null;
+}
+
+export interface LiveShiftPlan {
+  kwh: number;
+  durationHours: number;
+  from: LivePriceWindow | null;
+  to: LivePriceWindow | null;
+  savingGbpPerCycle: number;
+  savingGbpPerMonth: number;
+  gapP: number;
+}
+
+export interface LiveCarbonPoint {
+  from: string;
+  to: string;
+  forecast: number | null;
+  actual: number | null;
+  index: string;
+}
+
+export interface LiveTariffResponse {
+  tariff: LiveTariffSnapshot;
+  shift: LiveShiftPlan;
+  regionVia: 'explicit' | 'postcode' | 'default';
+}
+
+export interface LiveCarbonResponse {
+  current: LiveCarbonPoint | null;
+  forecast: LiveCarbonPoint[];
+  source: string;
+  fetchedAt: string;
+}
+
+export interface LiveStatusResponse {
+  ok: boolean;
+  feeds: {
+    octopus: { ok: boolean; region: string | null; source: string };
+    carbon: { ok: boolean; source: string };
+  };
+  regions: string[];
+  checkedAt: string;
+}
+
+
 /**
  * The writable subset of a site — the server mints `id` and validates the same
  * shape, so this stays a structural mirror of `Site` minus the read-only bits.
@@ -300,6 +391,24 @@ export const api = {
   /** Re-run the engine across every stored invoice. */
   getPortfolioRisk: (token: string) =>
     request<PortfolioRisk>('/api/analysis/portfolio', { token }),
+
+  // ── Live UK energy data (public, key-less feeds) ─────────────────────────────
+
+  /** Reachability of the live feeds. Public. */
+  getLiveStatus: () => request<LiveStatusResponse>('/api/live/status'),
+
+  /** The live half-hourly price curve for a site, plus a shift plan. Public. */
+  getLiveTariff: (params: { region?: string; postcode?: string; hours?: number; kwh?: number }) => {
+    const q = new URLSearchParams();
+    if (params.region) q.set('region', params.region);
+    if (params.postcode) q.set('postcode', params.postcode);
+    if (params.hours) q.set('hours', String(params.hours));
+    if (params.kwh) q.set('kwh', String(params.kwh));
+    return request<LiveTariffResponse>(`/api/live/tariff?${q.toString()}`);
+  },
+
+  /** Current + next-24h GB carbon intensity. Public. */
+  getLiveCarbon: () => request<LiveCarbonResponse>('/api/live/carbon'),
 
   // ── Onboarding profile ───────────────────────────────────────────────────────
 
