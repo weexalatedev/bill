@@ -316,6 +316,11 @@ All under `/api`, all bearer-token authenticated except the two marked public.
 | `GET` | `/api/analysis/portfolio` | Re-run the engine over stored invoices, rolled up per site |
 | `GET` | `/api/account/profile` | Onboarding profile (company, site count, postcode, region) |
 | `PUT` | `/api/account/profile` | Save it. Resolves the postcode to a cap region |
+| `GET` | `/api/live/status` | **Public.** Reachability of the Octopus + NESO feeds, and the 14 regions |
+| `GET` | `/api/live/tariff?region=&postcode=&hours=&kwh=` | **Public.** Live half-hourly curve + cheapest/peak windows + a shift plan |
+| `GET` | `/api/live/carbon` | **Public.** Current + next-24h GB carbon intensity |
+| `GET` | `/api/live/snapshot?…` | **Public.** Tariff + carbon + shift plan in one call |
+
 
 `GET /api/health` now also reports `analysis: "llm" | "rules-only"`, which is the
 quickest way to confirm enrichment is switched on.
@@ -331,4 +336,55 @@ If you do nothing else this week:
 3. Deploy with Clerk keys and verify `GET /api/health` → `auth: clerk`.
 4. Add **back-billing detection** first — a three-month dispute window is the
    strongest hook the product has, and it is a few lines in `analysis.ts`.
+
+---
+
+## 10. The live data layer (real-time prices and carbon)
+
+Section 2 listed "published reference data" as Layer 1. The live layer is the
+first *moving* part of it: instead of transcribing a table, it fetches the market
+as it stands.
+
+| Provider | Endpoint | Key? | What it gives |
+| --- | --- | --- | --- |
+| Octopus Energy | `api.octopus.energy/v1` | **None** | Half-hourly Agile Octopus unit rates + standing charge, per distribution region A–P |
+| NESO | `api.carbonintensity.org.uk` | **None** | Current + forecast gCO2/kWh for GB |
+
+**Why Octopus Agile and not "the customer's tariff".** There is no public API for
+a customer's own bill (section 2, Layer 2 — that is consent-gated at the
+supplier). Agile is the best available *reference*: a real, published,
+half-hourly wholesale-linked price for the customer's exact region, so EnerOS can
+price a shift and draw a real curve today. Where the customer is genuinely on
+Agile, it is exact.
+
+**The region join.** Octopus's A–P letters are the *same 14 areas* as Ofgem's
+price-cap regions. `server/src/lib/live/regions.ts` holds that mapping, so a site
+that has already resolved a cap region from its postcode
+(`regionForPostcode`) gets the right live price with no extra lookup.
+
+**Where the decisions live.** `server/src/lib/live/derive.ts` is pure and
+I/O-free: `rateAt`, `priceStats`, `cheapestWindows`, `priciestWindows`,
+`planShift`, `curveCost`. The providers fetch; the derivations decide. This keeps
+the same "engine decides, LLM explains" rule the bill auditor follows, and it is
+what `verify:live` tests offline.
+
+**Flexibility is now arithmetic, not a promise.** `planShift(rates, kwh, hours)`
+finds the priciest and cheapest contiguous windows and returns the £ saved per
+cycle and per 30-day month. That is the number behind "charge the EV fleet
+01:00–04:00 — £420/month", computed from the live curve rather than assumed.
+
+**Degradation.** Every provider returns `LiveResult<T>` (`ok: true | false`) and
+never throws. With no network the endpoints return a clear `503`, `GET
+/api/health` still reports healthy, and the deterministic engine is unaffected.
+
+**Keep it fresh.** The in-process cache holds a curve for `LIVE_CACHE_TTL_MS`
+(15 min default) — prices only change per half hour. `AGILE_PRODUCT` is the one
+value to bump when Octopus retires `AGILE-24-10-01`; discovery is not automated
+because the product list is large and the code is stable for years at a time.
+
+**Next step for this layer.** The natural follow-on is to persist each site's
+actual half-hourly consumption (Phase 3) and *replay* the live curve against it,
+turning the shift plan from "here is what you could save" into "here is what you
+did save" — the verified-savings methodology the plan calls the key KPI.
+
 ```

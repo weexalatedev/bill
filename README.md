@@ -33,6 +33,8 @@ workspace — persisted in MongoDB, keyed by the authenticated user.
 | **Optimiser** | Module C & D | Recommended actions with schedule changes, model confidence and £ savings. **Recommend → Approve → Automate** control mode plus a per-action approve/automate flow. |
 | **Sites** | Layer 1 – Energy Data OS | Portfolio of sites with controllable loads, meter type, spend, savings and status (Optimal / Watch / Anomaly). |
 | **Copilot** | Layer 2 – AI Energy Brain | A grounded chat assistant that answers questions about spend, savings, tariffs, refrigeration and EV charging. (The Copilot *explains*; the optimisation engine *decides*.) |
+| **Live Market** | Layer 1 – Energy Data OS | **Real-time UK market data, no keys.** The live half-hourly Agile Octopus price curve for the site's own distribution region (A–P, mapped from its Ofgem cap region), the cheapest and peak windows of the day, a live flexibility shift calculator priced off the real curve, and GB grid carbon intensity. Sources: `server/src/lib/live/`. |
+
 | **Plans & Billing** | §6 Pricing | Starter £99 / Optimise £199 / Autonomous £349 per site/month, an interactive **performance-fee calculator** (15% of verified savings), flexibility revenue share, annual value summary and the plan’s worked business case. |
 
 Interactive behaviour is real: approving actions updates metrics, running an audit adds an
@@ -44,6 +46,48 @@ invoice and re-computes KPIs, and the fee calculator recalculates live.
 > (`server/src/lib/weather.ts`). Run `cd server && npm run verify:analysis` to
 > re-validate the engine. See [`docs/IMPLEMENTATION_GUIDE.md`](docs/IMPLEMENTATION_GUIDE.md)
 > for the data-source map and the plan of action.
+
+## Live UK energy data (real-time)
+
+`/live` is not a seeded snapshot — it pulls **actual GB market data** on every
+load from two public, key-less feeds:
+
+| Feed | What it gives | Provider |
+| --- | --- | --- |
+| **Octopus Energy public tariff API** | The half-hourly Agile Octopus unit rate for the site's distribution region (A–P, which map 1:1 onto Ofgem's 14 cap regions) | `api.octopus.energy/v1` — no key |
+| **NESO Carbon Intensity API** | Current + next-24h gCO2/kWh for GB | `api.carbonintensity.org.uk` — no key |
+
+From the real curve the server derives, deterministically
+(`server/src/lib/live/derive.ts`): the price right now, the cheapest and most
+expensive contiguous windows, and the £ saved by moving a flexible load from one
+to the other — the arithmetic behind "charge the EV fleet 01:00–04:00". The
+*engine decides* (here, which window is cheapest); the same discipline as the
+bill auditor. A site's postcode resolves to the correct region through the same
+cap-region heuristic the bill engine already uses.
+
+Endpoints (all public — this is published market data):
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `GET` | `/api/live/status` | Reachability of each feed + the 14 regions |
+| `GET` | `/api/live/tariff?region=&postcode=&hours=&kwh=` | Price curve + cheapest/peak windows + a shift plan |
+| `GET` | `/api/live/carbon` | Current + next-24h carbon intensity |
+| `GET` | `/api/live/snapshot?…` | Everything above in one call |
+
+Verify the derivations offline (17 checks, no network) or with a live smoke:
+
+```bash
+cd server
+npm run verify:live          # deterministic, offline
+npm run verify:live -- --net # also hits Octopus + NESO
+```
+
+Every feed degrades gracefully: if upstream is unreachable the endpoints return a
+clear `503` and the rest of the app keeps working. `GET /api/health` now reports
+`live: "octopus+carbon"`. Tune with `OCTOPUS_BASE_URL`, `AGILE_PRODUCT`,
+`AGILE_REGION`, `CARBON_BASE_URL`, `LIVE_TIMEOUT_MS` and `LIVE_CACHE_TTL_MS`
+(see `server/.env.example`).
+
 
 ## Tech stack
 
@@ -188,12 +232,14 @@ server/                    # shared API (single source of truth)
 │  │  ├─ weather.ts        # Elexon TEMP → heating degree days (degrades gracefully)
 │  │  ├─ llm.ts            # bill text → typed fields (forced tool call, optional)
 │  │  ├─ document.ts       # PDF/text extraction from an uploaded invoice
+│  │  ├─ live/             # live UK data — octopus.ts · carbon.ts · derive.ts · regions.ts
+
 │  │  └─ audit.ts          # projects engine findings onto the legacy BillIssue shape
-│  ├─ routes/              # auth · workspace · invoices · actions · uploads · analysis · account · config
+│  ├─ routes/              # auth · workspace · invoices · actions · uploads · analysis · account · config · live
 │  ├─ seed/
 │  │  ├─ data.ts           # the consistent 12-site demo dataset
 │  │  └─ seed.ts           # `npm run seed` — creates demo user + workspace
-│  └─ scripts/             # smoke.ts (e2e) · memory.ts (in-memory) · verify-analysis.ts (engine checks)
+│  └─ scripts/             # smoke.ts (e2e) · memory.ts (in-memory) · verify-analysis.ts (engine checks) · verify-live.ts (live checks)
 └─ .env.example
 
 src/                       # web console
@@ -216,7 +262,7 @@ src/                       # web console
 │  └─ auth/ClerkStates.tsx # Clerk load / failure placeholders
 ├─ pages/
 │  ├─ Analysis.tsx         # Smart Analysis workbench
-│  ├─ Bills · Optimiser · Sites · Copilot · Plans · Dashboard
+│  ├─ Bills · Optimiser · Sites · Copilot · Live · Plans · Dashboard
 │  └─ auth/                # SignIn · SignUp · Welcome + the split-screen shell
 └─ …
 
