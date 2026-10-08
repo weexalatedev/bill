@@ -295,6 +295,8 @@ npm run export       # expo export --platform ios (proves the bundle compiles)
 | Optimiser | `src/screens/OptimiserScreen.tsx` | Recommend → Approve → Automate flow |
 | Sites | `src/screens/SitesScreen.tsx` | Portfolio, controllable loads, status |
 | Copilot | `src/screens/CopilotScreen.tsx` | Chat thread + suggestion chips + keyboard handling |
+| Live Market | `src/screens/LiveScreen.tsx` | Real-time price curve (`PriceCurve`, react-native-svg), cheapest/peak windows, live shift calculator (`Slider`), grid carbon |
+
 | Plans | `src/screens/PlansScreen.tsx` | Tiers, live performance-fee calculator (`Slider`), business case |
 
 Mobile-specific adaptations:

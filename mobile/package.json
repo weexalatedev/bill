@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "main": "index.ts",
-  "description": "EnerOS mobile — the AI energy manager for UK SMEs (React Native / Expo).",
+  "description": "EnerOS mobile \u2014 the AI energy manager for UK SMEs (React Native / Expo).",
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
@@ -19,16 +19,19 @@
     "@react-navigation/native": "^7.5.0",
     "@react-navigation/native-stack": "^7.20.0",
     "expo": "^57.0.26",
+    "expo-auth-session": "~57.0.14",
     "expo-document-picker": "~57.0.3",
     "expo-secure-store": "~57.0.4",
     "expo-status-bar": "~57.0.1",
+    "expo-web-browser": "~57.0.3",
     "lucide-react-native": "^1.51.0",
     "react": "19.2.3",
     "react-native": "0.86.3",
     "react-native-gesture-handler": "~2.32.0",
     "react-native-safe-area-context": "~5.7.0",
     "react-native-screens": "~4.26.0",
-    "react-native-svg": "15.15.4"
+    "react-native-svg": "15.15.4",
+    "react-dom": "19.2.3"
   },
   "devDependencies": {
     "@types/react": "~19.2.2",
