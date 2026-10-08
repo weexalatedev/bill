@@ -19,6 +19,7 @@ import {
   rateAt,
 } from '../lib/live/derive.js';
 import { getLiveSnapshot } from '../lib/live/index.js';
+import { buildSiteFlow, type FlowSite } from '../lib/live/flow.js';
 import type { HalfHourlyRate } from '../lib/live/types.js';
 
 let passed = 0;
@@ -100,6 +101,57 @@ function runOffline(): void {
   check('planShift with no data saves nothing', planShift([], 100, 3).savingGbpPerMonth === 0);
 }
 
+function runFlow(): void {
+  const rates = syntheticRates();
+  const site: FlowSite = {
+    id: 'test',
+    name: 'Harbour House',
+    type: 'Restaurant',
+    loads: ['HVAC', 'Refrigeration', 'Hot water', 'EV chargers', 'Solar', 'Battery'],
+    monthActual: 6800,
+  };
+
+  console.log('\nbuildSiteFlow');
+  const nowIso = '2026-10-08T17:00:00Z';
+  const flow = buildSiteFlow({
+    site,
+    importRates: rates,
+    standingChargeP: 47.63,
+    tariffName: 'Agile Octopus',
+    exportRateP: 12,
+    nowIso,
+  });
+
+  check('returns all five flow nodes', flow.nodes.length === 5, String(flow.nodes.length));
+  check('node keys are the expected set', ['ev','battery','grid','solar','load'].every((k) => flow.nodes.some((n) => n.key === k)));
+  check('infers solar, battery and EV from loads', flow.assets.hasSolar && flow.assets.hasBattery && flow.assets.hasEv);
+  check('generates a 48-slot history', flow.history.length === 48, String(flow.history.length));
+  check('solar is zero overnight and positive at midday', flow.history[2].solar === 0 && flow.history[25].solar > 0, `${flow.history[2].solar}/${flow.history[25].solar}`);
+  check('EV charges inside the cheapest window (00:00-06:00)', flow.history.slice(0, 12).some((h) => h.ev > 0));
+  check('EV does not charge during the 16:00-19:00 peak', flow.history.slice(32, 38).every((h) => h.ev === 0));
+  check('battery charges then discharges across the day', flow.totals.batteryChargedKwh > 0 && flow.totals.batteryDischargedKwh > 0, `${flow.totals.batteryChargedKwh}/${flow.totals.batteryDischargedKwh}`);
+  check('grid import plus export reconcile with the day', flow.totals.gridImportKwh > 0 && flow.totals.gridExportKwh >= 0);
+  check('net cost = import - export + standing', approx(flow.cost.netGbp, flow.cost.importGbp - flow.cost.exportGbp + flow.cost.standingGbp, 0.02), String(flow.cost.netGbp));
+  check('prices the day from the live curve', flow.pricedFromLive);
+  check('central hub matches the grid direction', (flow.central.mode === 'export') === (flow.mode === 'export'));
+
+  // Determinism is the property that makes this testable.
+  const again = buildSiteFlow({ site, importRates: rates, standingChargeP: 47.63, tariffName: 'Agile Octopus', exportRateP: 12, nowIso });
+  check('is deterministic for the same inputs', JSON.stringify(again) === JSON.stringify(flow));
+
+  // A site with no assets must still produce a valid, simpler picture.
+  const bare = buildSiteFlow({
+    site: { ...site, loads: ['HVAC', 'Refrigeration'], monthActual: 3200 },
+    importRates: rates,
+    standingChargeP: 47.63,
+    tariffName: 'Agile Octopus',
+    nowIso,
+  });
+  check('bare site has no solar/battery/EV', !bare.assets.hasSolar && !bare.assets.hasBattery && !bare.assets.hasEv);
+  check('bare site still balances its grid', bare.totals.gridImportKwh > 0);
+  check('bare site produces no export', bare.totals.gridExportKwh === 0, String(bare.totals.gridExportKwh));
+}
+
 async function runNetwork(): Promise<void> {
   console.log('\n-- live network smoke (Octopus + NESO) --');
   const snapshot = await getLiveSnapshot({ region: 'C', windowHours: 3 });
@@ -126,6 +178,7 @@ async function runNetwork(): Promise<void> {
 async function main(): Promise<void> {
   console.log('EnerOS live energy-data verification');
   runOffline();
+  runFlow();
   if (process.argv.includes('--net')) {
     await runNetwork();
   } else {

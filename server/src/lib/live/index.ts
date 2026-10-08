@@ -10,9 +10,11 @@
  * Nothing here throws. Missing feeds surface as `notes` on the snapshot.
  */
 
+import { env } from '../../env.js';
 import { regionForPostcode } from '../priceCap.js';
 import { toOctopusRegion } from './regions.js';
 import { fetchAgileTariff } from './octopus.js';
+import { buildSiteFlow, type FlowSite, type SiteFlow } from './flow.js';
 import { fetchCarbonForecast } from './carbon.js';
 import {
   cheapestWindows,
@@ -143,3 +145,44 @@ export async function getLiveSnapshot(
 }
 
 export type { LiveSnapshot, LiveTariffSnapshot } from './types.js';
+
+// ── Whole-site flow (the Energy Flow Diagram) ──────────────────────────────────
+
+/**
+ * Build the live flow for one site: fetch the import curve, the export rate and
+ * the carbon signal, then hand them to the deterministic flow model.
+ *
+ * Returns `null` only when the price feed is unavailable — the diagram cannot be
+ * priced without it, and a fabricated price would be worse than an honest gap.
+ */
+export async function getLiveSiteFlow(options: {
+  site: FlowSite;
+  region?: string;
+  postcode?: string;
+  nowIso?: string;
+}): Promise<{ flow: SiteFlow; tariff: LiveTariffSnapshot } | null> {
+  const nowIso = options.nowIso ?? new Date().toISOString();
+  const { region } = resolveLiveRegion({ region: options.region, postcode: options.postcode });
+  const from = new Date(Date.parse(nowIso) - 30 * 60 * 60 * 1000).toISOString();
+  const to = new Date(Date.parse(nowIso) + 30 * 60 * 60 * 1000).toISOString();
+
+  const [tariff, exportRates] = await Promise.all([
+    getLiveTariffSnapshot({ region, postcode: options.postcode, windowHours: 4 }),
+    fetchAgileTariff({ region, product: env.live.agileExportProduct, from, to }),
+  ]);
+  if (!tariff) return null;
+
+  const exportNow = exportRates.ok ? rateAt(exportRates.data.rates, nowIso) : null;
+
+  const flow = buildSiteFlow({
+    site: options.site,
+    importRates: tariff.rates,
+    exportRates: exportRates.ok ? exportRates.data.rates : undefined,
+    standingChargeP: tariff.standingChargeP,
+    tariffName: 'Agile Octopus',
+    exportRateP: exportNow?.unitRateP,
+    nowIso,
+  });
+
+  return { flow, tariff };
+}

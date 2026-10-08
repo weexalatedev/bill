@@ -3,11 +3,15 @@ import { z } from 'zod';
 import { fetchCarbonForecast } from '../lib/live/carbon.js';
 import { planShift } from '../lib/live/derive.js';
 import {
+  getLiveSiteFlow,
   getLiveSnapshot,
   getLiveTariffSnapshot,
   resolveLiveRegion,
 } from '../lib/live/index.js';
 import { OCTOPUS_REGION_LETTERS } from '../lib/live/regions.js';
+import { requireUser, type AuthedRequest } from '../auth.js';
+import { SiteModel } from '../models/index.js';
+import type { Site } from '../types.js';
 
 export const liveRouter = Router();
 
@@ -117,6 +121,60 @@ liveRouter.get('/snapshot', async (req, res, next) => {
       ...snapshot,
       shift: snapshot.tariff ? planShift(snapshot.tariff.rates, kwh, hours) : null,
       regionVia: resolved.via,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * Whole-site live energy flow — the data behind the Energy Flow Diagram.
+ *
+ * Authenticated: it reads one of the caller's own sites. The prices are live and
+ * public, the site's scale comes from its own workspace data.
+ */
+liveRouter.get('/site-flow', requireUser, async (req: AuthedRequest, res, next) => {
+  try {
+    const parsed = z
+      .object({ siteId: z.string().min(1), region: z.string().optional() })
+      .safeParse(req.query);
+    if (!parsed.success) {
+      res.status(400).json({ error: 'siteId is required.' });
+      return;
+    }
+
+    const site = (await SiteModel.findOne({ ownerId: req.ownerId, id: parsed.data.siteId })
+      .lean()
+      .exec()) as Site | null;
+    if (!site) {
+      res.status(404).json({ error: 'Site not found in this workspace.' });
+      return;
+    }
+
+    const result = await getLiveSiteFlow({
+      site: {
+        id: site.id,
+        name: site.name,
+        type: site.type,
+        loads: site.loads ?? [],
+        monthActual: site.monthActual,
+      },
+      region: parsed.data.region ?? site.region,
+      postcode: site.postcode,
+    });
+
+    if (!result) {
+      res.status(503).json({
+        error: 'The live UK price feed is unavailable right now. Please try again shortly.',
+      });
+      return;
+    }
+
+    const carbon = await fetchCarbonForecast().catch(() => null);
+    res.json({
+      flow: result.flow,
+      tariff: result.tariff,
+      carbon: carbon && carbon.ok ? { current: carbon.data.current, source: carbon.source } : null,
     });
   } catch (error) {
     next(error);

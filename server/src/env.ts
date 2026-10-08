@@ -86,6 +86,8 @@ export const env = {
     octopusBaseUrl: str(process.env.OCTOPUS_BASE_URL, 'https://api.octopus.energy/v1'),
     /** Agile product code. Latest published at time of writing. */
     agileProduct: str(process.env.AGILE_PRODUCT, 'AGILE-24-10-01'),
+    /** Agile Outgoing (export) product — sets the live export credit rate. */
+    agileExportProduct: str(process.env.AGILE_EXPORT_PRODUCT, 'AGILE-OUTGOING-19-05-13'),
     /** Default distribution region letter (A–P) when a site has no postcode. */
     agileRegion: str(process.env.AGILE_REGION, 'C'),
     /** NESO Carbon Intensity API root. */
