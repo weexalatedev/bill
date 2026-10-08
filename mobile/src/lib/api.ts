@@ -163,4 +163,114 @@ export const api = {
 
   deleteUpload: (token: string, id: string) =>
     request<null>(`/api/uploads/${id}`, { method: 'DELETE', token }),
+
+  // ── Live UK energy data (public, key-less feeds) ─────────────────────────────
+
+  /** Reachability of the live Octopus + NESO feeds. Public. */
+  getLiveStatus: () => request<LiveStatusResponse>('/api/live/status'),
+
+  /** The live half-hourly price curve for a site, plus a shift plan. Public. */
+  getLiveTariff: (params: { region?: string; postcode?: string; hours?: number; kwh?: number }) => {
+    const parts: string[] = [];
+    if (params.region) parts.push(`region=${encodeURIComponent(params.region)}`);
+    if (params.postcode) parts.push(`postcode=${encodeURIComponent(params.postcode)}`);
+    if (params.hours) parts.push(`hours=${params.hours}`);
+    if (params.kwh) parts.push(`kwh=${params.kwh}`);
+    return request<LiveTariffResponse>(`/api/live/tariff?${parts.join('&')}`);
+  },
+
+  /** Current + next-24h GB carbon intensity. Public. */
+  getLiveCarbon: () => request<LiveCarbonResponse>('/api/live/carbon'),
+
 };
+
+// ── Live UK energy data ────────────────────────────────────────────────────────
+
+/** One half-hourly unit rate from the live Agile Octopus curve. */
+export interface LiveRate {
+  validFrom: string;
+  validTo: string;
+  unitRateP: number;
+  unitRateExcVatP: number;
+}
+
+export interface LivePriceWindow {
+  from: string;
+  to: string;
+  periods: number;
+  hours: number;
+  avgUnitRateP: number;
+  minUnitRateP: number;
+  maxUnitRateP: number;
+}
+
+export interface LivePriceStats {
+  count: number;
+  minUnitRateP: number;
+  maxUnitRateP: number;
+  meanUnitRateP: number;
+  medianUnitRateP: number;
+  p25UnitRateP: number;
+  p75UnitRateP: number;
+  cheapShare: number;
+}
+
+export interface LiveTariffSnapshot {
+  region: string;
+  regionName: string;
+  productCode: string;
+  tariffCode: string;
+  standingChargeP: number;
+  source: string;
+  fetchedAt: string;
+  cached: boolean;
+  rates: LiveRate[];
+  stats: LivePriceStats;
+  current: LiveRate | null;
+  cheapest: LivePriceWindow[];
+  priciest: LivePriceWindow[];
+  windowStart: string | null;
+  windowEnd: string | null;
+}
+
+export interface LiveShiftPlan {
+  kwh: number;
+  durationHours: number;
+  from: LivePriceWindow | null;
+  to: LivePriceWindow | null;
+  savingGbpPerCycle: number;
+  savingGbpPerMonth: number;
+  gapP: number;
+}
+
+export interface LiveCarbonPoint {
+  from: string;
+  to: string;
+  forecast: number | null;
+  actual: number | null;
+  index: string;
+}
+
+export interface LiveTariffResponse {
+  tariff: LiveTariffSnapshot;
+  shift: LiveShiftPlan;
+  regionVia: 'explicit' | 'postcode' | 'default';
+}
+
+export interface LiveCarbonResponse {
+  current: LiveCarbonPoint | null;
+  forecast: LiveCarbonPoint[];
+  source: string;
+  fetchedAt: string;
+}
+
+export interface LiveStatusResponse {
+  ok: boolean;
+  feeds: {
+    octopus: { ok: boolean; region: string | null; source: string };
+    carbon: { ok: boolean; source: string };
+  };
+  regions: string[];
+  checkedAt: string;
+}
+
