@@ -14,6 +14,8 @@ import {
 import { Bot, Lightbulb, Send, Sparkles, User } from 'lucide-react-native';
 
 import { useApp } from '../store';
+import { useAuth } from '../lib/auth';
+import { api } from '../lib/api';
 import type { ChatMessage } from '../types';
 import { ScreenHeader } from '../components/Layout';
 import { gbp } from '../lib/format';
@@ -116,9 +118,11 @@ const CODEX = [
 
 export default function CopilotScreen() {
   const { metrics } = useApp();
+  const { getToken } = useAuth();
   const [messages, setMessages] = useState<ChatMessage[]>([INITIAL]);
   const [input, setInput] = useState('');
   const [thinking, setThinking] = useState(false);
+  const [source, setSource] = useState<'gemini' | 'rules'>('rules');
   const listRef = useRef<FlatList<ChatMessage>>(null);
 
   const lastSuggestions = [...messages]
@@ -130,32 +134,49 @@ export default function CopilotScreen() {
     return () => clearTimeout(t);
   }, [messages, thinking]);
 
-  const send = (text: string) => {
+  const send = async (text: string) => {
     const trimmed = text.trim();
     if (!trimmed || thinking) return;
     const userMessage: ChatMessage = { id: `u${Date.now()}`, role: 'user', text: trimmed };
+    const history = messages
+      .filter((m) => m.id !== 'm0')
+      .map((m) => ({ role: m.role, content: m.text }));
     setMessages((prev) => [...prev, userMessage]);
     setInput('');
     setThinking(true);
 
-    setTimeout(() => {
-      const reply = answer(trimmed, metrics);
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `a${Date.now()}`,
-          role: 'assistant',
-          text: reply.text,
-          suggestions: reply.suggestions,
-        },
-      ]);
-      setThinking(false);
-    }, 750);
+    let reply: { text: string; suggestions?: string[] } | null = null;
+    let used: 'gemini' | 'rules' = 'rules';
+    try {
+      const token = (await getToken()) ?? '';
+      const res = await api.copilotChat(token, { message: trimmed, history });
+      if (res.source === 'gemini' && res.reply.trim()) {
+        reply = { text: res.reply, suggestions: res.suggestions };
+        used = 'gemini';
+      }
+    } catch {
+      // fall through to the deterministic answer
+    }
+    if (!reply) {
+      const fallback = answer(trimmed, metrics);
+      reply = { text: fallback.text, suggestions: fallback.suggestions };
+    }
+    setSource(used);
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: `a${Date.now()}`,
+        role: 'assistant',
+        text: reply.text,
+        suggestions: reply.suggestions,
+      },
+    ]);
+    setThinking(false);
   };
 
   return (
     <>
-      <ScreenHeader title="Copilot" subtitle="Grounded in your live energy data" Icon={Bot} />
+      <ScreenHeader title="Copilot" subtitle={source === 'gemini' ? 'Gemini · grounded in your data' : 'Grounded in your live energy data'} Icon={Bot} />
 
       <KeyboardAvoidingView
         style={s.fill}

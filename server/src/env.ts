@@ -60,6 +60,11 @@ export const env = {
     /** Anthropic API key — enables bill text → structured extraction. */
     anthropicApiKey: str(process.env.ANTHROPIC_API_KEY, ''),
     anthropicModel: str(process.env.ANTHROPIC_MODEL, 'claude-sonnet-4-5'),
+    /** Gemini API key — enables grounded chat for the Copilot. */
+    geminiApiKey: str(process.env.GEMINI_API_KEY, ''),
+    geminiModel: str(process.env.GEMINI_MODEL, 'gemini-1.5-flash'),
+    /** Gemini API base — overridable so the Copilot can be tested with a stub. */
+    geminiBaseUrl: str(process.env.GEMINI_BASE_URL, 'https://generativelanguage.googleapis.com/v1beta'),
     /** Elexon Insights API. Public and key-less, but allow-listable. */
     elexonBaseUrl: str(
       process.env.ELEXON_BASE_URL,
@@ -108,10 +113,13 @@ export function assertClerkConfigured(): void {
 /** Clerk is considered wired only when both keys are present. */
 export const clerkEnabled = Boolean(env.clerkPublishableKey && env.clerkSecretKey);
 
+export const llmEnabled = Boolean(env.analysis.anthropicApiKey);
+export const geminiEnabled = Boolean(env.analysis.geminiApiKey);
+export const geminiModel: string = str(process.env.GEMINI_MODEL, 'gemini-1.5-flash');
+
 /** Cloudflare R2 is considered wired only when the full credential set is present. */
 export const r2Enabled = Boolean(
   env.r2.accountId && env.r2.accessKeyId && env.r2.secretAccessKey && env.r2.bucket,
 );
 
 /** LLM-assisted bill extraction is optional; the rules engine never depends on it. */
-export const llmEnabled = Boolean(env.analysis.anthropicApiKey);

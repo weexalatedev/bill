@@ -14,7 +14,8 @@
     "verify:analysis": "tsx src/scripts/verify-analysis.ts",
     "typecheck": "tsc --noEmit",
     "build": "tsc --noEmit",
-    "verify:live": "tsx src/scripts/verify-live.ts"
+    "verify:live": "tsx src/scripts/verify-live.ts",
+    "verify:copilot": "tsx src/scripts/verify-copilot.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.717.0",

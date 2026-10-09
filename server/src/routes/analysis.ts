@@ -4,6 +4,7 @@ import { requireUser, type AuthedRequest } from '../auth.js';
 import { analyseBill, assessPortfolio } from '../lib/analysis.js';
 import { getCapPeriod, regionForPostcode } from '../lib/priceCap.js';
 import { extractBill, extractionAvailable } from '../lib/llm.js';
+import { narrateAudit } from '../lib/auditor.js';
 import { fetchWeatherSummary } from '../lib/weather.js';
 import { InvoiceModel, SiteModel } from '../models/index.js';
 import type { Invoice, Site } from '../types.js';
@@ -178,6 +179,30 @@ analysisRouter.get('/portfolio', requireUser, async (req: AuthedRequest, res, ne
       },
       capPeriod: getCapPeriod().label,
     });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * Narrate an audit: run the deterministic engine, then ask Gemini to explain
+ * the findings in plain English. The engine still decides — this only explains.
+ */
+analysisRouter.post('/narrate', requireUser, async (req: AuthedRequest, res, next) => {
+  try {
+    const parsed = billSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: 'Invalid bill payload.' });
+      return;
+    }
+    const { includeWeather, siteId, ...input } = parsed.data;
+    const site = siteId
+      ? ((await SiteModel.findOne({ ownerId: req.ownerId, id: siteId }).lean().exec()) as Site | null)
+      : null;
+
+    const analysis = analyseBill(input, site ?? undefined);
+    const narration = await narrateAudit(analysis, input);
+    res.json({ analysis, narration });
   } catch (error) {
     next(error);
   }

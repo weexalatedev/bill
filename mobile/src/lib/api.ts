@@ -182,6 +182,15 @@ export const api = {
   /** Current + next-24h GB carbon intensity. Public. */
   getLiveCarbon: () => request<LiveCarbonResponse>('/api/live/carbon'),
 
+  /** Grounded Copilot chat. */
+  copilotChat: (
+    token: string,
+    payload: {
+      message: string;
+      history?: Array<{ role: 'user' | 'assistant'; content: string }>;
+    },
+  ) => request<CopilotResponse>('/api/copilot/chat', { method: 'POST', body: payload, token }),
+
 };
 
 // ── Live UK energy data ────────────────────────────────────────────────────────
@@ -274,3 +283,10 @@ export interface LiveStatusResponse {
   checkedAt: string;
 }
 
+export interface CopilotResponse {
+  reply: string;
+  suggestions: string[];
+  source: 'gemini' | 'unavailable';
+  geminiEnabled: boolean;
+  groundedOn: { sites: number; invoices: number; actions: number; live: boolean };
+}
