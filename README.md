@@ -32,7 +32,7 @@ workspace — persisted in MongoDB, keyed by the authenticated user.
 | **Bill Auditor** | Module B | Upload/enter an invoice, run the audit, and review detected issues: *incorrect charge, abnormal consumption, tariff discrepancy, standing charge, meter issue, unexpected change*. Challenge a supplier to request recovery. |
 | **Optimiser** | Module C & D | Recommended actions with schedule changes, model confidence and £ savings. **Recommend → Approve → Automate** control mode plus a per-action approve/automate flow. |
 | **Sites** | Layer 1 – Energy Data OS | Portfolio of sites with controllable loads, meter type, spend, savings and status (Optimal / Watch / Anomaly). |
-| **Copilot** | Layer 2 – AI Energy Brain | A grounded chat assistant that answers questions about spend, savings, tariffs, refrigeration and EV charging. (The Copilot *explains*; the optimisation engine *decides*.) |
+| **Copilot** | Layer 2 – AI Energy Brain | A **grounded** chat assistant. The server computes the workspace numbers and the live market snapshot; Gemini narrates them (`POST /api/copilot/chat`). Falls back to deterministic answers and labels the source honestly when no key is set. The Copilot *explains*; the optimisation engine *decides*. |
 | **Live Market** | Layer 1 – Energy Data OS | **Real-time UK market data, no keys.** The live half-hourly Agile Octopus price curve for the site's own distribution region (A–P, mapped from its Ofgem cap region), the cheapest and peak windows of the day, a live flexibility shift calculator priced off the real curve, and GB grid carbon intensity. Sources: `server/src/lib/live/`. |
 
 | **Plans & Billing** | §6 Pricing | Starter £99 / Optimise £199 / Autonomous £349 per site/month, an interactive **performance-fee calculator** (15% of verified savings), flexibility revenue share, annual value summary and the plan’s worked business case. |
@@ -45,7 +45,9 @@ invoice and re-computes KPIs, and the fee calculator recalculates live.
 > (`server/src/lib/priceCap.ts`) and Elexon half-hourly temperature data
 > (`server/src/lib/weather.ts`). Run `cd server && npm run verify:analysis` to
 > re-validate the engine. See [`docs/IMPLEMENTATION_GUIDE.md`](docs/IMPLEMENTATION_GUIDE.md)
-> for the data-source map and the plan of action.
+> for the data-source map and the plan of action. See
+> [`docs/INTELLIGENCE_GUIDE.md`](docs/INTELLIGENCE_GUIDE.md) for how the Copilot
+> and Bill Auditor are grounded on Gemini (engine decides, AI explains).
 
 ## Live UK energy data (real-time)
 
@@ -126,6 +128,8 @@ npm run dev        # tsx watch src/local.ts
 npm run dev:memory # in-memory MongoDB + seed + serve (no mongod required)
 npm run seed       # (re)create the demo account + dataset in MongoDB
 npm run smoke      # end-to-end API test against an in-memory MongoDB (24 checks)
+npm run verify:live  # live derivations + site flow (33 checks, offline)
+npm run verify:copilot # Copilot + Auditor grounding (22 checks, offline)
 npm run build      # tsc --noEmit
 ```
 
