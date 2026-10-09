@@ -174,6 +174,20 @@ export interface LiveCarbonResponse {
   fetchedAt: string;
 }
 
+export interface AuditNarration {
+  summary: string;
+  actions: string[];
+  source: 'gemini' | 'unavailable';
+}
+
+export interface CopilotResponse {
+  reply: string;
+  suggestions: string[];
+  source: 'gemini' | 'unavailable';
+  geminiEnabled: boolean;
+  groundedOn: { sites: number; invoices: number; actions: number; live: boolean };
+}
+
 export interface LiveStatusResponse {
   ok: boolean;
   feeds: {
@@ -381,6 +395,14 @@ export const api = {
       token,
     }),
 
+  /** Run the engine, then narrate the findings with Gemini (grounded). */
+  narrateBill: (token: string, payload: BillQuery) =>
+    request<{ analysis: BillAnalysis; narration: AuditNarration }>('/api/analysis/narrate', {
+      method: 'POST',
+      body: payload,
+      token,
+    }),
+
   /** Paste raw bill text and have the LLM extract + analyse it. */
   extractBill: (token: string, text: string) =>
     request<{ analysis: BillAnalysis; extracted: Record<string, unknown> }>(
@@ -409,6 +431,22 @@ export const api = {
 
   /** Current + next-24h GB carbon intensity. Public. */
   getLiveCarbon: () => request<LiveCarbonResponse>('/api/live/carbon'),
+
+  // ── Copilot ──────────────────────────────────────────────────────────────────
+
+  /** Grounded Copilot chat. Returns the narrated answer and its provenance. */
+  copilotChat: (
+    token: string,
+    payload: {
+      message: string;
+      history?: Array<{ role: 'user' | 'assistant'; content: string }>;
+      siteId?: string;
+    },
+  ) => request<CopilotResponse>('/api/copilot/chat', { method: 'POST', body: payload, token }),
+
+  /** Starter prompts for the Copilot. Public. */
+  copilotSuggestions: () =>
+    request<{ suggestions: string[]; geminiEnabled: boolean }>('/api/copilot/suggestions'),
 
   // ── Onboarding profile ───────────────────────────────────────────────────────
 

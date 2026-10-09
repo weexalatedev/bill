@@ -63,6 +63,8 @@ export const env = {
     /** Gemini API key — enables grounded chat for the Copilot. */
     geminiApiKey: str(process.env.GEMINI_API_KEY, ''),
     geminiModel: str(process.env.GEMINI_MODEL, 'gemini-1.5-flash'),
+    /** Gemini API base — overridable so the Copilot can be tested with a stub. */
+    geminiBaseUrl: str(process.env.GEMINI_BASE_URL, 'https://generativelanguage.googleapis.com/v1beta'),
     /** Elexon Insights API. Public and key-less, but allow-listable. */
     elexonBaseUrl: str(
       process.env.ELEXON_BASE_URL,

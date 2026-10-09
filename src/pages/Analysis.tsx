@@ -22,6 +22,7 @@ import {
   type CapPeriod,
   type CapRegion,
   type WeatherSummary,
+  type AuditNarration,
 } from '../lib/api';
 import type { AnalysisFinding, BillAnalysis, FindingSeverity } from '../types';
 import { Badge, Card, SectionHeading, StatCard, type Tone } from '../components/ui';
@@ -125,6 +126,8 @@ export default function Analysis() {
   const [weather, setWeather] = useState<WeatherSummary | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [narration, setNarration] = useState<AuditNarration | null>(null);
+  const [narrating, setNarrating] = useState(false);
 
   const [cap, setCap] = useState<{ period: CapPeriod; regions: CapRegion[] } | null>(null);
   const [region, setRegion] = useState<CapRegion | null>(null);
@@ -199,6 +202,7 @@ export default function Analysis() {
       const { analysis: result, weather: w } = await api.analyseBill(token, payload);
       setAnalysis(result);
       setWeather(w);
+      setNarration(null);
     } catch (err) {
       setAnalysis(null);
       setError(err instanceof ApiError ? err.message : 'Could not analyse that bill.');
@@ -206,6 +210,24 @@ export default function Analysis() {
       setBusy(false);
     }
   };
+
+  const narrate = async () => {
+    if (!analysis) return;
+    setNarrating(true);
+    try {
+      const token = await getToken();
+      if (!token) throw new Error('session expired');
+      const payload = toQuery(form);
+      if (siteId) payload.siteId = siteId;
+      const res = await api.narrateBill(token, payload);
+      setNarration(res.narration);
+    } catch {
+      setNarration({ summary: '', actions: [], source: 'unavailable' });
+    } finally {
+      setNarrating(false);
+    }
+  };
+
 return (
     <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -255,6 +277,7 @@ return (
             setForm(emptyForm);
             setAnalysis(null);
             setError(null);
+            setNarration(null);
           }}
         />
 
@@ -262,6 +285,11 @@ return (
           {!analysis && !busy && <AnalysisEmptyState />}
           {analysis && (
             <>
+              <NarrationCard
+                narration={narration}
+                narrating={narrating}
+                onNarrate={narrate}
+              />
               <FindingsCard analysis={analysis} />
               {weather && <WeatherCard weather={weather} />}
               <BenchmarkCard
@@ -276,6 +304,64 @@ return (
         </div>
       </div>
     </div>
+  );
+}
+
+function NarrationCard({
+  narration,
+  narrating,
+  onNarrate,
+}: {
+  narration: AuditNarration | null;
+  narrating: boolean;
+  onNarrate: () => void;
+}) {
+  return (
+    <Card>
+      <SectionHeading
+        title="AI explanation"
+        subtitle="Plain-English summary of the engine's findings. The engine decides; the AI explains."
+        action={
+          narration?.source === 'gemini' ? (
+            <Badge tone="violet">Gemini</Badge>
+          ) : narration ? (
+            <Badge tone="slate">rules only</Badge>
+          ) : null
+        }
+      />
+      {narration?.summary ? (
+        <div className="space-y-3">
+          <div className="whitespace-pre-line text-sm leading-relaxed text-slate-700">
+            {narration.summary}
+          </div>
+          {narration.actions.length > 0 && (
+            <ul className="space-y-1.5">
+              {narration.actions.map((action, i) => (
+                <li key={i} className="flex items-start gap-2 text-sm text-slate-700">
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
+                  {action}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      ) : (
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            onClick={onNarrate}
+            disabled={narrating}
+            className="inline-flex items-center gap-2 rounded-lg bg-ink-900 px-3.5 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-800 disabled:opacity-60"
+          >
+            {narrating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+            Explain this audit
+          </button>
+          <span className="text-xs text-slate-400">
+            Uses Gemini when configured; otherwise a clear “rules only” state.
+          </span>
+        </div>
+      )}
+    </Card>
   );
 }
 

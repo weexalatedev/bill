@@ -192,3 +192,119 @@ Guidelines:
 - Format all GBP as £X,XXX.XX and all rates as X p/kWh.
 - Keep answers concise but informative.
 `;
+
+/**
+ * Grounded chat via Gemini — used by the Copilot.
+ *
+ * The Copilot explains decisions; the deterministic engine (`analysis.ts`)
+ * decides. This function is only called when a Gemini key is configured;
+ * with no key the app still runs on the deterministic Copilot, it simply
+ * reports the live layer as unavailable.
+ */
+export async function getGeminiChat(
+  text: string,
+  history: Array<{ role: string; content: string }> = [],
+): Promise<string | null> {
+  if (!geminiEnabled) return null;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), env.analysis.upstreamTimeoutMs);
+  try {
+    const payload: any = {
+      model: geminiModel,
+      contents: [
+        {
+          role: 'user',
+          parts: [{ text: systemPromptGemini + '\n\n' + text }],
+        },
+      ],
+      generationConfig: { temperature: 0.7 },
+    };
+    if (history.length > 0) {
+      payload.contents = [];
+      payload.contents.push({
+        role: 'user',
+        parts: [{ text: systemPromptGemini }],
+      });
+      for (const turn of history) {
+        payload.contents.push({
+          role: turn.role,
+          parts: [{ text: turn.content }],
+        });
+      }
+      payload.contents.push({
+        role: 'user',
+        parts: [{ text }],
+      });
+    }
+    const url =
+      env.analysis.geminiBaseUrl + '/models/' + geminiModel + ':generateContent?key=' + env.analysis.geminiApiKey;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    });
+    if (!res.ok) {
+      const err = await res.text();
+      throw new Error('Gemini API ' + res.status + ': ' + err);
+    }
+    const data = (await res.json()) as {
+      candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+    };
+    const candidates = data.candidates ?? [];
+    if (candidates.length === 0 || !candidates[0].content) return null;
+    return candidates[0]?.content?.parts?.[0]?.text ?? null;
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : 'unknown error';
+    return null;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/**
+ * Low-level Gemini call used by both the Copilot and any future grounded
+ * feature. Returns the raw text (or a JSON-parsed object when `json` is set),
+ * or null on any failure so callers degrade gracefully.
+ */
+export async function callGemini(options: {
+  system: string;
+  messages: Array<{ role: 'user' | 'model'; text: string }>;
+  json?: boolean;
+  temperature?: number;
+}): Promise<string | null> {
+  if (!geminiEnabled) return null;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), env.analysis.upstreamTimeoutMs);
+  try {
+    const contents = [
+      { role: 'user', parts: [{ text: options.system }] },
+      { role: 'model', parts: [{ text: 'Understood. I will follow those rules exactly.' }] },
+      ...options.messages.map((m) => ({ role: m.role, parts: [{ text: m.text }] })),
+    ];
+    const payload = {
+      contents,
+      generationConfig: {
+        temperature: options.temperature ?? 0.4,
+        ...(options.json ? { responseMimeType: 'application/json' } : {}),
+      },
+    };
+    const url =
+      env.analysis.geminiBaseUrl + '/models/' + geminiModel + ':generateContent?key=' + env.analysis.geminiApiKey;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    });
+    if (!res.ok) throw new Error('Gemini ' + res.status);
+    const data = (await res.json()) as {
+      candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+    };
+    return data.candidates?.[0]?.content?.parts?.[0]?.text ?? null;
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timer);
+  }
+}

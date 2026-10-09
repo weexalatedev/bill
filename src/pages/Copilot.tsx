@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Bot, Lightbulb, Loader2, Send, Sparkles, User } from 'lucide-react';
 import { useApp } from '../store';
+import { useAuth } from '../lib/auth';
+import { api } from '../lib/api';
 import type { ChatMessage } from '../types';
 import { Card, SectionHeading } from '../components/ui';
 import { gbp } from '../lib/format';
@@ -102,9 +104,11 @@ const CODEX = [
 
 export default function Copilot() {
   const { metrics } = useApp();
+  const { getToken } = useAuth();
   const [messages, setMessages] = useState<ChatMessage[]>([INITIAL]);
   const [input, setInput] = useState('');
   const [thinking, setThinking] = useState(false);
+  const [source, setSource] = useState<'gemini' | 'rules'>('rules');
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const lastSuggestions = [...messages]
     .reverse()
@@ -114,27 +118,44 @@ export default function Copilot() {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
   }, [messages, thinking]);
 
-  const send = (text: string) => {
+  const send = async (text: string) => {
     const trimmed = text.trim();
     if (!trimmed || thinking) return;
     const userMessage: ChatMessage = { id: `u${Date.now()}`, role: 'user', text: trimmed };
+    const history = messages
+      .filter((m) => m.id !== 'm0')
+      .map((m) => ({ role: m.role, content: m.text }));
     setMessages((prev) => [...prev, userMessage]);
     setInput('');
     setThinking(true);
 
-    window.setTimeout(() => {
-      const reply = answer(trimmed, metrics);
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `a${Date.now()}`,
-          role: 'assistant',
-          text: reply.text,
-          suggestions: reply.suggestions,
-        },
-      ]);
-      setThinking(false);
-    }, 750);
+    let reply: { text: string; suggestions?: string[] } | null = null;
+    let usedSource: 'gemini' | 'rules' = 'rules';
+    try {
+      const token = (await getToken()) ?? '';
+      const res = await api.copilotChat(token, { message: trimmed, history });
+      if (res.source === 'gemini' && res.reply.trim()) {
+        reply = { text: res.reply, suggestions: res.suggestions };
+        usedSource = 'gemini';
+      }
+    } catch {
+      // fall through to the deterministic answer
+    }
+    if (!reply) {
+      const fallback = answer(trimmed, metrics);
+      reply = { text: fallback.text, suggestions: fallback.suggestions };
+    }
+    setSource(usedSource);
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: `a${Date.now()}`,
+        role: 'assistant',
+        text: reply.text,
+        suggestions: reply.suggestions,
+      },
+    ]);
+    setThinking(false);
   };
 
   return (
@@ -148,7 +169,9 @@ export default function Copilot() {
             <p className="text-sm font-semibold text-slate-900">EnerOS Copilot</p>
             <p className="flex items-center gap-1.5 text-xs text-slate-500">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-              Grounded in your live energy data
+              {source === 'gemini'
+                ? 'Gemini · grounded in your live energy data'
+                : 'Grounded in your live energy data'}
             </p>
           </div>
         </div>
