@@ -170,7 +170,7 @@ dispute with the supplier. "Our AI thinks you were overcharged" does not.
 - [ ] Enable email verification + a social provider (Google/Outlook) — SMEs expect it
 - [ ] Add the production domain to Clerk's allowed origins
 - [ ] Set on Vercel: `CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`, `MONGODB_URI`, `R2_*`
-- [ ] Set `ANTHROPIC_API_KEY` to switch on bill extraction
+- [ ] Set `GEMINI_API_KEY` to switch on bill extraction and the Copilot
 - [ ] Deploy, then check `GET /api/health` reports `auth: clerk`
 
 ### Phase 2 — Make the engine earn its keep (2 weeks)
@@ -276,7 +276,7 @@ Full annotated template: `server/.env.example`.
 
 | Variable | Without it |
 | --- | --- |
-| `ANTHROPIC_API_KEY` | Bill extraction disabled; manual entry still works |
+| `GEMINI_API_KEY` | Bill extraction and Copilot disabled; manual entry still works |
 | `ELEXON_BASE_URL` | Weather normalisation off; anomalies are unadjusted |
 | `AUTO_PROVISION` | Set `false` in production so real sign-ups get an empty workspace, not the demo dataset |
 

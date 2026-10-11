@@ -131,7 +131,7 @@ analysisRouter.post('/extract', requireUser, async (req: AuthedRequest, res) => 
   if (!extractionAvailable) {
     res.status(503).json({
       error:
-        'LLM extraction is not configured. Set ANTHROPIC_API_KEY on the API, or use the manual bill form.',
+        'LLM extraction is not configured. Set GEMINI_API_KEY on the API, or use the manual bill form.',
     });
     return;
   }
