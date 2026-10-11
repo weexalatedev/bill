@@ -129,6 +129,16 @@ export default function Analysis() {
   const [narration, setNarration] = useState<AuditNarration | null>(null);
   const [narrating, setNarrating] = useState(false);
 
+  // AI paste-a-bill extraction (Gemini). The flag comes from the price-cap feed.
+  const [extractionAvailable, setExtractionAvailable] = useState(false);
+  const [pasteText, setPasteText] = useState('');
+  const [extracting, setExtracting] = useState(false);
+  const [extractError, setExtractError] = useState<string | null>(null);
+  const [extractionInfo, setExtractionInfo] = useState<{
+    confidence: number;
+    review: string[];
+  } | null>(null);
+
   const [cap, setCap] = useState<{ period: CapPeriod; regions: CapRegion[] } | null>(null);
   const [region, setRegion] = useState<CapRegion | null>(null);
   const [postcode, setPostcode] = useState('');
@@ -140,7 +150,10 @@ export default function Analysis() {
   useEffect(() => {
     api
       .getPriceCap()
-      .then(setCap)
+      .then((data) => {
+        setCap(data);
+        setExtractionAvailable(data.extractionAvailable);
+      })
       .catch(() => undefined);
   }, []);
 
@@ -189,25 +202,94 @@ export default function Analysis() {
     [region, cap],
   );
 
-  const run = async (event: React.FormEvent) => {
-    event.preventDefault();
+  /**
+   * Run the deterministic engine, then automatically narrate the findings with
+   * Gemini. Smart Analysis is AI-enabled by default — no button press needed.
+   */
+  const runWith = async (payload: BillQuery) => {
     setBusy(true);
     setError(null);
     setWeather(null);
+    setNarration(null);
     try {
       const token = await getToken();
       if (!token) throw new Error('Your session expired — please sign in again.');
-      const payload = toQuery(form);
-      if (siteId) payload.siteId = siteId;
       const { analysis: result, weather: w } = await api.analyseBill(token, payload);
       setAnalysis(result);
       setWeather(w);
-      setNarration(null);
+      // Fire the AI explanation; the deterministic findings stand on their own
+      // if this fails, and the card says so honestly.
+      setNarrating(true);
+      try {
+        const res = await api.narrateBill(token, payload);
+        setNarration(res.narration);
+      } catch {
+        setNarration({ summary: '', actions: [], source: 'unavailable' });
+      } finally {
+        setNarrating(false);
+      }
     } catch (err) {
       setAnalysis(null);
       setError(err instanceof ApiError ? err.message : 'Could not analyse that bill.');
     } finally {
       setBusy(false);
+    }
+  };
+
+  const run = (event: React.FormEvent) => {
+    event.preventDefault();
+    const payload = toQuery(form);
+    if (siteId) payload.siteId = siteId;
+    return runWith(payload);
+  };
+
+  /**
+   * Paste-a-bill: Gemini reads the raw invoice text, the form is filled with
+   * exactly what the model found, and the audit + narration run immediately.
+   */
+  const extract = async () => {
+    const text = pasteText.trim();
+    if (text.length < 20 || extracting) return;
+    setExtracting(true);
+    setExtractError(null);
+    try {
+      const token = await getToken();
+      if (!token) throw new Error('Your session expired — please sign in again.');
+      const res = await api.extractBill(token, text);
+      const e = (res.extracted ?? {}) as Record<string, unknown>;
+      const str = (v: unknown): string => (typeof v === 'string' ? v : '');
+      const num = (v: unknown): string =>
+        typeof v === 'number' && Number.isFinite(v) ? String(v) : '';
+      const next: FormState = {
+        supplier: str(e.supplier),
+        periodStart: str(e.periodStart),
+        periodEnd: str(e.periodEnd),
+        consumptionKwh: num(e.consumptionKwh),
+        unitRateP: num(e.unitRateP),
+        standingChargeP: num(e.standingChargeP),
+        totalGbp: num(e.totalGbp),
+        vatGbp: num(e.vatGbp),
+        nightShare: '',
+        businessContract: false,
+      };
+      setForm(next);
+      setExtractionInfo({
+        confidence: typeof e.confidence === 'number' ? e.confidence : 0.5,
+        review: Array.isArray(e.fieldsNeedingReview)
+          ? e.fieldsNeedingReview.filter((f): f is string => typeof f === 'string')
+          : [],
+      });
+      const payload = toQuery(next);
+      if (siteId) payload.siteId = siteId;
+      await runWith(payload);
+    } catch (err) {
+      setExtractError(
+        err instanceof ApiError
+          ? err.message
+          : 'The extractor could not read that bill — try the manual form below.',
+      );
+    } finally {
+      setExtracting(false);
     }
   };
 
@@ -278,6 +360,18 @@ return (
             setAnalysis(null);
             setError(null);
             setNarration(null);
+            setPasteText('');
+            setExtractionInfo(null);
+            setExtractError(null);
+          }}
+          ai={{
+            available: extractionAvailable,
+            text: pasteText,
+            onText: setPasteText,
+            extracting,
+            error: extractError,
+            info: extractionInfo,
+            onExtract: extract,
           }}
         />
 
@@ -316,6 +410,7 @@ function NarrationCard({
   narrating: boolean;
   onNarrate: () => void;
 }) {
+  const unavailable = narration !== null && narration.source !== 'gemini';
   return (
     <Card>
       <SectionHeading
@@ -324,8 +419,8 @@ function NarrationCard({
         action={
           narration?.source === 'gemini' ? (
             <Badge tone="violet">Gemini</Badge>
-          ) : narration ? (
-            <Badge tone="slate">rules only</Badge>
+          ) : unavailable ? (
+            <Badge tone="amber">AI unavailable</Badge>
           ) : null
         }
       />
@@ -354,10 +449,12 @@ function NarrationCard({
             className="inline-flex items-center gap-2 rounded-lg bg-ink-900 px-3.5 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-800 disabled:opacity-60"
           >
             {narrating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-            Explain this audit
+            {narrating ? 'Asking Gemini…' : 'Explain this audit'}
           </button>
           <span className="text-xs text-slate-400">
-            Uses Gemini when configured; otherwise a clear “rules only” state.
+            {unavailable
+              ? 'Gemini is not configured or failed just now — set GEMINI_API_KEY on the API, then try again. The findings above are the deterministic engine.'
+              : 'Runs automatically after every analysis.'}
           </span>
         </div>
       )}
@@ -392,6 +489,7 @@ function BillForm({
   error,
   onSubmit,
   onReset,
+  ai,
 }: {
   form: FormState;
   set: <K extends keyof FormState>(key: K, value: FormState[K]) => void;
@@ -402,6 +500,15 @@ function BillForm({
   error: string | null;
   onSubmit: (event: React.FormEvent) => void;
   onReset: () => void;
+  ai: {
+    available: boolean;
+    text: string;
+    onText: (value: string) => void;
+    extracting: boolean;
+    error: string | null;
+    info: { confidence: number; review: string[] } | null;
+    onExtract: () => void;
+  };
 }) {
   const text = (
     key: keyof FormState,
@@ -433,8 +540,61 @@ function BillForm({
     <Card>
       <SectionHeading
         title="Analyse a bill"
-        subtitle="Every field is optional — the engine runs whichever checks the data supports."
+        subtitle="Paste a bill for AI extraction, or fill the fields — the engine runs whichever checks the data supports."
       />
+
+      {/* AI extraction — Gemini reads the raw invoice and fills the form. */}
+      <div className="mb-4 rounded-xl border border-dashed border-emerald-300 bg-emerald-50/40 p-3.5">
+        <p className="flex items-center gap-1.5 text-xs font-semibold text-emerald-800">
+          <Sparkles className="h-3.5 w-3.5" />
+          Paste a bill — extract with Gemini
+        </p>
+        <p className="mt-1 text-[11px] leading-relaxed text-emerald-700/80">
+          Paste the raw text of an electricity invoice. Gemini reads exactly what is printed,
+          fills the fields below, and the engine audits it immediately.
+        </p>
+        <textarea
+          value={ai.text}
+          onChange={(e) => ai.onText(e.target.value)}
+          rows={4}
+          placeholder={
+            'e.g.\nOctopus Energy Business — Invoice\nPeriod 01/09/2026 – 30/09/2026\n12,480 kWh @ 26.49p/kWh\nStanding charge 45.68p/day\nTotal incl. VAT £3,300.00'
+          }
+          className="mt-2 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+        />
+        {ai.info && (
+          <p className="mt-2 text-[11px] leading-relaxed text-emerald-800">
+            Extracted at {Math.round(ai.info.confidence * 100)}% confidence.
+            {ai.info.review.length > 0
+              ? ` Worth a glance: ${ai.info.review.join(', ')}.`
+              : ' All fields read cleanly.'}
+          </p>
+        )}
+        {ai.error && (
+          <p className="mt-2 rounded-lg bg-rose-50 px-3 py-2 text-xs font-medium text-rose-700">
+            {ai.error}
+          </p>
+        )}
+        <button
+          type="button"
+          onClick={ai.onExtract}
+          disabled={ai.extracting || ai.text.trim().length < 20}
+          className="mt-2 inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3.5 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {ai.extracting ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Sparkles className="h-4 w-4" />
+          )}
+          {ai.extracting ? 'Reading the bill…' : 'Extract & analyse'}
+        </button>
+        {!ai.available && (
+          <p className="mt-2 text-[11px] text-amber-600">
+            Gemini is not configured on the API yet (set GEMINI_API_KEY) — extraction will be
+            refused; use the form below.
+          </p>
+        )}
+      </div>
 
       <form onSubmit={onSubmit} className="space-y-3.5">
         <label className="block">

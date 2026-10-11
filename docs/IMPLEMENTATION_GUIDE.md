@@ -211,9 +211,10 @@ This is where EnerOS stops being a bill auditor and becomes an energy manager.
    DNO/NESO flexibility revenue. This is the "second revenue stream" in the
    business plan — it only becomes real at this phase.
 
-### Phase 4 — Copilot becomes real (2 weeks)
+### Phase 4 — Copilot goes deeper (2 weeks)
 
-`src/pages/Copilot.tsx` is currently keyword-matched demo text. Replace it with:
+The Copilot is already server-side and Gemini-backed: `/api/copilot/chat` hands the model a
+computed workspace + live-market context and the client renders `source` honestly. The next gains:
 
 - **Grounded retrieval.** Give the model the workspace numbers as tool calls
   (`get_spend(siteId, period)`, `get_findings(invoiceId)`, `get_cap_period()`).
