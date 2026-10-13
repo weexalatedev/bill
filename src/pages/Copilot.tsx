@@ -26,6 +26,8 @@ export default function Copilot() {
   const [messages, setMessages] = useState<ChatMessage[]>([INITIAL]);
   const [input, setInput] = useState('');
   const [thinking, setThinking] = useState(false);
+  const [source, setSource] = useState<'gemini' | 'rules'>('rules');
+  const [notice, setNotice] = useState<string | null>(null);
   /** Whether the API reports Gemini as live — drives the header honestly. */
   const [source, setSource] = useState<'gemini' | 'unavailable' | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -56,6 +58,9 @@ export default function Copilot() {
     setInput('');
     setThinking(true);
 
+    let reply: { text: string; suggestions?: string[] } | null = null;
+    let usedSource: 'gemini' | 'rules' = 'rules';
+    let reason: string | null = null;
     let reply: { text: string; suggestions?: string[] };
     let usedSource: 'gemini' | 'unavailable' = 'unavailable';
     try {
@@ -64,6 +69,16 @@ export default function Copilot() {
       if (res.source === 'gemini' && res.reply.trim()) {
         reply = { text: res.reply, suggestions: res.suggestions };
         usedSource = 'gemini';
+      } else {
+        reason = res.reason ?? res.hint ?? 'Gemini is not configured on this server.';
+      }
+    } catch (err) {
+      reason = err instanceof Error ? err.message : 'Could not reach the Copilot API.';
+    }
+    setNotice(usedSource === 'gemini' ? null : reason);
+    if (!reply) {
+      const fallback = answer(trimmed, metrics);
+      reply = { text: fallback.text, suggestions: fallback.suggestions };
       } else if (res.geminiEnabled) {
         // The key is configured but the request failed — say so, never guess.
         reply = {
@@ -179,6 +194,12 @@ export default function Copilot() {
               ))}
             </div>
           )}
+          {notice && (
+            <p className="rounded-lg bg-amber-50 px-3 py-2 text-[11px] leading-relaxed text-amber-800">
+              AI narration unavailable — answering from the deterministic engine. Reason: {notice}
+            </p>
+          )}
+
           <form
             onSubmit={(e) => {
               e.preventDefault();

@@ -130,6 +130,7 @@ npm run seed       # (re)create the demo account + dataset in MongoDB
 npm run smoke      # end-to-end API test against an in-memory MongoDB (24 checks)
 npm run verify:live  # live derivations + site flow (33 checks, offline)
 npm run verify:copilot # Copilot + Auditor grounding (22 checks, offline)
+npm run verify:gemini  # Gemini diagnostics: failure matrix + live check
 npm run build      # tsc --noEmit
 ```
 

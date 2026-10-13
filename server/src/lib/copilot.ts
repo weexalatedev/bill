@@ -21,6 +21,10 @@ export interface CopilotReply {
   suggestions: string[];
   /** Where the answer came from, so the UI can label it honestly. */
   source: 'gemini' | 'unavailable';
+  /** Why the model did not answer, when source is 'unavailable'. */
+  reason?: string;
+  /** Actionable next step for the failure. */
+  hint?: string;
 }
 
 /**
@@ -214,7 +218,7 @@ export async function answerCopilot(options: {
   context: string;
   history?: Array<{ role: 'user' | 'assistant'; content: string }>;
 }): Promise<CopilotReply> {
-  const { callGemini } = await import('./llm.js');
+  const { callGeminiDetailed } = await import('./llm.js');
   const history = options.history ?? [];
   const messages: Array<{ role: 'user' | 'model'; text: string }> = [
     { role: 'user', text: options.context },
@@ -224,16 +228,25 @@ export async function answerCopilot(options: {
   }
   messages.push({ role: 'user', text: options.question });
 
-  const raw = await callGemini({
+  const result = await callGeminiDetailed({
     system: COPILOT_SYSTEM_PROMPT,
     messages,
     json: true,
     temperature: 0.5,
   });
 
-  if (!raw) {
-    return { answer: '', suggestions: [], source: 'unavailable' };
+  if (!result.ok || !result.text) {
+    const f = result.failure;
+    console.error('[copilot] gemini unavailable', JSON.stringify({ code: f?.code, status: f?.status, message: f?.message }));
+    return {
+      answer: '',
+      suggestions: [],
+      source: 'unavailable',
+      reason: f?.message,
+      hint: f?.hint,
+    };
   }
+  const raw = result.text;
 
   // Gemini is asked for JSON, but parse defensively — a stray fence should not
   // break the chat.

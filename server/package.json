@@ -15,7 +15,8 @@
     "typecheck": "tsc --noEmit",
     "build": "tsc --noEmit",
     "verify:live": "tsx src/scripts/verify-live.ts",
-    "verify:copilot": "tsx src/scripts/verify-copilot.ts"
+    "verify:copilot": "tsx src/scripts/verify-copilot.ts",
+    "verify:gemini": "tsx src/scripts/verify-gemini.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.717.0",
