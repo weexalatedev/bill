@@ -13,97 +13,16 @@ import {
 } from 'react-native';
 import { Bot, Lightbulb, Send, Sparkles, User } from 'lucide-react-native';
 
-import { useApp } from '../store';
 import { useAuth } from '../lib/auth';
 import { api } from '../lib/api';
 import type { ChatMessage } from '../types';
 import { ScreenHeader } from '../components/Layout';
-import { gbp } from '../lib/format';
 import { colors, font, fontWeight, radius, spacing } from '../theme';
-
-interface CopilotMetrics {
-  spendActual: number;
-  spendExpected: number;
-  savings: number;
-  savingsRate: number;
-  issuesValue: number;
-}
-
-/** Deterministic demo "LLM" — keyword-matched answers grounded in the dataset. */
-function answer(question: string, metrics: CopilotMetrics): { text: string; suggestions: string[] } {
-  const q = question.toLowerCase();
-
-  if (q.includes('spend') || q.includes('cost') || q.includes('bill')) {
-    return {
-      text: `This month you spent ${gbp(metrics.spendActual)} across 12 sites — ${gbp(
-        metrics.savings,
-      )} (${metrics.savingsRate.toFixed(1)}%) below the expected baseline of ${gbp(
-        metrics.spendExpected,
-      )}. The biggest drivers are HVAC (32%) and refrigeration (26%).`,
-      suggestions: ['Which sites are above baseline?', 'Show refrigeration anomalies'],
-    };
-  }
-
-  if (q.includes('saving') || q.includes('save')) {
-    return {
-      text: `I have verified ${gbp(metrics.savings)} this month, plus a further ${gbp(
-        2500,
-      )}/month of identified opportunities waiting for approval in the Optimiser. At a 15% performance fee that costs you ${gbp(
-        Math.round(metrics.savings * 0.15),
-      )} — you keep the rest of the benefit.`,
-      suggestions: ['What should I approve first?', 'How is the saving verified?'],
-    };
-  }
-
-  if (q.includes('refriger') || q.includes('cold') || q.includes('defrost')) {
-    return {
-      text: 'Two refrigeration findings: the Manchester restaurant runs its defrost cycle at 17:00 inside the peak tariff window (moving it to 22:00 saves £420/month), and Northgate Foods has an overnight base load 24% above baseline — that usually points to a failing door seal or a compressor that is about to fail.',
-      suggestions: ['Approve the defrost change', 'Raise a fault on Northgate Foods'],
-    };
-  }
-
-  if (q.includes('ev') || q.includes('charge') || q.includes('fleet')) {
-    return {
-      text: 'Your EV fleet at Grand Central Hotel currently charges 19:00–22:00. The price forecast for tomorrow shows a cheap window at 01:00–04:00. Shifting charging there saves an estimated £420/month with no operational impact — the fleet is parked overnight.',
-      suggestions: ['Approve EV charging shift', 'What is the price forecast?'],
-    };
-  }
-
-  if (q.includes('tariff') || q.includes('rate') || q.includes('standing')) {
-    return {
-      text: `I found ${gbp(metrics.issuesValue)} of recoverable value in this month's invoices — including a unit rate 1.8p/kWh above contract in Manchester and a standing charge increased without notice at the hotel. You can challenge both from the Bill Auditor.`,
-      suggestions: ['Challenge the Manchester invoice', 'Who is the most expensive supplier?'],
-    };
-  }
-
-  if (q.includes('flex') || q.includes('battery') || q.includes('demand')) {
-    return {
-      text: 'Your flexible assets (battery, EV fleet, HVAC and refrigeration) can be aggregated into the flexibility market. At a 25% platform share that is a second revenue stream on top of the energy savings.',
-      suggestions: ['Which assets are flexible?', 'Show flexibility revenue'],
-    };
-  }
-
-  if (q.includes('verify') || q.includes('measure') || q.includes('baseline')) {
-    return {
-      text: 'Every site gets a 12-month baseline model. After an intervention we normalise for weather and trading hours, then compare actual usage against that baseline. No savings are claimed without this methodology.',
-      suggestions: ['Show the baseline for Manchester', 'When is the next measurement?'],
-    };
-  }
-
-  return {
-    text: `Here's the picture: ${gbp(metrics.spendActual)} spent this month, ${gbp(
-      metrics.savings,
-    )} saved against baseline, and ${gbp(
-      metrics.issuesValue,
-    )} of billing issues to recover. Ask me about spend, savings, refrigeration, EV charging or tariffs.`,
-    suggestions: ['Where are we spending most?', 'What should I approve first?'],
-  };
-}
 
 const INITIAL: ChatMessage = {
   id: 'm0',
   role: 'assistant',
-  text: "Hi — I'm the EnerOS Copilot. I have read your meters, bills and operating patterns. Ask me anything about your energy, or pick a suggestion below.",
+  text: "Hi — I'm the EnerOS Copilot, powered by Gemini and grounded in your live meters, bills and market data. Ask me anything about your energy, or pick a suggestion below.",
   suggestions: ['Where are we spending most?', 'What should I approve first?', 'Any billing issues?'],
 };
 
@@ -117,17 +36,24 @@ const CODEX = [
 ];
 
 export default function CopilotScreen() {
-  const { metrics } = useApp();
   const { getToken } = useAuth();
   const [messages, setMessages] = useState<ChatMessage[]>([INITIAL]);
   const [input, setInput] = useState('');
   const [thinking, setThinking] = useState(false);
-  const [source, setSource] = useState<'gemini' | 'rules'>('rules');
+  /** Whether the API reports Gemini as live — drives the header honestly. */
+  const [source, setSource] = useState<'gemini' | 'unavailable' | null>(null);
   const listRef = useRef<FlatList<ChatMessage>>(null);
 
   const lastSuggestions = [...messages]
     .reverse()
     .find((m) => m.role === 'assistant' && m.suggestions?.length)?.suggestions;
+
+  useEffect(() => {
+    api
+      .copilotSuggestions()
+      .then((s) => setSource(s.geminiEnabled ? 'gemini' : 'unavailable'))
+      .catch(() => setSource(null));
+  }, []);
 
   useEffect(() => {
     const t = setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 60);
@@ -145,21 +71,27 @@ export default function CopilotScreen() {
     setInput('');
     setThinking(true);
 
-    let reply: { text: string; suggestions?: string[] } | null = null;
-    let used: 'gemini' | 'rules' = 'rules';
+    let reply: { text: string; suggestions?: string[] };
+    let used: 'gemini' | 'unavailable' = 'unavailable';
     try {
       const token = (await getToken()) ?? '';
       const res = await api.copilotChat(token, { message: trimmed, history });
       if (res.source === 'gemini' && res.reply.trim()) {
         reply = { text: res.reply, suggestions: res.suggestions };
         used = 'gemini';
+      } else if (res.geminiEnabled) {
+        reply = {
+          text: 'Gemini could not answer just now — the request to the model failed. I will not guess at your numbers; please try again in a moment.',
+        };
+      } else {
+        reply = {
+          text: 'The Gemini API is not configured on the server, so I cannot answer without inventing figures. Set GEMINI_API_KEY on the API and reload — every number you see elsewhere in EnerOS is still live.',
+        };
       }
     } catch {
-      // fall through to the deterministic answer
-    }
-    if (!reply) {
-      const fallback = answer(trimmed, metrics);
-      reply = { text: fallback.text, suggestions: fallback.suggestions };
+      reply = {
+        text: 'I could not reach the Copilot API just now — check that the API is running and try again. I would rather say that than make something up.',
+      };
     }
     setSource(used);
     setMessages((prev) => [
@@ -176,7 +108,15 @@ export default function CopilotScreen() {
 
   return (
     <>
-      <ScreenHeader title="Copilot" subtitle={source === 'gemini' ? 'Gemini · grounded in your data' : 'Grounded in your live energy data'} Icon={Bot} />
+      <ScreenHeader
+        title="Copilot"
+        subtitle={
+          source === 'unavailable'
+            ? 'Gemini offline — set GEMINI_API_KEY on the API'
+            : 'Gemini · grounded in your data'
+        }
+        Icon={Bot}
+      />
 
       <KeyboardAvoidingView
         style={s.fill}

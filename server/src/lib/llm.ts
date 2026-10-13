@@ -7,12 +7,13 @@
  * product defensible: an auditor can challenge a finding with arithmetic, and
  * can always see the raw text the extraction came from.
  *
- * Implemented against the Anthropic Messages API with a forced tool call, so the
- * response is schema-validated rather than free text. No SDK dependency: the
- * server only needs global `fetch`.
+ * Implemented against the Gemini generateContent API with a schema-constrained
+ * JSON response (responseSchema + application/json), so the response is
+ * schema-validated rather than free text. No SDK dependency: the server only
+ * needs global `fetch`.
  */
 
-import { env, llmEnabled, geminiEnabled, geminiModel } from '../env.js';
+import { env, geminiEnabled, geminiModel } from '../env.js';
 import type { BillInput } from '../types.js';
 
 const field = (type: string, description: string, extra: Record<string, unknown> = {}) => ({
@@ -21,41 +22,42 @@ const field = (type: string, description: string, extra: Record<string, unknown>
   ...extra,
 });
 
-const EXTRACTION_TOOL = {
-  name: 'record_bill',
-  description:
-    'Record every field you can find on a UK electricity invoice. Leave a field out entirely if the bill does not state it — never guess.',
-  input_schema: {
-    type: 'object',
-    properties: {
-      supplier: field('string', 'Energy supplier name as printed.'),
-      accountNumber: field('string', 'Supplier account / customer number.'),
-      mpan: field('string', '11-digit Electricity Meter Point Admin Number.'),
-      meterPointSerial: field('string', 'Meter serial / Asset Id.'),
-      tariffName: field('string', 'Tariff name and type, e.g. "Flex Direct 24".'),
-      meterType: field('string', 'Meter type.', {
-        enum: ['Smart', 'Advanced', 'AMR', 'Half-hourly', 'Prepayment', 'Unknown'],
-      }),
-      periodStart: field('string', 'Billing period start as YYYY-MM-DD.'),
-      periodEnd: field('string', 'Billing period end as YYYY-MM-DD.'),
-      consumptionKwh: field('number', 'Electricity consumed in kWh.'),
-      unitRateP: field('number', 'Unit rate in pence per kWh (e.g. 24.6, not 0.246).'),
-      standingChargeP: field('number', 'Standing charge in pence per day.'),
-      subtotalGbp: field('number', 'Subtotal excluding VAT, GBP.'),
-      vatGbp: field('number', 'VAT amount charged, GBP.'),
-      totalGbp: field('number', 'Total amount charged including VAT, GBP.'),
-      currency: field('string', 'ISO currency, normally GBP.'),
-      paymentMethod: field('string', 'How the bill is paid.', {
-        enum: ['direct-debit', 'standard-credit', 'prepayment'],
-      }),
-      isEstimate: field('boolean', 'True if readings are estimated, not actual.'),
-      confidence: field('number', 'Overall confidence 0–1 in this extraction.'),
-      fieldsNeedingReview: field('array', 'Fields that were ambiguous or partially legible.', {
-        items: { type: 'string' },
-      }),
-    },
-    required: ['totalGbp', 'confidence'],
+/**
+ * Gemini responseSchema (OpenAPI subset). Every field is optional except
+ * totalGbp + confidence, and the model must never invent a figure — the
+ * deterministic engine downstream only trusts what was printed on the bill.
+ */
+const EXTRACTION_SCHEMA = {
+  type: 'OBJECT',
+  description: 'Record of a UK electricity invoice.',
+  properties: {
+    supplier: field('STRING', 'Energy supplier name as printed.'),
+    accountNumber: field('STRING', 'Supplier account / customer number.'),
+    mpan: field('STRING', '11-digit Electricity Meter Point Admin Number.'),
+    meterPointSerial: field('STRING', 'Meter serial / Asset Id.'),
+    tariffName: field('STRING', 'Tariff name and type, e.g. "Flex Direct 24".'),
+    meterType: field('STRING', 'Meter type.', {
+      enum: ['Smart', 'Advanced', 'AMR', 'Half-hourly', 'Prepayment', 'Unknown'],
+    }),
+    periodStart: field('STRING', 'Billing period start as YYYY-MM-DD.'),
+    periodEnd: field('STRING', 'Billing period end as YYYY-MM-DD.'),
+    consumptionKwh: field('NUMBER', 'Electricity consumed in kWh.'),
+    unitRateP: field('NUMBER', 'Unit rate in pence per kWh (e.g. 24.6, not 0.246).'),
+    standingChargeP: field('NUMBER', 'Standing charge in pence per day.'),
+    subtotalGbp: field('NUMBER', 'Subtotal excluding VAT, GBP.'),
+    vatGbp: field('NUMBER', 'VAT amount charged, GBP.'),
+    totalGbp: field('NUMBER', 'Total amount charged including VAT, GBP.'),
+    currency: field('STRING', 'ISO currency, normally GBP.'),
+    paymentMethod: field('STRING', 'How the bill is paid.', {
+      enum: ['direct-debit', 'standard-credit', 'prepayment'],
+    }),
+    isEstimate: field('BOOLEAN', 'True if readings are estimated, not actual.'),
+    confidence: field('NUMBER', 'Overall confidence 0–1 in this extraction.'),
+    fieldsNeedingReview: field('ARRAY', 'Fields that were ambiguous or partially legible.', {
+      items: { type: 'STRING' },
+    }),
   },
+  required: ['totalGbp', 'confidence'],
 };
 
 const SYSTEM_PROMPT = `You extract structured data from UK electricity invoices for an energy analytics product.
@@ -81,56 +83,67 @@ export interface ExtractedBill extends Partial<BillInput> {
   fieldsNeedingReview: string[];
 }
 
-/** True when an LLM key is configured — the UI uses this to hide the paste box. */
-export const extractionAvailable = llmEnabled;
+/** True when a Gemini key is configured — the UI uses this to hide the paste box. */
+export const extractionAvailable = geminiEnabled;
 
 /**
  * Turn raw bill text into a typed `BillInput`.
  *
- * Returns `null` when extraction is not configured or the model did not return a
- * usable tool call — callers fall back to the manual entry form.
+ * Returns `null` when extraction is not configured or the model did not return
+ * usable JSON — callers fall back to the manual entry form.
  */
 export async function extractBill(text: string): Promise<ExtractedBill | null> {
-  if (!llmEnabled || !text.trim()) return null;
+  if (!geminiEnabled || !text.trim()) return null;
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), env.analysis.upstreamTimeoutMs * 5);
 
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const url =
+      env.analysis.geminiBaseUrl + '/models/' + geminiModel + ':generateContent?key=' + env.analysis.geminiApiKey;
+    const res = await fetch(url, {
       method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       signal: controller.signal,
-      headers: {
-        'content-type': 'application/json',
-        'x-api-key': env.analysis.anthropicApiKey,
-        'anthropic-version': '2023-06-01',
-      },
       body: JSON.stringify({
-        model: env.analysis.anthropicModel,
-        max_tokens: 2000,
-        system: SYSTEM_PROMPT,
-        tools: [EXTRACTION_TOOL],
-        tool_choice: { type: 'tool', name: EXTRACTION_TOOL.name },
-        messages: [
+        systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+        contents: [
           {
             role: 'user',
-            content: `Extract this electricity invoice:\n\n<invoice>\n${text.slice(0, 60_000)}\n</invoice>`,
+            parts: [
+              {
+                text: `Extract this electricity invoice:\n\n<invoice>\n${text.slice(0, 60_000)}\n</invoice>`,
+              },
+            ],
           },
         ],
+        generationConfig: {
+          temperature: 0,
+          responseMimeType: 'application/json',
+          responseSchema: EXTRACTION_SCHEMA,
+        },
       }),
     });
 
     if (!res.ok) {
       const body = await res.text();
-      throw new Error(`Anthropic API error ${res.status}: ${body.slice(0, 300)}`);
+      throw new Error(`Gemini API error ${res.status}: ${body.slice(0, 300)}`);
     }
 
     const payload = (await res.json()) as {
-      content?: { type: string; input?: unknown }[];
+      candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
     };
-    const toolUse = payload.content?.find((block) => block.type === 'tool_use');
-    if (!toolUse?.input) return null;
-    return normalise(toolUse.input as Record<string, unknown>);
+    const raw = payload.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!raw) return null;
+    // Defensive: a stray fence should not break extraction.
+    const cleaned = raw.replace(/^```(?:json)?/i, '').replace(/```$/, '').trim();
+    const parsed = JSON.parse(cleaned) as unknown;
+    if (!parsed || typeof parsed !== 'object') return null;
+    return normalise(parsed as Record<string, unknown>);
+  } catch {
+    // Not configured, timed out, upstream error or unparseable — degrade to the
+    // manual entry form rather than failing the request.
+    return null;
   } finally {
     clearTimeout(timer);
   }

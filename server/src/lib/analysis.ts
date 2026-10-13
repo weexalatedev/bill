@@ -24,6 +24,7 @@ import type {
   BillAnalysis,
   BillInput,
   FindingSeverity,
+  PriorBill,
   Site,
   SiteRisk,
 } from '../types.js';
@@ -46,6 +47,15 @@ const SMALL_SITE_KWH_PER_YEAR = 15_000;
 const OFF_PEAK_DISCOUNT = 0.35;
 /** Below this a modelled time-of-use saving is not worth recommending. */
 const TOU_MIN_SAVING_GBP = 25;
+/** SLC 21.10A: energy used more than 12 months ago cannot be charged (households + microbusinesses). */
+const BACK_BILL_LIMIT_MONTHS = 12;
+/** Below this a unit-rate rise is indistinguishable from printing noise (p/kWh). */
+const RATE_CREEP_MIN_FLOOR_P = 0.1;
+/** A rise below this only counts when it is also a meaningful percentage (p/kWh). */
+const RATE_CREEP_MIN_P = 0.5;
+const RATE_CREEP_MIN_PCT = 1.5;
+/** Consecutive estimated bills that turn an estimate into a pattern. */
+const ESTIMATED_READ_STREAK = 2;
 
 const SEVERITY_PENALTY: Record<FindingSeverity, number> = {
   info: 0,
@@ -89,6 +99,45 @@ export function resolveRegion(
     if (guess) return { region: guess, estimated: true };
   }
   return null;
+}
+
+// ── Invoice-history helpers ─────────────────────────────────────────────────────
+
+const DAY_MS = 86_400_000;
+const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+/** Parse an ISO `YYYY-MM-DD` (or longer) string to a UTC day index. */
+function dayIndex(iso?: string): number | null {
+  if (!iso) return null;
+  const parsed = Date.parse(`${iso.slice(0, 10)}T00:00:00Z`);
+  return Number.isNaN(parsed) ? null : Math.round(parsed / DAY_MS);
+}
+
+/** "12 Mar 2026" — stable, locale-safe labels for evidence lines. */
+function dateLabel(iso?: string): string | null {
+  const idx = dayIndex(iso);
+  if (idx === null) return null;
+  const date = new Date(idx * DAY_MS);
+  return `${date.getUTCDate()} ${MONTH_NAMES[date.getUTCMonth()]} ${date.getUTCFullYear()}`;
+}
+
+/** Whole months from `earlier` to `later`; null when either date is missing. */
+function monthsBetween(earlier?: string, later?: string): number | null {
+  const from = dayIndex(earlier);
+  const to = dayIndex(later);
+  if (from === null || to === null || to <= from) return null;
+  return Math.floor((to - from) / 30.4375); // mean Gregorian month
+}
+
+/**
+ * Normalise caller-supplied history: drop entries with no usable period end
+ * and sort oldest first. The engine never trusts the order it is handed.
+ */
+function orderedHistory(history: PriorBill[]): Array<PriorBill & { endIdx: number }> {
+  return history
+    .map((bill) => ({ ...bill, endIdx: dayIndex(bill.periodEnd) ?? -1 }))
+    .filter((bill) => bill.endIdx >= 0)
+    .sort((a, b) => a.endIdx - b.endIdx);
 }
 
 // ── Checks ─────────────────────────────────────────────────────────────────────

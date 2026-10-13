@@ -30,6 +30,9 @@ export interface Site {
   status: SiteStatus;
   /** Postcode, used to estimate the site's Ofgem price-cap region. */
   postcode?: string;
+  /** Fixed-contract window, ISO `YYYY-MM-DD`. Drives the rate-creep check. */
+  contractStart?: string;
+  contractEnd?: string;
   /** Controllable loads discovered on site (Module D / E). */
   loads: string[];
   /** Last time the AI Energy Brain refreshed this site's model. */
@@ -59,6 +62,11 @@ export interface Invoice {
   supplier: string;
   /** Billing period, e.g. "Feb 2026". */
   period: string;
+  /** Resolved billing dates, ISO `YYYY-MM-DD`. Optional, but they are what the history checks need. */
+  periodStart?: string;
+  periodEnd?: string;
+  /** True when the reading behind the bill was estimated, not actual. */
+  isEstimate?: boolean;
   consumptionKwh: number;
   /** Unit rate in pence per kWh. */
   unitRateP: number;
@@ -143,7 +151,9 @@ export type FindingSource =
   | 'site-baseline'
   | 'metering-policy'
   | 'tariff-model'
-  | 'portfolio-trend';
+  | 'portfolio-trend'
+  | 'billing-rules'
+  | 'invoice-history';
 
 export interface FindingEvidence {
   label: string;
@@ -188,6 +198,25 @@ export interface BillInput {
   tariffName?: string;
   /** True when the site is known to be on a business (unregulated) contract. */
   businessContract?: boolean;
+  /** True when the reading behind this bill was estimated, not actual. */
+  isEstimate?: boolean;
+  /** Date the supplier issued this bill, ISO `YYYY-MM-DD`. Enables the SLC 21.10A 12-month test. */
+  issuedAt?: string;
+}
+
+/**
+ * One previous invoice from the same site, reduced to what the history checks
+ * need: back-billing, unit-rate creep and estimated-reading streaks. Routes
+ * build these from stored invoices (`toPriorBill` in `lib/audit.ts`); the
+ * engine sorts and interprets them, so callers never have to pre-sort.
+ */
+export interface PriorBill {
+  periodStart?: string;
+  periodEnd?: string;
+  /** Unit rate charged on that invoice, p/kWh. */
+  unitRateP?: number;
+  /** True when that invoice was itself raised on an estimated reading. */
+  isEstimate?: boolean;
 }
 
 export interface BillAnalysis {

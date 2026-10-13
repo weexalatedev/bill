@@ -25,7 +25,7 @@ The LLM never decides any of this. It is given the engine's output and asked to
 a finding with arithmetic, and a hallucinated finding is structurally impossible
 because the model can only see findings the engine already produced.
 
-The LLM is used for exactly three jobs:
+The LLM is used for exactly three jobs, all powered by Gemini:
 1. **Read** a bill (text → typed fields) — `server/src/lib/llm.ts` `extractBill`.
 2. **Explain** a bill audit — `server/src/lib/auditor.ts` `narrateAudit`.
 3. **Answer** questions in the Copilot — `server/src/lib/copilot.ts` `answerCopilot`.

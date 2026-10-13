@@ -327,8 +327,11 @@ Mobile-specific adaptations:
   JWT; without them the server issues its own signed dev tokens. Invoice PDFs/photos are stored
   in **Cloudflare R2** (private buckets are read back through short-lived presigned URLs); with no
   `R2_*` vars, uploads return `503` and the rest of the API still works.
-- **The “AI” is a deterministic demo** (keyword matching in `Copilot.tsx` and a server-side
-  heuristic in `server/src/lib/audit.ts`) so behaviour is predictable and identical across clients.
+- **The AI is real Gemini, grounded in computed data.** The Copilot (`POST /api/copilot/chat`),
+  the audit narrator (`POST /api/analysis/narrate`) and bill extraction (`POST /api/analysis/extract`)
+  all call Gemini with server-computed context; with no `GEMINI_API_KEY` they report `unavailable`
+  and the clients say so plainly instead of inventing answers. (`server/src/lib/audit.ts` is not AI —
+  it is a deterministic adapter that projects the rules engine onto the legacy invoice issue shape.)
 - **Currency is GBP** and formatting is en-GB throughout, matching the UK SME focus.
 - Pricing, the 15% performance fee and the 20–30% flexibility share follow the plan and are
   presented as *testable assumptions*, not fixed commitments — as the plan itself notes.

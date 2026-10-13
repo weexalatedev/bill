@@ -191,6 +191,10 @@ export const api = {
     },
   ) => request<CopilotResponse>('/api/copilot/chat', { method: 'POST', body: payload, token }),
 
+  /** Starter prompts + whether Gemini is live. Public. */
+  copilotSuggestions: () =>
+    request<{ suggestions: string[]; geminiEnabled: boolean }>('/api/copilot/suggestions'),
+
 };
 
 // ── Live UK energy data ────────────────────────────────────────────────────────
