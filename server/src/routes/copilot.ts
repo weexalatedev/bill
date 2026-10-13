@@ -73,6 +73,8 @@ copilotRouter.post('/chat', requireUser, async (req: AuthedRequest, res, next) =
       reply: reply.answer,
       suggestions: reply.suggestions,
       source: reply.source,
+      reason: reply.reason,
+      hint: reply.hint,
       geminiEnabled,
       groundedOn: {
         sites: workspace.sites.length,
@@ -89,4 +91,37 @@ copilotRouter.post('/chat', requireUser, async (req: AuthedRequest, res, next) =
 /** Starter prompts + whether the LLM path is live. Public. */
 copilotRouter.get('/suggestions', (_req, res) => {
   res.json({ suggestions: STARTERS, geminiEnabled });
+});
+
+/**
+ * Gemini diagnostics. Authed, but returns no secrets — only whether the key is
+ * present (with a hint), the model, and the result of one live call including
+ * the exact failure reason. This is the fastest way to answer "why is Gemini
+ * failing?" without shell access to the server.
+ */
+copilotRouter.get('/diagnose', requireUser, async (_req, res, next) => {
+  try {
+    const { describeGemini, callGeminiDetailed } = await import('../lib/llm.js');
+    const config = describeGemini();
+    let live: unknown = null;
+    if (config.configured) {
+      const result = await callGeminiDetailed({
+        system: 'You are a connectivity test. Reply with exactly the word OK.',
+        messages: [{ role: 'user', text: 'Reply OK.' }],
+        temperature: 0,
+      });
+      live = result.ok
+        ? { ok: true, sample: (result.text ?? '').slice(0, 60) }
+        : { ok: false, failure: result.failure };
+    }
+    res.json({
+      config,
+      live,
+      hint: config.configured
+        ? 'If live.ok is false, the failure.code names the cause (http/network/timeout/empty).'
+        : 'Set GEMINI_API_KEY in server/.env and restart the API.',
+    });
+  } catch (error) {
+    next(error);
+  }
 });

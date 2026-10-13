@@ -263,17 +263,83 @@ export async function getGeminiChat(
 }
 
 /**
- * Low-level Gemini call used by both the Copilot and any future grounded
- * feature. Returns the raw text (or a JSON-parsed object when `json` is set),
- * or null on any failure so callers degrade gracefully.
+ * Why a Gemini call failed. Every branch is named so the caller (and the
+ * diagnose endpoint / verify:gemini script) can say exactly what went wrong
+ * instead of a silent null.
  */
-export async function callGemini(options: {
+export type GeminiFailureCode =
+  | 'no-key'
+  | 'http'
+  | 'network'
+  | 'timeout'
+  | 'empty'
+  | 'parse';
+
+export interface GeminiFailure {
+  code: GeminiFailureCode;
+  message: string;
+  /** HTTP status when the failure came from an upstream response. */
+  status?: number;
+  /** Raw upstream body (truncated) for HTTP failures. */
+  detail?: string;
+  /** The model that was requested. */
+  model?: string;
+  /** Actionable next step for this specific failure. */
+  hint?: string;
+}
+
+/** Turn a failure into the single most useful thing to try next. */
+function hintFor(code: GeminiFailureCode, status: number | undefined, message: string): string {
+  const m = message.toLowerCase();
+  if (code === 'no-key') return 'Set GEMINI_API_KEY in server/.env and restart the API.';
+  if (code === 'timeout') return 'Gemini did not answer in time — raise UPSTREAM_TIMEOUT_MS or check connectivity.';
+  if (code === 'network') return 'The server could not reach generativelanguage.googleapis.com — check outbound network/proxy.';
+  if (code === 'empty') return 'The prompt was blocked or returned no text — check the prompt and safety settings.';
+  if (status === 400 && (m.includes('api key') || m.includes('api_key'))) return 'The API key is invalid — regenerate it at aistudio.google.com/app/apikey.';
+  if (status === 403) return 'The key lacks access, or the Generative Language API is not enabled for the project.';
+  if (status === 429) return 'Rate limit or quota exceeded — wait, or switch GEMINI_MODEL to a cheaper tier.';
+  if (status === 404 || m.includes('not found') || m.includes('not supported'))
+    return 'The model name may be retired — try GEMINI_MODEL=gemini-2.0-flash, or list models via GET ' + 'v1beta/models' + '?key=…';
+  if (status === 500 || status === 503) return 'Gemini had a server-side error — retry; this is usually transient.';
+  return 'See the raw detail for the upstream response.';
+}
+
+export interface GeminiResult {
+  ok: boolean;
+  text: string | null;
+  failure?: GeminiFailure;
+  status?: number;
+}
+
+/** Shape of a Google API error envelope. */
+interface GoogleErrorBody {
+  error?: { code?: number; message?: string; status?: string };
+}
+
+function failure(code: GeminiFailureCode, message: string, extra: Partial<GeminiFailure> = {}): GeminiFailure {
+  const merged = { code, message, model: geminiModel, ...extra };
+  return { ...merged, hint: merged.hint ?? hintFor(code, merged.status, message) };
+}
+
+/**
+ * Low-level Gemini call. Unlike the original, this NEVER hides the reason for a
+ * failure — it returns a typed `GeminiFailure` so callers can log it and the
+ * diagnose endpoint can show it.
+ */
+export async function callGeminiDetailed(options: {
   system: string;
   messages: Array<{ role: 'user' | 'model'; text: string }>;
   json?: boolean;
   temperature?: number;
-}): Promise<string | null> {
-  if (!geminiEnabled) return null;
+}): Promise<GeminiResult> {
+  if (!geminiEnabled) {
+    return {
+      ok: false,
+      text: null,
+      failure: failure('no-key', 'GEMINI_API_KEY is not set on the server.'),
+    };
+  }
+
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), env.analysis.upstreamTimeoutMs);
   try {
@@ -290,21 +356,115 @@ export async function callGemini(options: {
       },
     };
     const url =
-      env.analysis.geminiBaseUrl + '/models/' + geminiModel + ':generateContent?key=' + env.analysis.geminiApiKey;
+      env.analysis.geminiBaseUrl +
+      '/models/' +
+      geminiModel +
+      ':generateContent?key=' +
+      env.analysis.geminiApiKey;
     const res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
       signal: controller.signal,
     });
-    if (!res.ok) throw new Error('Gemini ' + res.status);
+
+    if (!res.ok) {
+      let detail = '';
+      try {
+        detail = (await res.text()).slice(0, 600);
+      } catch {
+        detail = '';
+      }
+      let message = 'Gemini returned HTTP ' + res.status + '.';
+      try {
+        const parsed = JSON.parse(detail) as GoogleErrorBody;
+        if (parsed.error?.message) message = parsed.error.message;
+      } catch {
+        /* detail was not JSON */
+      }
+      return {
+        ok: false,
+        text: null,
+        status: res.status,
+        failure: failure('http', message, { status: res.status, detail }),
+      };
+    }
+
     const data = (await res.json()) as {
-      candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+      candidates?: Array<{ content?: { parts?: Array<{ text?: string }> }; finishReason?: string }>;
+      promptFeedback?: { blockReason?: string };
     };
-    return data.candidates?.[0]?.content?.parts?.[0]?.text ?? null;
-  } catch {
-    return null;
+
+    if (data.promptFeedback?.blockReason) {
+      return {
+        ok: false,
+        text: null,
+        failure: failure('empty', 'Gemini blocked the prompt: ' + data.promptFeedback.blockReason),
+      };
+    }
+
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text ?? null;
+    if (!text) {
+      const reason = data.candidates?.[0]?.finishReason ?? 'no candidates returned';
+      return { ok: false, text: null, failure: failure('empty', 'Gemini returned no text (' + reason + ').') };
+    }
+    return { ok: true, text, status: res.status };
+  } catch (error) {
+    const name = error instanceof Error ? error.name : '';
+    const message = error instanceof Error ? error.message : 'unknown error';
+    if (name === 'AbortError') {
+      return {
+        ok: false,
+        text: null,
+        failure: failure('timeout', 'Gemini did not respond within ' + env.analysis.upstreamTimeoutMs + 'ms.'),
+      };
+    }
+    return {
+      ok: false,
+      text: null,
+      failure: failure('network', 'Could not reach Gemini: ' + message),
+    };
   } finally {
     clearTimeout(timer);
   }
+}
+
+/**
+ * Convenience wrapper that logs the failure reason server-side and returns the
+ * text (or null). Callers keep degrading gracefully; operators get a log line.
+ */
+export async function callGemini(options: {
+  system: string;
+  messages: Array<{ role: 'user' | 'model'; text: string }>;
+  json?: boolean;
+  temperature?: number;
+}): Promise<string | null> {
+  const result = await callGeminiDetailed(options);
+  if (!result.ok) {
+    const f = result.failure;
+    console.error(
+      '[gemini] call failed',
+      JSON.stringify({ code: f?.code, status: f?.status, model: f?.model, message: f?.message }),
+    );
+    return null;
+  }
+  return result.text;
+}
+
+/** Non-secret summary of the Gemini configuration, for the diagnose endpoint. */
+export function describeGemini(): {
+  configured: boolean;
+  model: string;
+  baseUrl: string;
+  keyPresent: boolean;
+  keyHint: string | null;
+} {
+  const key = env.analysis.geminiApiKey;
+  return {
+    configured: geminiEnabled,
+    model: geminiModel,
+    baseUrl: env.analysis.geminiBaseUrl,
+    keyPresent: Boolean(key),
+    keyHint: key ? key.slice(0, 4) + '…' + key.slice(-2) : null,
+  };
 }

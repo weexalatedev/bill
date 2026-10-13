@@ -287,6 +287,8 @@ export interface CopilotResponse {
   reply: string;
   suggestions: string[];
   source: 'gemini' | 'unavailable';
+  reason?: string;
+  hint?: string;
   geminiEnabled: boolean;
   groundedOn: { sites: number; invoices: number; actions: number; live: boolean };
 }

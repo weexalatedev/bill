@@ -184,6 +184,9 @@ export interface CopilotResponse {
   reply: string;
   suggestions: string[];
   source: 'gemini' | 'unavailable';
+  /** Why the model did not answer, when source is 'unavailable'. */
+  reason?: string;
+  hint?: string;
   geminiEnabled: boolean;
   groundedOn: { sites: number; invoices: number; actions: number; live: boolean };
 }

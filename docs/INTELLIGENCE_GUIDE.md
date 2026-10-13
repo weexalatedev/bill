@@ -244,3 +244,72 @@ Ordered by leverage.
 > **Do not** let the model produce findings, savings figures, or control
 > decisions. It reads, explains and suggests. The engines decide.
 
+
+---
+
+## 10. Troubleshooting Gemini (when it “fails to invoke”)
+
+The original implementation swallowed every error (`catch { return null }`), so a
+failure looked identical to “no key configured”. That is fixed: every failure is
+now a typed `GeminiFailure` with a `code`, the HTTP `status`, the raw Google
+message in `detail`, and an actionable `hint`.
+
+### Two ways to see exactly where it fails
+
+**1. CLI (fastest, works without the server running):**
+
+```bash
+cd server
+npm run verify:gemini            # offline failure matrix + config report
+npm run verify:gemini -- --live  # + a real call; prints status + raw error
+```
+
+**2. HTTP (from the browser or curl, no shell access needed):**
+
+```bash
+curl -s localhost:4000/api/copilot/diagnose -H "Authorization: Bearer $TOKEN" | jq
+```
+
+Both return the same shape:
+
+```json
+{
+  "config": { "configured": true, "model": "gemini-1.5-flash", "keyPresent": true, "keyHint": "BADK…EY" },
+  "live": {
+    "ok": false,
+    "failure": {
+      "code": "http",
+      "status": 400,
+      "message": "API key not valid. Please pass a valid API key.",
+      "hint": "The API key is invalid — regenerate it at aistudio.google.com/app/apikey."
+    }
+  }
+}
+```
+
+The chat endpoint also returns `reason` and `hint` when `source` is
+`"unavailable"`, and the Copilot UI shows them in an amber line so you never have
+to guess.
+
+### Failure codes and what they mean
+
+| `code` | Meaning | Fix |
+| --- | --- | --- |
+| `no-key` | `GEMINI_API_KEY` not set on the server | Add it to `server/.env`, restart |
+| `http` (400) | Invalid API key | Regenerate at aistudio.google.com/app/apikey |
+| `http` (403) | Key lacks access / API not enabled for the project | Enable the Generative Language API, check key restrictions |
+| `http` (404) | Model name not found | The model may be retired — try `GEMINI_MODEL=gemini-2.0-flash`, or list models: `GET v1beta/models?key=…` |
+| `http` (429) | Quota / rate limit | Wait, or use a cheaper tier |
+| `http` (5xx) | Google-side error | Usually transient — retry |
+| `network` | Could not reach `generativelanguage.googleapis.com` | Check outbound network / proxy |
+| `timeout` | No response within `UPSTREAM_TIMEOUT_MS` | Raise the timeout, check connectivity |
+| `empty` | Prompt blocked (`promptFeedback.blockReason`) or no candidates | Check the prompt and safety settings |
+
+### The most likely cause on a fresh setup
+
+An **invalid or missing key** (400 `API_KEY_INVALID`), because `gemini-1.5-flash`
+and the request shape are correct — verified against the live API. Run
+`npm run verify:gemini -- --live` with the key set; if it prints `ok live call
+succeeded`, the server config is good and the issue is elsewhere (e.g. the key is
+only set locally, not in the deployed environment).
+
