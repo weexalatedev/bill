@@ -305,6 +305,24 @@ to guess.
 | `timeout` | No response within `UPSTREAM_TIMEOUT_MS` | Raise the timeout, check connectivity |
 | `empty` | Prompt blocked (`promptFeedback.blockReason`) or no candidates | Check the prompt and safety settings |
 
+### Trap: the key is set but the tool still says `test…ey`
+
+If `verify:gemini` prints `key present: true (test…ey)`, it is running with the
+**placeholder** key, not yours — your real key was not loaded. Two causes, both
+now fixed but worth knowing:
+
+1. The key is not in `server/.env`. Create it there:
+   ```bash
+   cd server && cp .env.example .env   # then set GEMINI_API_KEY=...
+   ```
+2. The process was started from a different working directory. `env.ts` now loads
+   `server/.env` **module-relative**, so the API picks up its keys whether it was
+   started from `server/`, the repo root, or a workspace task. Real environment
+   variables still win over the file (so Vercel/Docker/CI are unaffected).
+
+A correct key shows a hint like `AIza…90`. Anything else means the file is not
+being read.
+
 ### The most likely cause on a fresh setup
 
 An **invalid or missing key** (400 `API_KEY_INVALID`), because `gemini-1.5-flash`

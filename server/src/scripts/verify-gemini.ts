@@ -10,8 +10,22 @@
  * a model is retired, or a quota is exhausted.
  */
 
-const providedKey = process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY.length > 0;
-process.env.GEMINI_API_KEY = process.env.GEMINI_API_KEY ?? 'test-key';
+import { config as loadEnv } from 'dotenv';
+import { fileURLToPath } from 'node:url';
+import { dirname, resolve } from 'node:path';
+
+// Load server/.env explicitly (module-relative, so it works from any cwd), then
+// fall back to a repo-root .env. dotenv never overrides an already-set variable.
+const here = dirname(fileURLToPath(import.meta.url));
+loadEnv({ path: resolve(here, '../../.env') });
+loadEnv({ path: resolve(here, '../../../.env') });
+
+const realKey = (process.env.GEMINI_API_KEY ?? '').trim();
+const providedKey = realKey.length > 0;
+// Only fall back to a placeholder when there is no real key, so the offline
+// matrix still has something to exercise `geminiEnabled`. Setting it first would
+// shadow the real key, because dotenv does not override existing variables.
+if (!providedKey) process.env.GEMINI_API_KEY = 'test-key';
 process.env.GEMINI_MODEL = process.env.GEMINI_MODEL ?? 'gemini-1.5-flash';
 
 const realFetch = globalThis.fetch;
