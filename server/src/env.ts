@@ -73,7 +73,12 @@ export const env = {
      * chat for the Copilot. One key switches both on.
      */
     geminiApiKey: str(process.env.GEMINI_API_KEY, ''),
-    geminiModel: str(process.env.GEMINI_MODEL, 'gemini-1.5-flash'),
+    /**
+     * Optional model pin. Empty (the default) means "no default model": the
+     * server asks the API which models this key can use (ListModels) and picks
+     * the cheapest one available — see `resolveGeminiModel` in lib/llm.ts.
+     */
+    geminiModel: str(process.env.GEMINI_MODEL, ''),
     /** Gemini API base — overridable so the Copilot can be tested with a stub. */
     geminiBaseUrl: str(process.env.GEMINI_BASE_URL, 'https://generativelanguage.googleapis.com/v1beta'),
     /** Elexon Insights API. Public and key-less, but allow-listable. */
@@ -125,7 +130,8 @@ export function assertClerkConfigured(): void {
 export const clerkEnabled = Boolean(env.clerkPublishableKey && env.clerkSecretKey);
 
 export const geminiEnabled = Boolean(env.analysis.geminiApiKey);
-export const geminiModel: string = str(process.env.GEMINI_MODEL, 'gemini-1.5-flash');
+/** Optional pin; empty = auto-select the cheapest model the API offers. */
+export const geminiModel: string = str(process.env.GEMINI_MODEL, '');
 /** Bill extraction is Gemini-powered; kept as the health-check / config flag. */
 export const llmEnabled = geminiEnabled;
 
