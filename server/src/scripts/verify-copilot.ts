@@ -9,7 +9,7 @@
 
 // Must be set before the modules read env.
 process.env.GEMINI_API_KEY = 'test-key';
-process.env.GEMINI_MODEL = 'gemini-1.5-flash';
+process.env.GEMINI_MODEL = 'test-model';
 
 const { answerCopilot, buildCopilotContext } = await import('../lib/copilot.js');
 import type { Workspace } from '../services/catalog.js';

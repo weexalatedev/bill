@@ -1,7 +1,7 @@
 /**
  * verify-gemini — find exactly where a Gemini call fails.
  *
- *   npm run verify:gemini          # offline failure matrix + config report
+ *   npm run verify:gemini          # model selection + offline failure matrix + config report
  *   npm run verify:gemini -- --live # also make a REAL call (needs GEMINI_API_KEY)
  *
  * The offline matrix stubs `fetch` and asserts that every failure mode maps to a
@@ -12,10 +12,13 @@
 
 const providedKey = process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY.length > 0;
 process.env.GEMINI_API_KEY = process.env.GEMINI_API_KEY ?? 'test-key';
-process.env.GEMINI_MODEL = process.env.GEMINI_MODEL ?? 'gemini-1.5-flash';
+// Pin a stub model so the failure matrix never triggers ListModels discovery;
+// auto-selection itself has dedicated checks in runModelSelection below.
+process.env.GEMINI_MODEL = process.env.GEMINI_MODEL ?? 'test-model';
 
 const realFetch = globalThis.fetch;
-const { callGeminiDetailed, describeGemini } = await import('../lib/llm.js');
+const { callGeminiDetailed, describeGemini, pickCheapestGeminiModel, discoverCheapestGeminiModel } =
+  await import('../lib/llm.js');
 import type { GeminiFailureCode } from '../lib/llm.js';
 
 let passed = 0;
@@ -60,6 +63,51 @@ async function expect(
   const code = result.failure?.code;
   const ok = !result.ok && code === expected && (expectedStatus === undefined || result.status === expectedStatus);
   check(label, ok, `got ok=${result.ok} code=${code} status=${result.status}`);
+}
+
+async function runModelSelection(): Promise<void> {
+  console.log('\nModel selection — no hardcoded default, cheapest available wins');
+  const names = [
+    'models/gemini-2.5-pro',
+    'models/gemini-2.5-flash',
+    'models/gemini-2.5-flash-lite-preview',
+    'models/gemini-2.5-flash-lite',
+    'models/gemini-1.5-flash',
+    'models/gemini-embedding-001',
+    'models/imagen-3.0-generate-002',
+    'models/aqa',
+  ];
+  const cheapest = pickCheapestGeminiModel(names);
+  check('picks flash-lite — the cheapest tier offered', cheapest === 'gemini-2.5-flash-lite', String(cheapest));
+  check('drops the retired gemini-1.5 family', !cheapest?.includes('1.5'), String(cheapest));
+  check(
+    'drops non-chat models (aqa, imagen, embeddings)',
+    pickCheapestGeminiModel(['models/aqa', 'models/imagen-3.0-generate-002', 'models/gemini-embedding-001']) ===
+      null,
+  );
+  check(
+    'stable beats preview within a tier',
+    pickCheapestGeminiModel(['models/gemini-2.5-flash-lite-preview', 'models/gemini-2.5-flash-lite']) ===
+      'gemini-2.5-flash-lite',
+  );
+  check(
+    'pro only when nothing cheaper is offered',
+    pickCheapestGeminiModel(['models/gemini-2.5-pro']) === 'gemini-2.5-pro',
+  );
+
+  stub({
+    models: [
+      { name: 'models/gemini-2.5-flash', supportedGenerationMethods: ['generateContent', 'countTokens'] },
+      { name: 'models/gemini-2.5-flash-lite', supportedGenerationMethods: ['generateContent'] },
+      { name: 'models/text-embedding-004', supportedGenerationMethods: ['embedContent'] },
+    ],
+  });
+  const discovered = await discoverCheapestGeminiModel();
+  check(
+    'ListModels discovery keeps generateContent models only and picks the cheapest',
+    discovered === 'gemini-2.5-flash-lite',
+    discovered,
+  );
 }
 
 async function runMatrix(): Promise<void> {
@@ -134,6 +182,7 @@ async function main(): Promise<void> {
   console.log(`  key present: ${config.keyPresent}${config.keyHint ? ` (${config.keyHint})` : ''}`);
   check('a key is configured', config.keyPresent, 'set GEMINI_API_KEY in server/.env');
 
+  await runModelSelection();
   await runMatrix();
   if (process.argv.includes('--live')) {
     await runLive();

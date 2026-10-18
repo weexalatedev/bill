@@ -60,7 +60,10 @@ Add to `server/.env`:
 
 ```bash
 GEMINI_API_KEY=your-key-from-aistudio.google.com
-GEMINI_MODEL=gemini-1.5-flash
+# Optional: pin a model. Left unset (recommended), the server asks the API
+# which models the key can use (ListModels) and always picks the cheapest one
+# available — there is deliberately no hardcoded default model.
+# GEMINI_MODEL=gemini-2.5-flash-lite
 # Optional: override for testing against a stub
 # GEMINI_BASE_URL=https://generativelanguage.googleapis.com/v1beta
 ```
@@ -72,10 +75,16 @@ curl -s localhost:4000/api/config | grep geminiEnabled   # → true
 curl -s localhost:4000/api/health                         # → analysis: "llm"
 ```
 
-**Model choice.** `gemini-1.5-flash` is the default: fast and cheap, which suits
-short grounded answers. For harder reasoning (multi-site diagnostics) set
-`GEMINI_MODEL=gemini-1.5-pro`. Because the model only narrates pre-computed
-numbers, Flash is sufficient for the Copilot in almost every case.
+**Model choice.** There is deliberately no default model in the source — Google
+retires models (the old `gemini-1.5-flash` default now returns 404), so the
+server resolves the model at runtime. With `GEMINI_MODEL` unset it calls
+ListModels once, keeps every model that supports `generateContent` and picks the
+cheapest tier available (flash-lite → flash → pro), preferring stable over
+preview and newer over older; the pick is cached and re-discovered if Google
+ever says the model is gone. Because the model only narrates pre-computed
+numbers, the cheapest Flash tier is sufficient for the Copilot in almost every
+case — pin `GEMINI_MODEL=gemini-2.5-pro` only for harder reasoning (multi-site
+diagnostics).
 
 **Cost control.** The context is a *computed summary*, not raw rows (§5), so a
 prompt is typically 1–3k tokens regardless of portfolio size. Responses are
@@ -274,7 +283,7 @@ Both return the same shape:
 
 ```json
 {
-  "config": { "configured": true, "model": "gemini-1.5-flash", "keyPresent": true, "keyHint": "BADK…EY" },
+  "config": { "configured": true, "model": "gemini-2.5-flash-lite", "keyPresent": true, "keyHint": "BADK…EY" },
   "live": {
     "ok": false,
     "failure": {
@@ -298,7 +307,7 @@ to guess.
 | `no-key` | `GEMINI_API_KEY` not set on the server | Add it to `server/.env`, restart |
 | `http` (400) | Invalid API key | Regenerate at aistudio.google.com/app/apikey |
 | `http` (403) | Key lacks access / API not enabled for the project | Enable the Generative Language API, check key restrictions |
-| `http` (404) | Model name not found | The model may be retired — try `GEMINI_MODEL=gemini-2.0-flash`, or list models: `GET v1beta/models?key=…` |
+| `http` (404) | Model name not found | With `GEMINI_MODEL` unset the server re-picks the cheapest available model automatically; if you pinned one, unset it or list models: `GET v1beta/models?key=…` |
 | `http` (429) | Quota / rate limit | Wait, or use a cheaper tier |
 | `http` (5xx) | Google-side error | Usually transient — retry |
 | `network` | Could not reach `generativelanguage.googleapis.com` | Check outbound network / proxy |
@@ -307,8 +316,8 @@ to guess.
 
 ### The most likely cause on a fresh setup
 
-An **invalid or missing key** (400 `API_KEY_INVALID`), because `gemini-1.5-flash`
-and the request shape are correct — verified against the live API. Run
+An **invalid or missing key** (400 `API_KEY_INVALID`), because the auto-picked
+model and the request shape are correct — verified against the live API. Run
 `npm run verify:gemini -- --live` with the key set; if it prints `ok live call
 succeeded`, the server config is good and the issue is elsewhere (e.g. the key is
 only set locally, not in the deployed environment).
