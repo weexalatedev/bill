@@ -47,7 +47,10 @@ invoice and re-computes KPIs, and the fee calculator recalculates live.
 > re-validate the engine. See [`docs/IMPLEMENTATION_GUIDE.md`](docs/IMPLEMENTATION_GUIDE.md)
 > for the data-source map and the plan of action. See
 > [`docs/INTELLIGENCE_GUIDE.md`](docs/INTELLIGENCE_GUIDE.md) for how the Copilot
-> and Bill Auditor are grounded on Gemini (engine decides, AI explains).
+> and Bill Auditor are grounded on Gemini (engine decides, AI explains), and
+> [`docs/ENERGY_SAVER_GUIDE.md`](docs/ENERGY_SAVER_GUIDE.md) for the roadmap to a
+> total energy saver — data capture, cost analysis, the opportunity catalogue and
+> the agentic loop.
 
 ## Live UK energy data (real-time)
 
