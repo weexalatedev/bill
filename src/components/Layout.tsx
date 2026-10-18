@@ -82,6 +82,8 @@ export default function Layout() {
   const location = useLocation();
   const navigate = useNavigate();
   const meta = PAGE_META[location.pathname] ?? PAGE_META['/'];
+  /** The Copilot owns the viewport height: a chat app should not page-scroll. */
+  const isChat = location.pathname === '/copilot';
 
   /** Open issues drive the notifications panel — the only live alerts we have. */
   const flaggedInvoices = invoices.filter((invoice) => invoice.status === 'Flagged');
@@ -195,7 +197,7 @@ export default function Layout() {
   );
 
   return (
-    <div className="flex min-h-screen bg-slate-100">
+    <div className={cx('flex bg-slate-100', isChat ? 'h-[100dvh] overflow-hidden' : 'min-h-screen')}>
       {/* Desktop sidebar */}
       <aside className="hidden w-64 shrink-0 lg:sticky lg:top-0 lg:block lg:h-screen">
         {sidebar}
@@ -212,7 +214,7 @@ export default function Layout() {
         </div>
       )}
 
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className={cx('flex min-w-0 flex-1 flex-col', isChat && 'min-h-0')}>
         <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/85 backdrop-blur">
           <div className="flex items-center gap-3 px-4 py-3.5 sm:px-6">
             <button
@@ -363,14 +365,20 @@ export default function Layout() {
           </div>
         </header>
 
-        <main className="mx-auto w-full max-w-[110rem] flex-1 px-4 py-6 sm:px-6">
+        <main
+          className={cx(
+            'mx-auto w-full max-w-[110rem] flex-1',
+            isChat ? 'flex min-h-0 flex-col overflow-hidden' : 'px-4 py-6 sm:px-6',
+          )}
+        >
           <Outlet />
         </main>
 
-        <footer className="border-t border-slate-200 px-4 py-4 text-center text-xs text-slate-400 sm:px-6">
-          EnerOS · MongoDB · Clerk auth · Cloudflare R2 storage · the autonomous energy manager for
-          UK SMEs
-        </footer>
+        {!isChat && (
+          <footer className="border-t border-slate-200 px-4 py-4 text-center text-xs text-slate-400 sm:px-6">
+            EnerOS · the autonomous energy manager for UK SMEs
+          </footer>
+        )}
       </div>
 
       {toast && (

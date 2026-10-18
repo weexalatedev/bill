@@ -1,4 +1,15 @@
 import 'dotenv/config';
+import { config as loadEnv } from 'dotenv';
+import { fileURLToPath } from 'node:url';
+import { dirname, resolve } from 'node:path';
+
+// `dotenv/config` above only loads `.env` from the process cwd. Load the
+// server's own `.env` explicitly as well, so the API picks up its keys however
+// it was started (from `server/`, from the repo root, or from a workspace task).
+// dotenv never overrides an already-set variable, so real environment variables
+// (Vercel, Docker, CI) always win over the file.
+const here = dirname(fileURLToPath(import.meta.url));
+loadEnv({ path: resolve(here, '../.env') });
 
 const str = (value: string | undefined, fallback: string): string =>
   value && value.trim().length > 0 ? value.trim() : fallback;
