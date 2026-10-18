@@ -22,7 +22,7 @@ import { colors, font, fontWeight, radius, spacing } from '../theme';
 const INITIAL: ChatMessage = {
   id: 'm0',
   role: 'assistant',
-  text: "Hi — I'm the EnerOS Copilot, powered by Gemini and grounded in your live meters, bills and market data. Ask me anything about your energy, or pick a suggestion below.",
+  text: "Hi — I'm the EnerOS Copilot, grounded in your live meters, bills and market data. Ask me anything about your energy, or pick a suggestion below.",
   suggestions: ['Where are we spending most?', 'What should I approve first?', 'Any billing issues?'],
 };
 
@@ -40,7 +40,7 @@ export default function CopilotScreen() {
   const [messages, setMessages] = useState<ChatMessage[]>([INITIAL]);
   const [input, setInput] = useState('');
   const [thinking, setThinking] = useState(false);
-  /** Whether the API reports Gemini as live — drives the header honestly. */
+  /** Whether the assistant is live — drives the header honestly. */
   const [source, setSource] = useState<'gemini' | 'unavailable' | null>(null);
   const listRef = useRef<FlatList<ChatMessage>>(null);
 
@@ -81,16 +81,16 @@ export default function CopilotScreen() {
         used = 'gemini';
       } else if (res.geminiEnabled) {
         reply = {
-          text: 'Gemini could not answer just now — the request to the model failed. I will not guess at your numbers; please try again in a moment.',
+          text: "I couldn't reach the assistant just now. I won't guess at your numbers — please try again in a moment.",
         };
       } else {
         reply = {
-          text: 'The Gemini API is not configured on the server, so I cannot answer without inventing figures. Set GEMINI_API_KEY on the API and reload — every number you see elsewhere in EnerOS is still live.',
+          text: "The live assistant isn't available right now, so I can only answer from your saved data. Everything else in EnerOS is still live.",
         };
       }
     } catch {
       reply = {
-        text: 'I could not reach the Copilot API just now — check that the API is running and try again. I would rather say that than make something up.',
+        text: "I couldn't reach the assistant just now. Please try again in a moment.",
       };
     }
     setSource(used);
@@ -111,9 +111,7 @@ export default function CopilotScreen() {
       <ScreenHeader
         title="Copilot"
         subtitle={
-          source === 'unavailable'
-            ? 'Gemini offline — set GEMINI_API_KEY on the API'
-            : 'Gemini · grounded in your data'
+          source === 'unavailable' ? 'Limited mode · saved data' : 'Online · grounded in your data'
         }
         Icon={Bot}
       />
