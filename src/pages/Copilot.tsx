@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
-import { Bot, Lightbulb, Loader2, Send, Sparkles, User } from 'lucide-react';
+import { ArrowUp, Bot, Loader2, Sparkles, User } from 'lucide-react';
 import { useApp } from '../store';
 import { useAuth } from '../lib/auth';
 import { api } from '../lib/api';
+import { cx } from '../lib/cx';
 import type { ChatMessage } from '../types';
 import { Card, SectionHeading } from '../components/ui';
 import { gbp } from '../lib/format';
@@ -108,8 +109,8 @@ export default function Copilot() {
   const [messages, setMessages] = useState<ChatMessage[]>([INITIAL]);
   const [input, setInput] = useState('');
   const [thinking, setThinking] = useState(false);
-  /** Whether the API reports Gemini as live — drives the header honestly. */
-  const [source, setSource] = useState<'gemini' | 'unavailable' | null>(null);
+  /** Which answer path the API reports — drives the header and notice honestly. */
+  const [source, setSource] = useState<'gemini' | 'rules' | 'unavailable' | null>(null);
   /** Exact reason the model did not answer, shown in an amber notice. */
   const [notice, setNotice] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -146,18 +147,16 @@ export default function Copilot() {
 
     let reply: { text: string; suggestions?: string[] } | null = null;
     let usedSource: 'gemini' | 'unavailable' = 'unavailable';
-    let reason: string | null = null;
     try {
       const token = (await getToken()) ?? '';
       const res = await api.copilotChat(token, { message: trimmed, history });
       if (res.source === 'gemini' && res.reply.trim()) {
         reply = { text: res.reply, suggestions: res.suggestions };
         usedSource = 'gemini';
-      } else {
-        unavailable = true;
       }
+      // Otherwise the server answered without Gemini — usedSource stays 'unavailable'.
     } catch {
-      unavailable = true;
+      // Network/API failure — usedSource stays 'unavailable' and the fallback answers.
     }
 
     if (!reply) {
@@ -167,9 +166,9 @@ export default function Copilot() {
 
     setSource(usedSource);
     setNotice(
-      unavailable
-        ? 'The live assistant is unavailable right now, so this answer uses your saved data.'
-        : null,
+      usedSource === 'gemini'
+        ? null
+        : 'The live assistant is unavailable right now, so this answer uses your saved data.',
     );
     setMessages((prev) => [
       ...prev,
