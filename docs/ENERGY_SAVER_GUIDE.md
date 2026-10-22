@@ -551,7 +551,7 @@ the plan-specific pieces that were missing:
 | **Gemini for bill extraction + recommendations** | ✅ built | `lib/llm.ts` extraction, `lib/copilot.ts` grounded chat, `lib/auditor.ts` narration |
 | Bill validation + verified savings | 🟡 partial | engine + auditor done; verification/baseline is §4.3 (next) |
 | Half-hourly import / smart-meter integration | ⬜ planned | §3.2 |
-| Stripe subscriptions | ⬜ planned | see gaps below |
+| **Stripe subscriptions** | ✅ built | `lib/billing/stripe.ts`, `routes/billing.ts` (checkout + signed webhook), Plans page checkout |
 | Next.js (plan) vs current Vite SPA | ⚠️ differs | see gaps below |
 
 ### Known gaps versus the plan (deliberate)
@@ -560,8 +560,9 @@ the plan-specific pieces that were missing:
   SPA with an Express API. The product behaviour is unaffected, and a Next.js
   migration is a separate, mechanical project. Do it only if SSR/SEO for the
   marketing pages matters more than shipping features.
-- **Payments.** No Stripe yet. The Plans page is a request/toast stub. Add Stripe
-  Checkout + a webhook that flips `Account.planId` and records subscription state.
+- **Payments.** ✅ Stripe Checkout (per-site quantity) + signature-verified webhook
+  now update `Account.planId` and subscription state. Without a key the API runs a
+  clearly-labelled dev mode that activates a plan without payment.
 - **Background jobs.** Add a daily Vercel/Cloudflare cron hitting an authenticated
   `/api/jobs/daily` for price snapshots, anomaly sweeps and verification runs.
 - **Smart-meter integrations.** Phase 3+ per §3.2; start with CSV import.

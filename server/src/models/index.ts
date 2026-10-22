@@ -142,6 +142,11 @@ const accountSchema = new Schema(
     /** Ofgem price-cap region id resolved from the postcode. */
     region: String,
     onboarded: { type: Boolean, default: false },
+    /** Billing state, driven by Stripe (or dev-mode activation). */
+    subscriptionStatus: { type: String, default: 'none' },
+    stripeCustomerId: String,
+    stripeSubscriptionId: String,
+    currentPeriodEnd: String,
   },
   schemaOptions,
 );

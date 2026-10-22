@@ -28,6 +28,25 @@ export interface ApiConfig {
 }
 
 /** One row of the Ofgem cap table. */
+export interface BillingStatus {
+  planId: string;
+  planName: string;
+  sites: number;
+  pricePerSite: number;
+  monthlyGbp: number;
+  subscriptionStatus: string;
+  currentPeriodEnd: string | null;
+  stripeEnabled: boolean;
+  devMode: boolean;
+}
+
+export interface CheckoutResult {
+  mode: 'stripe' | 'dev';
+  url?: string;
+  planId: string;
+  note?: string;
+}
+
 export interface PublicBillFinding {
   code: string;
   severity: 'info' | 'low' | 'medium' | 'high';
@@ -329,6 +348,17 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
 
 export const api = {
   getConfig: (): Promise<ApiConfig> => request<ApiConfig>('/api/config'),
+
+  /** Current subscription summary. */
+  getBilling: (token: string) => request<{ billing: BillingStatus }>('/api/billing/status', { token }),
+
+  /** Start a subscription (Stripe Checkout, or dev-mode activation). */
+  billingCheckout: (token: string, planId: string) =>
+    request<CheckoutResult>('/api/billing/checkout', {
+      method: 'POST',
+      body: { planId },
+      token,
+    }),
 
   /** Free, no-registration bill check. Public. */
   publicBillCheck: (payload: {

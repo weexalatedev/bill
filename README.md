@@ -135,6 +135,8 @@ npm run smoke      # end-to-end API test against an in-memory MongoDB (24 checks
 npm run verify:live  # live derivations + site flow (33 checks, offline)
 npm run verify:copilot # Copilot + Auditor grounding (22 checks, offline)
 npm run verify:gemini  # Gemini diagnostics: failure matrix + live check
+npm run verify:safety   # autonomy safety policy + dispute letter (25 checks)
+npm run verify:billing  # Stripe checkout + webhook signature (18 checks)
 npm run build      # tsc --noEmit
 ```
 
@@ -211,6 +213,10 @@ Everything is env-driven with safe local defaults.
 
 **`server/.env`** (see `server/.env.example`): `MONGODB_URI`, `CLERK_PUBLISHABLE_KEY` /
 `CLERK_SECRET_KEY`, `R2_ACCOUNT_ID` / `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` / `R2_BUCKET`
+
+**Optional billing** — `STRIPE_SECRET_KEY` (checkout), `STRIPE_WEBHOOK_SECRET`
+(verify events) and `APP_BASE_URL` (redirect URLs). Without a Stripe key, checkout
+runs in a clearly-labelled dev mode that activates a plan without taking payment.
 (+ optional `R2_PUBLIC_BASE_URL`), `CORS_ORIGINS`, and the `DEMO_*` account. Clerk and R2 are
 each *optional* — the server degrades gracefully when they are absent.
 

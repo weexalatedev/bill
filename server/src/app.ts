@@ -2,6 +2,7 @@ import express, { type NextFunction, type Request, type Response } from 'express
 import cors from 'cors';
 import { clerkMiddleware } from '@clerk/express';
 import { apiRouter } from './routes/index.js';
+import { stripeWebhook } from './routes/billing.js';
 import { clerkEnabled, r2Enabled, env, llmEnabled } from './env.js';
 import { connectDb, isDbConnected } from './db.js';
 
@@ -21,6 +22,10 @@ export function createApp(): express.Express {
       credentials: true,
     }),
   );
+
+  // Stripe webhooks must be verified against the RAW body, so this route is
+  // registered before the JSON parser. Every other route uses JSON below.
+  app.post('/api/billing/webhook', express.raw({ type: 'application/json' }), stripeWebhook);
 
   app.use(express.json({ limit: '2mb' }));
 
