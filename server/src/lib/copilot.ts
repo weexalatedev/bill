@@ -159,6 +159,16 @@ export function buildCopilotContext(workspace: Workspace, live?: LiveTariffSnaps
     );
   }
 
+  const withMeter = sites.filter((s) => s.dataQuality?.consumption === 'hh');
+  lines.push('');
+  lines.push('--- Meter data ---');
+  lines.push(`${withMeter.length}/${sites.length} sites have half-hourly consumption data.`);
+  for (const s of withMeter.slice(0, 6)) {
+    lines.push(
+      `${s.name}: ${s.dataQuality?.coveragePct ?? 0}% coverage, last reading ${s.dataQuality?.lastReadingAt ?? 'unknown'}`,
+    );
+  }
+
   if (assetMix.length > 0) {
     lines.push('');
     lines.push('--- Consumption by asset ---');
