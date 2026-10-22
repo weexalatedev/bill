@@ -550,7 +550,8 @@ the plan-specific pieces that were missing:
 | **Never control refrigeration / freezers / alarms / safety equipment** | ✅ enforced | `server/src/lib/autonomy/policy.ts`, hard gate in `routes/actions.ts` (422 on illegal automation) |
 | **Gemini for bill extraction + recommendations** | ✅ built | `lib/llm.ts` extraction, `lib/copilot.ts` grounded chat, `lib/auditor.ts` narration |
 | Bill validation + verified savings | 🟡 partial | engine + auditor done; verification/baseline is §4.3 (next) |
-| Half-hourly import / smart-meter integration | ⬜ planned | §3.2 |
+| **Half-hourly CSV import + analysis** | ✅ built | `lib/consumption/*`, `/api/consumption/*`, Meter Data page |
+| Smart-meter integration | ⬜ planned | §3.2 (after CSV) |
 | **Stripe subscriptions** | ✅ built | `lib/billing/stripe.ts`, `routes/billing.ts` (checkout + signed webhook), Plans page checkout |
 | Next.js (plan) vs current Vite SPA | ⚠️ differs | see gaps below |
 

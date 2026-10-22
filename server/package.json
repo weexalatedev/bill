@@ -18,7 +18,8 @@
     "verify:copilot": "tsx src/scripts/verify-copilot.ts",
     "verify:gemini": "tsx src/scripts/verify-gemini.ts",
     "verify:safety": "tsx src/scripts/verify-safety.ts",
-    "verify:billing": "tsx src/scripts/verify-billing.ts"
+    "verify:billing": "tsx src/scripts/verify-billing.ts",
+    "verify:ingest": "tsx src/scripts/verify-ingest.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.717.0",

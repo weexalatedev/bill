@@ -11,6 +11,7 @@ import { liveRouter } from './live.js';
 import { copilotRouter } from './copilot.js';
 import { publicRouter } from './public.js';
 import { billingRouter } from './billing.js';
+import { consumptionRouter } from './consumption.js';
 
 export const apiRouter = Router();
 
@@ -23,6 +24,7 @@ apiRouter.use('/analysis', analysisRouter);
 apiRouter.use('/account', accountRouter);
 apiRouter.use('/public', publicRouter);
 apiRouter.use('/billing', billingRouter);
+apiRouter.use('/consumption', consumptionRouter);
 apiRouter.use('/live', liveRouter);
 apiRouter.use('/copilot', copilotRouter);
 

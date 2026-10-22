@@ -28,6 +28,58 @@ export interface ApiConfig {
 }
 
 /** One row of the Ofgem cap table. */
+export interface ConsumptionQuality {
+  format: 'long' | 'wide' | 'unknown';
+  rows: number;
+  accepted: number;
+  rejected: number;
+  first: string | null;
+  last: string | null;
+  periods: number;
+  days: number;
+  coveragePct: number;
+  gaps: number;
+  zeroOrNegative: number;
+  notes: string[];
+}
+
+export interface ConsumptionAnalysis {
+  totalKwh: number;
+  periods: number;
+  days: number;
+  avgDailyKwh: number;
+  avgKw: number;
+  peakKw: number;
+  costGbp: number;
+  overnightKwh: number;
+  overnightAvgKw: number;
+  overnightSharePct: number;
+  loadShape: { period: number; hour: string; avgKw: number }[];
+  anomalies: { date: string; overnightKw: number; vsMedianPct: number }[];
+  baseline: {
+    baselineDailyKwh: number;
+    recentDailyKwh: number;
+    savedPct: number;
+    savedKwhPerDay: number;
+    savedGbpPerMonth: number;
+  } | null;
+  alerts: { severity: 'info' | 'low' | 'medium' | 'high'; title: string; detail: string }[];
+}
+
+export interface ConsumptionResponse {
+  series: { from: string; kwh: number }[];
+  analysis: ConsumptionAnalysis;
+  price: { meanP: number; source: string };
+  dataQuality: { consumption: string; coveragePct: number; lastReadingAt?: string };
+}
+
+export interface ImportConsumptionResponse {
+  imported: number;
+  stored: number;
+  quality: ConsumptionQuality;
+  dataQuality: { consumption: string; coveragePct: number; lastReadingAt: string };
+}
+
 export interface BillingStatus {
   planId: string;
   planName: string;
@@ -348,6 +400,18 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
 
 export const api = {
   getConfig: (): Promise<ApiConfig> => request<ApiConfig>('/api/config'),
+
+  /** Import half-hourly consumption CSV for a site. */
+  importConsumption: (token: string, siteId: string, csv: string) =>
+    request<ImportConsumptionResponse>('/api/consumption/import', {
+      method: 'POST',
+      body: { siteId, csv },
+      token,
+    }),
+
+  /** Stored series + analysis for a site. */
+  getConsumption: (token: string, siteId: string) =>
+    request<ConsumptionResponse>(`/api/consumption/${encodeURIComponent(siteId)}`, { token }),
 
   /** Current subscription summary. */
   getBilling: (token: string) => request<{ billing: BillingStatus }>('/api/billing/status', { token }),

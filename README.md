@@ -32,6 +32,7 @@ workspace — persisted in MongoDB, keyed by the authenticated user.
 | **Smart Analysis** | Layer 2 – AI Energy Brain | The workbench. Enter a bill and the engine checks it against Ofgem's published price cap for the site's region, re-adds the invoice arithmetic, verifies VAT treatment, and compares consumption with the site's own baseline. Every finding carries its evidence, its £ impact and the licence condition to quote. |
 | **Bill Auditor** | Module B | Upload/enter an invoice, run the audit, and review detected issues: *incorrect charge, abnormal consumption, tariff discrepancy, standing charge, meter issue, unexpected change*. Challenge a supplier to request recovery. |
 | **Optimiser** | Module C & D | Recommended actions with schedule changes, model confidence and £ savings. **Recommend → Approve → Automate** control mode plus a per-action approve/automate flow. |
+| **Meter Data** | Layer 1 – Energy Data OS | Import half-hourly consumption (long `timestamp,kwh` or wide `date,p1..p48` CSV), idempotent, with a quality report. Deterministic analysis prices the period at the live rate and surfaces overnight base load, peak demand, anomalies and a baseline-vs-recent **verified saving**. |
 | **Sites** | Layer 1 – Energy Data OS | Portfolio of sites with controllable loads, meter type, spend, savings and status (Optimal / Watch / Anomaly). |
 | **Copilot** | Layer 2 – AI Energy Brain | A **grounded** chat assistant. The server computes the workspace numbers and the live market snapshot; Gemini narrates them (`POST /api/copilot/chat`). Falls back to deterministic answers and labels the source honestly when no key is set. The Copilot *explains*; the optimisation engine *decides*. |
 | **Live Market** | Layer 1 – Energy Data OS | **Real-time UK market data, no keys.** The live half-hourly Agile Octopus price curve for the site's own distribution region (A–P, mapped from its Ofgem cap region), the cheapest and peak windows of the day, a live flexibility shift calculator priced off the real curve, and GB grid carbon intensity. Sources: `server/src/lib/live/`. |
@@ -137,6 +138,7 @@ npm run verify:copilot # Copilot + Auditor grounding (22 checks, offline)
 npm run verify:gemini  # Gemini diagnostics: failure matrix + live check
 npm run verify:safety   # autonomy safety policy + dispute letter (25 checks)
 npm run verify:billing  # Stripe checkout + webhook signature (18 checks)
+npm run verify:ingest   # CSV ingestion + consumption analysis (26 checks)
 npm run build      # tsc --noEmit
 ```
 

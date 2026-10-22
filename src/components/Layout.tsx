@@ -6,6 +6,7 @@ import {
   Bot,
   Building2,
   CreditCard,
+  Database,
   LayoutDashboard,
   Loader2,
   Menu,
@@ -37,6 +38,7 @@ const NAV: NavItem[] = [
   { to: '/bills', label: 'Bill Auditor', hint: 'Module B', icon: Receipt, badge: 'issues' },
   { to: '/optimiser', label: 'Optimiser', hint: 'Module C', icon: Sparkles, badge: 'savings' },
   { to: '/sites', label: 'Sites', hint: 'Layer 1 · Data OS', icon: Building2 },
+  { to: '/data', label: 'Meter Data', hint: 'Layer 1 · Data OS', icon: Database },
   { to: '/live', label: 'Live Market', hint: 'Real-time prices', icon: Radio },
   { to: '/copilot', label: 'Copilot', hint: 'AI Energy Brain', icon: Bot },
   { to: '/plans', label: 'Plans & Billing', hint: 'Subscription', icon: CreditCard },
@@ -66,6 +68,10 @@ const PAGE_META: Record<string, { title: string; subtitle: string }> = {
   '/live': {
     title: 'Live Market',
     subtitle: 'Real half-hourly UK electricity prices and grid carbon, for your region.',
+  },
+  '/data': {
+    title: 'Meter Data',
+    subtitle: 'Import half-hourly consumption and turn it into verified savings.',
   },
   '/copilot': { title: 'EnerOS Copilot', subtitle: 'Ask anything about your energy spend.' },
   '/plans': {
