@@ -27,6 +27,7 @@ workspace — persisted in MongoDB, keyed by the authenticated user.
 | Page | Plan module | What it does |
 | --- | --- | --- |
 | **Sign up / Login** | Layer 0 | Clerk-hosted auth embedded in the EnerOS shell at `/sign-up` and `/sign-in`, plus a `/welcome` onboarding step that captures the business name, site count and postcode — the postcode is what resolves the Ofgem cap region every benchmark is drawn against. |
+| **Free Bill Check** | Acquisition wedge | **Public, no account needed** (`/check`). Runs the same deterministic audit engine on any bill and shows recoverable £ instantly — the plan’s “free bill check without registration”. |
 | **Dashboard** – Energy Intelligence | Module A | Spend vs. expected baseline, verified savings, spend by asset and by site, latest AI findings, and the baseline → intervention → outcome methodology. |
 | **Smart Analysis** | Layer 2 – AI Energy Brain | The workbench. Enter a bill and the engine checks it against Ofgem's published price cap for the site's region, re-adds the invoice arithmetic, verifies VAT treatment, and compares consumption with the site's own baseline. Every finding carries its evidence, its £ impact and the licence condition to quote. |
 | **Bill Auditor** | Module B | Upload/enter an invoice, run the audit, and review detected issues: *incorrect charge, abnormal consumption, tariff discrepancy, standing charge, meter issue, unexpected change*. Challenge a supplier to request recovery. |
@@ -35,7 +36,7 @@ workspace — persisted in MongoDB, keyed by the authenticated user.
 | **Copilot** | Layer 2 – AI Energy Brain | A **grounded** chat assistant. The server computes the workspace numbers and the live market snapshot; Gemini narrates them (`POST /api/copilot/chat`). Falls back to deterministic answers and labels the source honestly when no key is set. The Copilot *explains*; the optimisation engine *decides*. |
 | **Live Market** | Layer 1 – Energy Data OS | **Real-time UK market data, no keys.** The live half-hourly Agile Octopus price curve for the site's own distribution region (A–P, mapped from its Ofgem cap region), the cheapest and peak windows of the day, a live flexibility shift calculator priced off the real curve, and GB grid carbon intensity. Sources: `server/src/lib/live/`. |
 
-| **Plans & Billing** | §6 Pricing | Starter £99 / Optimise £199 / Autonomous £349 per site/month, an interactive **performance-fee calculator** (15% of verified savings), flexibility revenue share, annual value summary and the plan’s worked business case. |
+| **Plans & Billing** | §6 Pricing | Starter **£49** / Growth **£149** / Autonomous **£249** per site/month, an interactive **performance-fee calculator** (15% of verified savings), flexibility revenue share, annual value summary and the plan’s worked business case. |
 
 Interactive behaviour is real: approving actions updates metrics, running an audit adds an
 invoice and re-computes KPIs, and the fee calculator recalculates live.

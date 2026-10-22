@@ -5,8 +5,9 @@ import { analyseBill, assessPortfolio } from '../lib/analysis.js';
 import { getCapPeriod, regionForPostcode } from '../lib/priceCap.js';
 import { extractBill, extractionAvailable } from '../lib/llm.js';
 import { narrateAudit } from '../lib/auditor.js';
+import { buildDisputeLetter } from '../lib/dispute.js';
 import { fetchWeatherSummary } from '../lib/weather.js';
-import { InvoiceModel, SiteModel } from '../models/index.js';
+import { AccountModel, InvoiceModel, SiteModel } from '../models/index.js';
 import type { Invoice, Site } from '../types.js';
 
 export const analysisRouter = Router();
@@ -203,6 +204,40 @@ analysisRouter.post('/narrate', requireUser, async (req: AuthedRequest, res, nex
     const analysis = analyseBill(input, site ?? undefined);
     const narration = await narrateAudit(analysis, input);
     res.json({ analysis, narration });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * Generate a formal dispute letter from an audit result. Deterministic — the
+ * engine decides what to claim, this writes the correspondence.
+ */
+analysisRouter.post('/dispute-letter', requireUser, async (req: AuthedRequest, res, next) => {
+  try {
+    const parsed = billSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: 'Invalid bill payload.' });
+      return;
+    }
+    const { includeWeather, siteId, ...input } = parsed.data;
+    const site = siteId
+      ? ((await SiteModel.findOne({ ownerId: req.ownerId, id: siteId }).lean().exec()) as Site | null)
+      : null;
+    const account = await AccountModel.findOne({ ownerId: req.ownerId }).lean().exec();
+
+    const analysis = analyseBill(input, site ?? undefined);
+    const letter = buildDisputeLetter(analysis, input, {
+      supplier: input.supplier,
+      customerName: (account as { name?: string } | null)?.name ?? undefined,
+      siteName: site?.name,
+      siteAddress: site ? `${site.city ?? ''}${site.postcode ? `, ${site.postcode}` : ''}`.trim() : undefined,
+      accountNumber: (req.body as { accountNumber?: string }).accountNumber,
+      mpan: (req.body as { mpan?: string }).mpan,
+      periodLabel: (req.body as { periodLabel?: string }).periodLabel,
+    });
+
+    res.json({ letter, analysis });
   } catch (error) {
     next(error);
   }

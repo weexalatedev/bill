@@ -14,6 +14,7 @@ import Plans from './pages/Plans';
 import SignInPage from './pages/auth/SignInPage';
 import SignUpPage from './pages/auth/SignUpPage';
 import WelcomePage from './pages/auth/WelcomePage';
+import PublicBillCheck from './pages/PublicBillCheck';
 
 /**
  * Route map.
@@ -52,6 +53,9 @@ export default function App() {
           </SignedOut>
         }
       />
+
+      {/* Free bill check — public, no account required (the acquisition wedge). */}
+      <Route path="/check" element={<PublicBillCheck />} />
 
       {/* Post-sign-up onboarding. Captures the postcode that sets the cap region. */}
       <Route

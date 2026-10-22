@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   AlertTriangle,
+  Download,
   CheckCircle2,
   FlaskConical,
   Gauge,
@@ -117,7 +118,7 @@ function Fact({ label, value, icon }: { label: string; value: string; icon?: Rea
  * which licence condition to quote back at the supplier.
  */
 export default function Analysis() {
-  const { sites } = useApp();
+  const { sites, pushToast } = useApp();
   const { getToken } = useAuth();
 
   const [form, setForm] = useState<FormState>(emptyForm);
@@ -128,6 +129,7 @@ export default function Analysis() {
   const [error, setError] = useState<string | null>(null);
   const [narration, setNarration] = useState<AuditNarration | null>(null);
   const [narrating, setNarrating] = useState(false);
+  const [letterBusy, setLetterBusy] = useState(false);
 
   // AI paste-a-bill extraction (Gemini). The flag comes from the price-cap feed.
   const [extractionAvailable, setExtractionAvailable] = useState(false);
@@ -310,6 +312,34 @@ export default function Analysis() {
     }
   };
 
+  const downloadLetter = async () => {
+    if (!analysis) return;
+    setLetterBusy(true);
+    try {
+      const token = await getToken();
+      if (!token) throw new Error('session expired');
+      const payload = toQuery(form);
+      if (siteId) payload.siteId = siteId;
+      const res = await api.disputeLetter(token, payload);
+      const blob = new Blob([res.letter.subject + '\n\n' + res.letter.body], {
+        type: 'text/plain;charset=utf-8',
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'EnerOS-dispute-letter.txt';
+      a.click();
+      URL.revokeObjectURL(url);
+      pushToast?.(
+        'Dispute letter ready — ' + gbp(res.letter.totalClaimedGbp) + ' claimed',
+      );
+    } catch (err) {
+      pushToast?.(err instanceof ApiError ? err.message : 'Could not build the letter.');
+    } finally {
+      setLetterBusy(false);
+    }
+  };
+
 return (
     <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -385,6 +415,32 @@ return (
                 onNarrate={narrate}
               />
               <FindingsCard analysis={analysis} />
+              {analysis.findings.length > 0 && (
+                <Card>
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-semibold text-slate-900">Dispute letter</p>
+                      <p className="mt-0.5 max-w-lg text-xs text-slate-500">
+                        A formal letter claiming {gbp(analysis.recoverableGbp)}. It quotes only the
+                        proven findings and sets a 14-day deadline.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={downloadLetter}
+                      disabled={letterBusy}
+                      className="inline-flex items-center gap-2 rounded-lg bg-ink-900 px-3.5 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-800 disabled:opacity-60"
+                    >
+                      {letterBusy ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Download className="h-4 w-4" />
+                      )}
+                      Download letter
+                    </button>
+                  </div>
+                </Card>
+              )}
               {weather && <WeatherCard weather={weather} />}
               <BenchmarkCard
                 region={region}

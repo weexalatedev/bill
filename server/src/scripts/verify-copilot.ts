@@ -29,7 +29,7 @@ function check(label: string, condition: boolean, detail = ''): void {
 const workspace = {
   account: {
     name: 'Harbour Hospitality Group',
-    planId: 'optimise',
+    planId: 'growth',
     sites: 12,
     contractStart: '2025-04-01',
     performanceFeePct: 15,

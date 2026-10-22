@@ -9,6 +9,7 @@ import { analysisRouter } from './analysis.js';
 import { accountRouter } from './account.js';
 import { liveRouter } from './live.js';
 import { copilotRouter } from './copilot.js';
+import { publicRouter } from './public.js';
 
 export const apiRouter = Router();
 
@@ -19,6 +20,7 @@ apiRouter.use('/actions', actionsRouter);
 apiRouter.use('/uploads', uploadsRouter);
 apiRouter.use('/analysis', analysisRouter);
 apiRouter.use('/account', accountRouter);
+apiRouter.use('/public', publicRouter);
 apiRouter.use('/live', liveRouter);
 apiRouter.use('/copilot', copilotRouter);
 

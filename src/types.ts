@@ -91,7 +91,7 @@ export interface OptimisationAction {
 }
 
 export interface Plan {
-  id: 'starter' | 'optimise' | 'autonomous';
+  id: 'starter' | 'growth' | 'autonomous';
   name: string;
   pricePerSite: number;
   tagline: string;

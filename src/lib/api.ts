@@ -28,6 +28,27 @@ export interface ApiConfig {
 }
 
 /** One row of the Ofgem cap table. */
+export interface PublicBillFinding {
+  code: string;
+  severity: 'info' | 'low' | 'medium' | 'high';
+  category: string;
+  title: string;
+  detail: string;
+  impactGbp: number;
+  recommendation: string;
+}
+
+export interface PublicBillCheck {
+  score: number;
+  recoverableGbp: number;
+  findings: PublicBillFinding[];
+  effectiveRateP: number | null;
+  expectedTotalGbp: number | null;
+  region: { id: string; name: string; estimated: boolean } | null;
+  capPeriod: { label: string; averageUnitRateP: number; averageStandingChargeP: number };
+  note: string;
+}
+
 export interface CapRegion {
   id: string;
   name: string;
@@ -174,6 +195,13 @@ export interface LiveCarbonResponse {
   fetchedAt: string;
 }
 
+export interface DisputeLetterResult {
+  subject: string;
+  body: string;
+  totalClaimedGbp: number;
+  findingCount: number;
+}
+
 export interface AuditNarration {
   summary: string;
   actions: string[];
@@ -302,6 +330,21 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
 export const api = {
   getConfig: (): Promise<ApiConfig> => request<ApiConfig>('/api/config'),
 
+  /** Free, no-registration bill check. Public. */
+  publicBillCheck: (payload: {
+    supplier?: string;
+    postcode?: string;
+    periodStart?: string;
+    periodEnd?: string;
+    consumptionKwh?: number;
+    unitRateP?: number;
+    standingChargeP?: number;
+    totalGbp?: number;
+    vatGbp?: number;
+    businessContract?: boolean;
+  }) =>
+    request<PublicBillCheck>('/api/public/bill-check', { method: 'POST', body: payload }),
+
   devLogin: (email: string, password: string) =>
     request<{ token: string; user: { email: string; name: string }; mode: 'dev' }>(
       '/api/auth/login',
@@ -393,6 +436,17 @@ export const api = {
   /** Run the rules engine over a bill. Nothing is persisted. */
   analyseBill: (token: string, payload: BillQuery) =>
     request<{ analysis: BillAnalysis; weather: WeatherSummary | null }>('/api/analysis/bill', {
+      method: 'POST',
+      body: payload,
+      token,
+    }),
+
+  /** Generate a formal dispute letter from an audit result. */
+  disputeLetter: (
+    token: string,
+    payload: BillQuery & { accountNumber?: string; mpan?: string; periodLabel?: string },
+  ) =>
+    request<{ letter: DisputeLetterResult; analysis: BillAnalysis }>('/api/analysis/dispute-letter', {
       method: 'POST',
       body: payload,
       token,
