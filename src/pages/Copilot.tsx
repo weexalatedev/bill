@@ -3,6 +3,7 @@ import { ArrowUp, Bot, Loader2, Sparkles, User } from 'lucide-react';
 import { useApp } from '../store';
 import { useAuth } from '../lib/auth';
 import { api } from '../lib/api';
+import { cx } from '../lib/cx';
 import type { ChatMessage } from '../types';
 import { gbp } from '../lib/format';
 import { cx } from '../lib/cx';
@@ -97,7 +98,9 @@ export default function Copilot() {
   const [messages, setMessages] = useState<ChatMessage[]>([INITIAL]);
   const [input, setInput] = useState('');
   const [thinking, setThinking] = useState(false);
-  const [source, setSource] = useState<'gemini' | 'rules' | null>(null);
+  /** Which answer path the API reports — drives the header and notice honestly. */
+  const [source, setSource] = useState<'gemini' | 'rules' | 'unavailable' | null>(null);
+  /** Exact reason the model did not answer, shown in an amber notice. */
   const [notice, setNotice] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
@@ -132,19 +135,17 @@ export default function Copilot() {
     setThinking(true);
 
     let reply: { text: string; suggestions?: string[] } | null = null;
-    let usedSource: 'gemini' | 'rules' = 'rules';
-    let unavailable = false;
+    let usedSource: 'gemini' | 'unavailable' = 'unavailable';
     try {
       const token = (await getToken()) ?? '';
       const res = await api.copilotChat(token, { message: trimmed, history });
       if (res.source === 'gemini' && res.reply.trim()) {
         reply = { text: res.reply, suggestions: res.suggestions };
         usedSource = 'gemini';
-      } else {
-        unavailable = true;
       }
+      // Otherwise the server answered without Gemini — usedSource stays 'unavailable'.
     } catch {
-      unavailable = true;
+      // Network/API failure — usedSource stays 'unavailable' and the fallback answers.
     }
 
     if (!reply) {
@@ -154,9 +155,9 @@ export default function Copilot() {
 
     setSource(usedSource);
     setNotice(
-      unavailable
-        ? 'The live assistant is unavailable right now, so this answer uses your saved data.'
-        : null,
+      usedSource === 'gemini'
+        ? null
+        : 'The live assistant is unavailable right now, so this answer uses your saved data.',
     );
     setMessages((prev) => [
       ...prev,
