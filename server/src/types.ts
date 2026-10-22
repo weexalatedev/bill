@@ -37,6 +37,12 @@ export interface Site {
   loads: string[];
   /** Last time the AI Energy Brain refreshed this site's model. */
   lastSynced: string;
+  /** How much real consumption data we hold for this site. */
+  dataQuality?: {
+    consumption: 'none' | 'bill-only' | 'hh';
+    coveragePct: number;
+    lastReadingAt?: string;
+  };
 }
 
 export type BillStatus = 'Clean' | 'Flagged' | 'Recovered';
@@ -99,7 +105,7 @@ export interface OptimisationAction {
 }
 
 export interface Plan {
-  id: 'starter' | 'optimise' | 'autonomous';
+  id: 'starter' | 'growth' | 'autonomous';
   name: string;
   pricePerSite: number;
   tagline: string;

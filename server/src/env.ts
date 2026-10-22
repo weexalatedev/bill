@@ -118,6 +118,19 @@ export const env = {
     /** How long a fetched price curve is reused before re-fetching (ms). */
     cacheTtlMs: Number(str(process.env.LIVE_CACHE_TTL_MS, '900000')),
   },
+
+  /**
+   * Stripe subscription billing. Optional: with no secret key the API runs in a
+   * clearly-labelled dev mode that activates a plan without taking payment, so
+   * the product is demoable end to end. With a key, checkout is real and the
+   * webhook is signature-verified.
+   */
+  stripe: {
+    secretKey: str(process.env.STRIPE_SECRET_KEY, ''),
+    webhookSecret: str(process.env.STRIPE_WEBHOOK_SECRET, ''),
+    /** Base URL used to build success/cancel redirects. */
+    appBaseUrl: str(process.env.APP_BASE_URL, 'http://localhost:5173'),
+  },
 };
 
 export function assertClerkConfigured(): void {
@@ -130,6 +143,7 @@ export function assertClerkConfigured(): void {
 export const clerkEnabled = Boolean(env.clerkPublishableKey && env.clerkSecretKey);
 
 export const geminiEnabled = Boolean(env.analysis.geminiApiKey);
+export const stripeEnabled = Boolean(env.stripe.secretKey);
 /** Optional pin; empty = auto-select the cheapest model the API offers. */
 export const geminiModel: string = str(process.env.GEMINI_MODEL, '');
 /** Bill extraction is Gemini-powered; kept as the health-check / config flag. */

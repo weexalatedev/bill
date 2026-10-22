@@ -534,3 +534,46 @@ need a key or network.
 Ship Phase 1 and 2 before building automation. Data and trust come first; an
 agent without measured data is just an opinion.
 
+
+---
+
+## 14. Business-plan alignment (what shipped in this pass)
+
+The product is being tuned to the *EnerOS UK business plan*. This pass implemented
+the plan-specific pieces that were missing:
+
+| Plan requirement | Status | Where |
+| --- | --- | --- |
+| **Free bill check, no registration** | ✅ built | `/check` page + `POST /api/public/bill-check` (public, rate-limited, runs the real engine, never persists) |
+| **Dispute letters** | ✅ built | `server/src/lib/dispute.ts` + `POST /api/analysis/dispute-letter` + "Download letter" in Smart Analysis |
+| **Pricing £49 / £149 / £249** | ✅ updated | `server/src/services/catalog.ts`, seed, all plan types (`starter` / `growth` / `autonomous`) |
+| **Never control refrigeration / freezers / alarms / safety equipment** | ✅ enforced | `server/src/lib/autonomy/policy.ts`, hard gate in `routes/actions.ts` (422 on illegal automation) |
+| **Gemini for bill extraction + recommendations** | ✅ built | `lib/llm.ts` extraction, `lib/copilot.ts` grounded chat, `lib/auditor.ts` narration |
+| Bill validation + verified savings | 🟡 partial | engine + auditor done; verification/baseline is §4.3 (next) |
+| **Half-hourly CSV import + analysis** | ✅ built | `lib/consumption/*`, `/api/consumption/*`, Meter Data page |
+| Smart-meter integration | ⬜ planned | §3.2 (after CSV) |
+| **Stripe subscriptions** | ✅ built | `lib/billing/stripe.ts`, `routes/billing.ts` (checkout + signed webhook), Plans page checkout |
+| Next.js (plan) vs current Vite SPA | ⚠️ differs | see gaps below |
+
+### Known gaps versus the plan (deliberate)
+
+- **Framework.** The plan specifies Next.js; the app is currently a Vite + React
+  SPA with an Express API. The product behaviour is unaffected, and a Next.js
+  migration is a separate, mechanical project. Do it only if SSR/SEO for the
+  marketing pages matters more than shipping features.
+- **Payments.** ✅ Stripe Checkout (per-site quantity) + signature-verified webhook
+  now update `Account.planId` and subscription state. Without a key the API runs a
+  clearly-labelled dev mode that activates a plan without payment.
+- **Background jobs.** Add a daily Vercel/Cloudflare cron hitting an authenticated
+  `/api/jobs/daily` for price snapshots, anomaly sweeps and verification runs.
+- **Smart-meter integrations.** Phase 3+ per §3.2; start with CSV import.
+
+### The plan's own next step (Months 0–1)
+
+> "Interview 20 hospitality owners, collect 20 electricity bills, secure three
+> pilot sites, and launch the free bill checker."
+
+The free bill checker is now live. The remaining Months 0–1 work is **commercial,
+not engineering**: run 20 interviews, feed the 20 bills through `/check`, and use
+the findings as the pilot pitch. Every bill that produces a £ figure is a lead.
+

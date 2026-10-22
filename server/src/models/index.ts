@@ -47,6 +47,12 @@ const siteSchema = new Schema(
     postcode: String,
     loads: [String],
     lastSynced: String,
+    /** How much real consumption data we hold for this site. */
+    dataQuality: {
+      consumption: { type: String, default: 'none' },
+      coveragePct: { type: Number, default: 0 },
+      lastReadingAt: String,
+    },
   },
   schemaOptions,
 );
@@ -142,11 +148,30 @@ const accountSchema = new Schema(
     /** Ofgem price-cap region id resolved from the postcode. */
     region: String,
     onboarded: { type: Boolean, default: false },
+    /** Billing state, driven by Stripe (or dev-mode activation). */
+    subscriptionStatus: { type: String, default: 'none' },
+    stripeCustomerId: String,
+    stripeSubscriptionId: String,
+    currentPeriodEnd: String,
   },
   schemaOptions,
 );
 accountSchema.index({ ownerId: 1 }, { unique: true });
 export const AccountModel = model('Account', accountSchema);
+
+// ── Half-hourly consumption ───────────────────────────────────────────────────
+const consumptionSchema = new Schema(
+  {
+    ...baseFields,
+    siteId: { type: String, required: true },
+    /** Start of the settlement period (30 minutes). */
+    from: { type: Date, required: true },
+    kwh: { type: Number, required: true },
+  },
+  schemaOptions,
+);
+consumptionSchema.index({ ownerId: 1, siteId: 1, from: 1 }, { unique: true });
+export const ConsumptionModel = model('Consumption', consumptionSchema);
 
 // ── Uploaded documents (Cloudflare R2 objects) ─────────────────────────────────
 const uploadSchema = new Schema(

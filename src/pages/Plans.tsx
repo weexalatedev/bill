@@ -1,11 +1,15 @@
 import { useState } from 'react';
 import { Calculator, Check, CreditCard, ShieldCheck, Sparkles } from 'lucide-react';
 import { useApp } from '../store';
+import { useAuth } from '../lib/auth';
+import { api } from '../lib/api';
 import { Badge, Card, SectionHeading, StatCard } from '../components/ui';
 import { gbp } from '../lib/format';
 
 export default function Plans() {
-  const { plans, account, sites, metrics, pushToast } = useApp();
+  const { plans, account, sites, metrics, pushToast, refresh } = useApp();
+  const { getToken } = useAuth();
+  const [busyPlan, setBusyPlan] = useState<string | null>(null);
 
   const currentPlan = plans.find((p) => p.id === account.planId) ?? plans[0];
   const siteCount = sites.length;
@@ -19,6 +23,24 @@ export default function Plans() {
   const performanceFee = Math.round((verifiedSavings * account.performanceFeePct) / 100);
   const totalEnerOSFee = annualSub + performanceFee + flexibilityShare;
   const customerRetains = verifiedSavings - performanceFee + flexibilityShare;
+
+  const choosePlan = async (planId: string) => {
+    setBusyPlan(planId);
+    try {
+      const token = (await getToken()) ?? '';
+      const res = await api.billingCheckout(token, planId);
+      if (res.mode === 'stripe' && res.url) {
+        window.location.href = res.url;
+        return;
+      }
+      pushToast('Plan activated — billing is running in demo mode.');
+      await refresh();
+    } catch (err) {
+      pushToast(err instanceof Error ? err.message : 'Could not start checkout.');
+    } finally {
+      setBusyPlan(null);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -95,8 +117,8 @@ export default function Plans() {
 
               <button
                 type="button"
-                disabled={isCurrent}
-                onClick={() => pushToast(`Plan change requested: ${plan.name} · ${gbp(plan.pricePerSite)}/site/month`)}
+                disabled={isCurrent || busyPlan === plan.id}
+                onClick={() => choosePlan(plan.id)}
                 className={
                   'mt-5 w-full rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors ' +
                   (isCurrent
@@ -104,7 +126,7 @@ export default function Plans() {
                     : 'bg-slate-900 text-white hover:bg-slate-800')
                 }
               >
-                {isCurrent ? 'Your current plan' : `Move to ${plan.name}`}
+                {isCurrent ? 'Your current plan' : busyPlan === plan.id ? 'Starting…' : `Move to ${plan.name}`}
               </button>
             </Card>
           );

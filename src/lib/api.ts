@@ -28,6 +28,98 @@ export interface ApiConfig {
 }
 
 /** One row of the Ofgem cap table. */
+export interface ConsumptionQuality {
+  format: 'long' | 'wide' | 'unknown';
+  rows: number;
+  accepted: number;
+  rejected: number;
+  first: string | null;
+  last: string | null;
+  periods: number;
+  days: number;
+  coveragePct: number;
+  gaps: number;
+  zeroOrNegative: number;
+  notes: string[];
+}
+
+export interface ConsumptionAnalysis {
+  totalKwh: number;
+  periods: number;
+  days: number;
+  avgDailyKwh: number;
+  avgKw: number;
+  peakKw: number;
+  costGbp: number;
+  overnightKwh: number;
+  overnightAvgKw: number;
+  overnightSharePct: number;
+  loadShape: { period: number; hour: string; avgKw: number }[];
+  anomalies: { date: string; overnightKw: number; vsMedianPct: number }[];
+  baseline: {
+    baselineDailyKwh: number;
+    recentDailyKwh: number;
+    savedPct: number;
+    savedKwhPerDay: number;
+    savedGbpPerMonth: number;
+  } | null;
+  alerts: { severity: 'info' | 'low' | 'medium' | 'high'; title: string; detail: string }[];
+}
+
+export interface ConsumptionResponse {
+  series: { from: string; kwh: number }[];
+  analysis: ConsumptionAnalysis;
+  price: { meanP: number; source: string };
+  dataQuality: { consumption: string; coveragePct: number; lastReadingAt?: string };
+}
+
+export interface ImportConsumptionResponse {
+  imported: number;
+  stored: number;
+  quality: ConsumptionQuality;
+  dataQuality: { consumption: string; coveragePct: number; lastReadingAt: string };
+}
+
+export interface BillingStatus {
+  planId: string;
+  planName: string;
+  sites: number;
+  pricePerSite: number;
+  monthlyGbp: number;
+  subscriptionStatus: string;
+  currentPeriodEnd: string | null;
+  stripeEnabled: boolean;
+  devMode: boolean;
+}
+
+export interface CheckoutResult {
+  mode: 'stripe' | 'dev';
+  url?: string;
+  planId: string;
+  note?: string;
+}
+
+export interface PublicBillFinding {
+  code: string;
+  severity: 'info' | 'low' | 'medium' | 'high';
+  category: string;
+  title: string;
+  detail: string;
+  impactGbp: number;
+  recommendation: string;
+}
+
+export interface PublicBillCheck {
+  score: number;
+  recoverableGbp: number;
+  findings: PublicBillFinding[];
+  effectiveRateP: number | null;
+  expectedTotalGbp: number | null;
+  region: { id: string; name: string; estimated: boolean } | null;
+  capPeriod: { label: string; averageUnitRateP: number; averageStandingChargeP: number };
+  note: string;
+}
+
 export interface CapRegion {
   id: string;
   name: string;
@@ -174,6 +266,13 @@ export interface LiveCarbonResponse {
   fetchedAt: string;
 }
 
+export interface DisputeLetterResult {
+  subject: string;
+  body: string;
+  totalClaimedGbp: number;
+  findingCount: number;
+}
+
 export interface AuditNarration {
   summary: string;
   actions: string[];
@@ -302,6 +401,44 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
 export const api = {
   getConfig: (): Promise<ApiConfig> => request<ApiConfig>('/api/config'),
 
+  /** Import half-hourly consumption CSV for a site. */
+  importConsumption: (token: string, siteId: string, csv: string) =>
+    request<ImportConsumptionResponse>('/api/consumption/import', {
+      method: 'POST',
+      body: { siteId, csv },
+      token,
+    }),
+
+  /** Stored series + analysis for a site. */
+  getConsumption: (token: string, siteId: string) =>
+    request<ConsumptionResponse>(`/api/consumption/${encodeURIComponent(siteId)}`, { token }),
+
+  /** Current subscription summary. */
+  getBilling: (token: string) => request<{ billing: BillingStatus }>('/api/billing/status', { token }),
+
+  /** Start a subscription (Stripe Checkout, or dev-mode activation). */
+  billingCheckout: (token: string, planId: string) =>
+    request<CheckoutResult>('/api/billing/checkout', {
+      method: 'POST',
+      body: { planId },
+      token,
+    }),
+
+  /** Free, no-registration bill check. Public. */
+  publicBillCheck: (payload: {
+    supplier?: string;
+    postcode?: string;
+    periodStart?: string;
+    periodEnd?: string;
+    consumptionKwh?: number;
+    unitRateP?: number;
+    standingChargeP?: number;
+    totalGbp?: number;
+    vatGbp?: number;
+    businessContract?: boolean;
+  }) =>
+    request<PublicBillCheck>('/api/public/bill-check', { method: 'POST', body: payload }),
+
   devLogin: (email: string, password: string) =>
     request<{ token: string; user: { email: string; name: string }; mode: 'dev' }>(
       '/api/auth/login',
@@ -393,6 +530,17 @@ export const api = {
   /** Run the rules engine over a bill. Nothing is persisted. */
   analyseBill: (token: string, payload: BillQuery) =>
     request<{ analysis: BillAnalysis; weather: WeatherSummary | null }>('/api/analysis/bill', {
+      method: 'POST',
+      body: payload,
+      token,
+    }),
+
+  /** Generate a formal dispute letter from an audit result. */
+  disputeLetter: (
+    token: string,
+    payload: BillQuery & { accountNumber?: string; mpan?: string; periodLabel?: string },
+  ) =>
+    request<{ letter: DisputeLetterResult; analysis: BillAnalysis }>('/api/analysis/dispute-letter', {
       method: 'POST',
       body: payload,
       token,

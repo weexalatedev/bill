@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { clerkEnabled, r2Enabled, env, llmEnabled, geminiEnabled } from '../env.js';
+import { clerkEnabled, r2Enabled, env, llmEnabled, geminiEnabled, stripeEnabled } from '../env.js';
 import { authRouter } from './auth.js';
 import { workspaceRouter } from './workspace.js';
 import { invoicesRouter } from './invoices.js';
@@ -9,6 +9,9 @@ import { analysisRouter } from './analysis.js';
 import { accountRouter } from './account.js';
 import { liveRouter } from './live.js';
 import { copilotRouter } from './copilot.js';
+import { publicRouter } from './public.js';
+import { billingRouter } from './billing.js';
+import { consumptionRouter } from './consumption.js';
 
 export const apiRouter = Router();
 
@@ -19,6 +22,9 @@ apiRouter.use('/actions', actionsRouter);
 apiRouter.use('/uploads', uploadsRouter);
 apiRouter.use('/analysis', analysisRouter);
 apiRouter.use('/account', accountRouter);
+apiRouter.use('/public', publicRouter);
+apiRouter.use('/billing', billingRouter);
+apiRouter.use('/consumption', consumptionRouter);
 apiRouter.use('/live', liveRouter);
 apiRouter.use('/copilot', copilotRouter);
 
@@ -35,6 +41,7 @@ apiRouter.get('/config', (_req, res) => {
     llmEnabled,
     liveEnabled: true,
     geminiEnabled,
+    stripeEnabled,
     demo: clerkEnabled ? { email: env.demo.email } : { email: env.demo.email, password: env.demo.password },
   });
 });
