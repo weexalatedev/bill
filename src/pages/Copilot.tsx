@@ -6,7 +6,6 @@ import { api } from '../lib/api';
 import { cx } from '../lib/cx';
 import type { ChatMessage } from '../types';
 import { gbp } from '../lib/format';
-import { cx } from '../lib/cx';
 
 interface CopilotMetrics {
   spendActual: number;
