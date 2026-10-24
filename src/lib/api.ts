@@ -28,6 +28,18 @@ export interface ApiConfig {
 }
 
 /** One row of the Ofgem cap table. */
+export interface IntakeResult {
+  ok: boolean;
+  needsOcr: boolean;
+  pages: number;
+  textLength: number;
+  extractionAvailable: boolean;
+  extracted: Record<string, unknown> | null;
+  analysis: BillAnalysis | null;
+  advice: AuditNarration | null;
+  note?: string;
+}
+
 export interface ConsumptionQuality {
   format: 'long' | 'wide' | 'unknown';
   rows: number;
@@ -276,6 +288,7 @@ export interface DisputeLetterResult {
 export interface AuditNarration {
   summary: string;
   actions: string[];
+  estimatedAnnualSavingGbp?: number;
   source: 'gemini' | 'unavailable';
 }
 
@@ -400,6 +413,28 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
 
 export const api = {
   getConfig: (): Promise<ApiConfig> => request<ApiConfig>('/api/config'),
+
+  /** Upload a bill (PDF/text) and run the full Smart Analysis pipeline. */
+  analyseFile: (token: string, file: File, siteId?: string) => {
+    const form = new FormData();
+    form.append('file', file);
+    if (siteId) form.append('siteId', siteId);
+    return request<IntakeResult>('/api/analysis/file', {
+      method: 'POST',
+      formData: form,
+      token,
+    });
+  },
+
+  /** Public: upload a bill and get audit + advice, no account needed. */
+  publicBillCheckFile: (file: File) => {
+    const form = new FormData();
+    form.append('file', file);
+    return request<IntakeResult>('/api/public/bill-check/file', {
+      method: 'POST',
+      formData: form,
+    });
+  },
 
   /** Import half-hourly consumption CSV for a site. */
   importConsumption: (token: string, siteId: string, csv: string) =>

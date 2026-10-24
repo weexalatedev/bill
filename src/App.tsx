@@ -15,6 +15,7 @@ import SignInPage from './pages/auth/SignInPage';
 import SignUpPage from './pages/auth/SignUpPage';
 import WelcomePage from './pages/auth/WelcomePage';
 import PublicBillCheck from './pages/PublicBillCheck';
+import GetStarted from './pages/GetStarted';
 import Data from './pages/Data';
 
 /**
@@ -57,6 +58,7 @@ export default function App() {
 
       {/* Free bill check — public, no account required (the acquisition wedge). */}
       <Route path="/check" element={<PublicBillCheck />} />
+      <Route path="/get-started" element={<GetStarted />} />
 
       {/* Post-sign-up onboarding. Captures the postcode that sets the cap region. */}
       <Route

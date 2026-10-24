@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import multer from 'multer';
 import { z } from 'zod';
 import { requireUser, type AuthedRequest } from '../auth.js';
 import { analyseBill, assessPortfolio } from '../lib/analysis.js';
@@ -6,6 +7,7 @@ import { getCapPeriod, regionForPostcode } from '../lib/priceCap.js';
 import { extractBill, extractionAvailable } from '../lib/llm.js';
 import { narrateAudit } from '../lib/auditor.js';
 import { buildDisputeLetter } from '../lib/dispute.js';
+import { analyseDocument } from '../lib/intake.js';
 import { fetchWeatherSummary } from '../lib/weather.js';
 import { AccountModel, InvoiceModel, SiteModel } from '../models/index.js';
 import type { Invoice, Site } from '../types.js';
@@ -238,6 +240,38 @@ analysisRouter.post('/dispute-letter', requireUser, async (req: AuthedRequest, r
     });
 
     res.json({ letter, analysis });
+  } catch (error) {
+    next(error);
+  }
+});
+
+const fileUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 12 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    const ok = /^(application\/pdf|text\/plain|text\/csv|application\/csv|image\/(png|jpe?g|webp|heic|heif))$/.test(
+      file.mimetype,
+    );
+    cb(null, ok);
+  },
+});
+
+/**
+ * Upload a bill (PDF/text) and get the full Smart Analysis: extracted fields,
+ * deterministic findings, and AI cost-saving advice.
+ */
+analysisRouter.post('/file', requireUser, fileUpload.single('file'), async (req: AuthedRequest, res, next) => {
+  try {
+    if (!req.file) {
+      res.status(400).json({ error: 'Upload a PDF or text file (max 12 MB).' });
+      return;
+    }
+    const siteId = typeof req.body?.siteId === 'string' ? req.body.siteId : undefined;
+    const site = siteId
+      ? ((await SiteModel.findOne({ ownerId: req.ownerId, id: siteId }).lean().exec()) as Site | null)
+      : null;
+    const result = await analyseDocument(req.file.buffer, site ?? undefined);
+    res.status(result.ok ? 200 : 422).json(result);
   } catch (error) {
     next(error);
   }

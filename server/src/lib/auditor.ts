@@ -17,8 +17,10 @@ import type { BillAnalysis, BillInput, AnalysisFinding } from '../types.js';
 export interface AuditNarration {
   /** Plain-English summary of the bill and its issues. */
   summary: string;
-  /** Ordered, concrete next actions. */
+  /** Ordered, concrete cost-saving actions. */
   actions: string[];
+  /** Realistic annualised £ on the table, from the findings. */
+  estimatedAnnualSavingGbp?: number;
   /** 'gemini' when narrated, 'unavailable' when the model could not run. */
   source: 'gemini' | 'unavailable';
 }
@@ -49,9 +51,14 @@ STYLE
 - en-GB spelling. Concise, commercial, no jargon dumps.
 - Lead with the money.
 
+YOU ARE A COST-SAVING ADVISOR
+- Write the actions as concrete, prioritised cost-saving steps a business owner can act on this week (e.g. "Ask the supplier to re-rate 29.4p to 26.5p/kWh and refund £267.72").
+- Lead with the money. Prefer "do X to save £Y" over describing the problem.
+- Give a realistic annualised estimate of the money on the table, using the findings. Do not inflate.
+
 RESPONSE FORMAT
 Return ONLY a JSON object:
-{ "summary": "<2-4 short paragraphs or tight bullets>", "actions": ["<ordered, concrete next actions>"] }
+{ "summary": "<2-4 short paragraphs or tight bullets>", "actions": ["<ordered, concrete cost-saving actions>"], "estimatedAnnualSavingGbp": <number> }
 No markdown fences, no text outside the JSON.`;
 
 const gbp = (n: number): string =>
@@ -120,13 +127,21 @@ export async function narrateAudit(analysis: BillAnalysis, bill: BillInput): Pro
 
   const cleaned = raw.replace(/^```(?:json)?/i, '').replace(/```$/, '').trim();
   try {
-    const parsed = JSON.parse(cleaned) as { summary?: string; actions?: string[] };
+    const parsed = JSON.parse(cleaned) as {
+      summary?: string;
+      actions?: string[];
+      estimatedAnnualSavingGbp?: number;
+    };
     if (parsed.summary && parsed.summary.trim()) {
       return {
         summary: parsed.summary.trim(),
         actions: Array.isArray(parsed.actions)
           ? parsed.actions.filter((a) => typeof a === 'string').slice(0, 6)
           : [],
+        estimatedAnnualSavingGbp:
+          typeof parsed.estimatedAnnualSavingGbp === 'number'
+            ? parsed.estimatedAnnualSavingGbp
+            : undefined,
         source: 'gemini',
       };
     }

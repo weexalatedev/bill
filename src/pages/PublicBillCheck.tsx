@@ -131,10 +131,10 @@ export default function PublicBillCheck() {
               Sign in
             </Link>
             <Link
-              to="/sign-up"
+              to="/get-started"
               className="rounded-lg bg-ink-900 px-3.5 py-2 text-sm font-semibold text-white transition-colors hover:bg-slate-800"
             >
-              Get started
+              Upload a bill
             </Link>
           </div>
         </div>

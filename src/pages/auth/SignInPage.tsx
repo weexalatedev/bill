@@ -32,6 +32,13 @@ export default function SignInPage() {
           >
             Check a bill free
           </Link>
+          <span className="mx-1.5 text-slate-300">·</span>
+          <Link
+            to="/get-started"
+            className="font-semibold text-emerald-700 transition-colors hover:text-emerald-800 hover:underline"
+          >
+            Upload a bill
+          </Link>
         </>
       }
     >
