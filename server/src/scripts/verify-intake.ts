@@ -39,9 +39,12 @@ const EXTRACTION = {
   fieldsNeedingReview: [],
 };
 
+let captured: string[] = [];
 function stub(isNarrationBody: (body: string) => boolean, narration: object | null): void {
+  captured = [];
   globalThis.fetch = (async (_url: string, init: { body?: string }) => {
     const body = String(init?.body ?? '');
+    captured.push(body);
     const isNarration = isNarrationBody(body);
     if (isNarration && narration === null) {
       return { ok: false, status: 500, json: async () => ({}), text: async () => 'boom' };
@@ -89,6 +92,23 @@ async function main(): Promise<void> {
   const empty = await analyseDocument(Buffer.from('   '));
   check('rejects empty input', !empty.ok);
   check('gives a clear note', Boolean(empty.note), empty.note ?? '');
+
+  console.log('\nOCR / vision fallback');
+  stub((body) => body.includes('narration layer'), {
+    summary: 'Scan read.',
+    actions: ['Act on the rate'],
+    estimatedAnnualSavingGbp: 1000,
+  });
+  // A PNG: no text layer, so the pipeline must send the bytes to vision.
+  const png = Buffer.from([
+    0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 0, 1, 2, 3, 4,
+  ]);
+  const fromImage = await analyseDocument(png, SITE);
+  check('flags the file as needing OCR', fromImage.needsOcr, String(fromImage.needsOcr));
+  check('uses the vision path', fromImage.usedVision, String(fromImage.usedVision));
+  check('sends inline image data to the model', captured.some((b) => b.includes('inline_data')), 'no inline_data');
+  check('still audits the extracted fields', (fromImage.analysis?.findings.length ?? 0) > 0);
+  check('returns advice for the scan', fromImage.advice?.source === 'gemini', fromImage.advice?.source);
 
   console.log(`\n${passed} passed, ${failed} failed`);
   if (failed > 0) process.exitCode = 1;

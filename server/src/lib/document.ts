@@ -23,6 +23,18 @@ export interface ExtractedDocument {
 /** Guard against a hostile or mis-sized upload consuming the whole request. */
 const MAX_BYTES = 12 * 1024 * 1024;
 
+/** Detect common image formats by magic bytes (for the OCR/vision path). */
+function isImage(buffer: Buffer): boolean {
+  if (buffer.length < 12) return false;
+  const png = buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4e && buffer[3] === 0x47;
+  const jpeg = buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff;
+  const webp =
+    buffer.subarray(0, 4).toString('latin1') === 'RIFF' &&
+    buffer.subarray(8, 12).toString('latin1') === 'WEBP';
+  const heic = buffer.subarray(4, 8).toString('latin1') === 'ftyp';
+  return png || jpeg || webp || heic;
+}
+
 /**
  * Best-effort text extraction. Never throws — on failure it returns an empty
  * result with `needsOcr` set, so the route can respond with a useful message.
@@ -35,6 +47,11 @@ export async function extractDocumentText(buffer: Buffer): Promise<ExtractedDocu
 
   const isPdf =
     buffer.subarray(0, 5).toString('latin1') === '%PDF-';
+  if (!isPdf && isImage(buffer)) {
+    // A photo or screenshot: no text layer to read locally. The caller sends the
+    // bytes to the vision model, which does OCR.
+    return { text: '', length: 0, needsOcr: true, pages: 1 };
+  }
   if (!isPdf) {
     // Plain text, CSV or a JSON export straight from a supplier portal.
     const text = buffer.toString('utf8').replace(/\u00a0/g, ' ');

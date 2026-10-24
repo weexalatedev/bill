@@ -31,6 +31,7 @@ export interface ApiConfig {
 export interface IntakeResult {
   ok: boolean;
   needsOcr: boolean;
+  usedVision?: boolean;
   pages: number;
   textLength: number;
   extractionAvailable: boolean;

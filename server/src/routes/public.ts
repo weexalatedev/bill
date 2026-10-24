@@ -153,7 +153,7 @@ publicRouter.post('/bill-check/file', upload.single('file'), async (req, res, ne
       res.status(400).json({ error: 'Upload a PDF or text file (max 12 MB).' });
       return;
     }
-    const result = await analyseDocument(req.file.buffer);
+    const result = await analyseDocument(req.file.buffer, undefined, req.file.mimetype);
     res.status(result.ok ? 200 : 422).json(result);
   } catch (error) {
     next(error);

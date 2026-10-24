@@ -27,7 +27,7 @@ workspace — persisted in MongoDB, keyed by the authenticated user.
 | Page | Plan module | What it does |
 | --- | --- | --- |
 | **Sign up / Login** | Layer 0 | Clerk-hosted auth embedded in the EnerOS shell at `/sign-up` and `/sign-in`, plus a `/welcome` onboarding step that captures the business name, site count and postcode — the postcode is what resolves the Ofgem cap region every benchmark is drawn against. |
-| **Get Started (upload)** | Acquisition wedge | **Public guided flow** at `/get-started`: drop a bill PDF → we extract it → audit it → AI writes a prioritised cost-saving plan. The same pipeline powers the PDF upload in Smart Analysis. |
+| **Get Started (upload)** | Acquisition wedge | **Public guided flow** at `/get-started`: drop a bill PDF **or photo** → we extract it (Gemini vision OCR when there is no text layer) → audit it → AI writes a prioritised cost-saving plan. The same pipeline powers the PDF upload in Smart Analysis. |
 | **Free Bill Check** | Acquisition wedge | **Public, no account needed** (`/check`). Runs the same deterministic audit engine on any bill and shows recoverable £ instantly — the plan’s “free bill check without registration”. |
 | **Dashboard** – Energy Intelligence | Module A | Spend vs. expected baseline, verified savings, spend by asset and by site, latest AI findings, and the baseline → intervention → outcome methodology. |
 | **Smart Analysis** | Layer 2 – AI Energy Brain | The workbench. Enter a bill and the engine checks it against Ofgem's published price cap for the site's region, re-adds the invoice arithmetic, verifies VAT treatment, and compares consumption with the site's own baseline. Every finding carries its evidence, its £ impact and the licence condition to quote. |

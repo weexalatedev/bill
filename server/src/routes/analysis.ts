@@ -270,7 +270,7 @@ analysisRouter.post('/file', requireUser, fileUpload.single('file'), async (req:
     const site = siteId
       ? ((await SiteModel.findOne({ ownerId: req.ownerId, id: siteId }).lean().exec()) as Site | null)
       : null;
-    const result = await analyseDocument(req.file.buffer, site ?? undefined);
+    const result = await analyseDocument(req.file.buffer, site ?? undefined, req.file.mimetype);
     res.status(result.ok ? 200 : 422).json(result);
   } catch (error) {
     next(error);

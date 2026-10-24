@@ -137,11 +137,11 @@ export default function GetStarted() {
                 <Upload className="h-6 w-6" />
               </div>
               <p className="mt-3 text-sm font-semibold text-slate-900">Drop your electricity bill here</p>
-              <p className="mt-1 text-xs text-slate-500">PDF or text · up to 12 MB</p>
+              <p className="mt-1 text-xs text-slate-500">PDF, photo or text · up to 12 MB</p>
               <input
                 ref={fileRef}
                 type="file"
-                accept=".pdf,.txt,.csv,application/pdf,text/plain"
+                accept=".pdf,.txt,.csv,.png,.jpg,.jpeg,.webp,.heic,application/pdf,text/plain,image/*"
                 className="hidden"
                 onChange={(e) => upload(e.target.files?.[0])}
               />
@@ -155,7 +155,7 @@ export default function GetStarted() {
 
             <p className="mt-4 flex items-start gap-1.5 text-[11px] leading-relaxed text-slate-400">
               <Info className="mt-0.5 h-3 w-3 shrink-0" />
-              A PDF exported from your supplier portal works best. Prefer typing it in?{' '}
+              Photos and scans are read with AI OCR; a text PDF is most accurate. Prefer typing it in?{' '}
               <Link to="/check" className="font-medium text-emerald-700 underline">
                 Use the manual checker
               </Link>

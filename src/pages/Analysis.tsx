@@ -519,7 +519,7 @@ function BillUploadCard({
     <Card>
       <SectionHeading
         title="Upload a bill"
-        subtitle="PDF or text — we read it, audit it, and write cost-saving advice."
+        subtitle="PDF, photo or text — we read it (with OCR if needed), audit it, and write cost-saving advice."
       />
       <div
         onDragOver={(e) => {
@@ -546,11 +546,11 @@ function BillUploadCard({
         <p className="mt-2 text-sm font-semibold text-slate-900">
           {busy ? 'Reading your bill…' : 'Drop a PDF here or click to choose'}
         </p>
-        <p className="mt-0.5 text-xs text-slate-500">PDF or text · up to 12 MB</p>
+        <p className="mt-0.5 text-xs text-slate-500">PDF, photo or text · up to 12 MB</p>
         <input
           ref={ref}
           type="file"
-          accept=".pdf,.txt,.csv,application/pdf,text/plain"
+          accept=".pdf,.txt,.csv,.png,.jpg,.jpeg,.webp,.heic,application/pdf,text/plain,image/*"
           className="hidden"
           onChange={(e) => void pick(e.target.files?.[0])}
         />
