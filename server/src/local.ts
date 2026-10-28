@@ -8,8 +8,19 @@ async function main(): Promise<void> {
     console.log('✓ Connected to MongoDB');
   } catch (error) {
     console.error('✗ Could not connect to MongoDB:', (error as Error).message);
-    console.error('  Set MONGODB_URI in server/.env, or start a local mongod.');
-    process.exit(1);
+    if (process.env.VERCEL === '1') {
+      // On Vercel, exiting here kills the whole service process — every
+      // request would then fail with FUNCTION_INVOCATION_FAILED, including
+      // /api/health. Stay up instead: the per-request middleware in app.ts
+      // returns a JSON configuration error, and /api/health reports db: false,
+      // so the problem is diagnosable from the deployment.
+      console.error(
+        '  API requests will fail until MONGODB_URI is configured in the Vercel project environment (and MongoDB accepts the connection).',
+      );
+    } else {
+      console.error('  Set MONGODB_URI in server/.env, or start a local mongod.');
+      process.exit(1);
+    }
   }
 
   app.listen(env.port, () => {
