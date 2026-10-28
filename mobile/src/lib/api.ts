@@ -73,11 +73,19 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
   const { method = 'GET', body, token, formData } = options;
   const headers: Record<string, string> = {};
   if (token) headers.Authorization = `Bearer ${token}`;
-  if (body !== undefined) headers['Content-Type'] = 'application/json';
+
+  // Multipart uploads (FormData) must keep the browser's auto-generated
+  // boundary header. Setting 'application/json' explicitly breaks them, so
+  // only attach the JSON content type when the body is actually JSON.
+  const isForm = formData instanceof FormData || body instanceof FormData;
+  if (!isForm && body !== undefined) headers['Content-Type'] = 'application/json';
 
   const res = await fetch(`${API_URL}${path}`, {
     method,
     headers,
+    // Never JSON.stringify a FormData (it would throw); pass it through so the
+    // platform's boundary header is used. JSON.stringify(body) is only reached
+    // for plain object/string bodies.
     body: formData ?? (body !== undefined ? JSON.stringify(body) : undefined),
   });
 
