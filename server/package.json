@@ -20,7 +20,8 @@
     "verify:safety": "tsx src/scripts/verify-safety.ts",
     "verify:billing": "tsx src/scripts/verify-billing.ts",
     "verify:ingest": "tsx src/scripts/verify-ingest.ts",
-    "verify:intake": "tsx src/scripts/verify-intake.ts"
+    "verify:intake": "tsx src/scripts/verify-intake.ts",
+    "verify:pdfjs": "tsx src/scripts/verify-pdfjs.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.717.0",

@@ -9,6 +9,10 @@
  * plainly rather than being handed an empty extraction.
  */
 
+// Import order matters: pdf.js reads DOMMatrix / ImageData / Path2D from
+// globalThis while its module loads, before `pdf-parse` is usable. The stubs
+// must therefore be in place first — see pdfjs-polyfills.ts.
+import './pdfjs-polyfills.js';
 import { PDFParse } from 'pdf-parse';
 
 export interface ExtractedDocument {
