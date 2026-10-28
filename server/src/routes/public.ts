@@ -1,8 +1,10 @@
 import { Router } from 'express';
+import multer from 'multer';
 import { z } from 'zod';
 import { analyseBill } from '../lib/analysis.js';
 import { regionForPostcode, getCapPeriod } from '../lib/priceCap.js';
 import type { Site } from '../types.js';
+import { analyseDocument } from '../lib/intake.js';
 
 export const publicRouter = Router();
 
@@ -125,6 +127,39 @@ publicRouter.post('/bill-check', (req, res) => {
 });
 
 /** Public metadata for the checker page (regions + cap period). */
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 12 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    const ok = /^(application\/pdf|text\/plain|text\/csv|application\/csv|image\/(png|jpe?g|webp|heic|heif))$/.test(
+      file.mimetype,
+    );
+    cb(null, ok);
+  },
+});
+
+/**
+ * Free bill check from a PDF/text upload. Runs the same intake pipeline as the
+ * in-app flow: read → audit → advice. Public and rate-limited.
+ */
+publicRouter.post('/bill-check/file', upload.single('file'), async (req, res, next) => {
+  try {
+    const ip = req.ip ?? 'unknown';
+    if (rateLimited(ip)) {
+      res.status(429).json({ error: 'Too many checks from this connection. Please try again later.' });
+      return;
+    }
+    if (!req.file) {
+      res.status(400).json({ error: 'Upload a PDF or text file (max 12 MB).' });
+      return;
+    }
+    const result = await analyseDocument(req.file.buffer, undefined, req.file.mimetype);
+    res.status(result.ok ? 200 : 422).json(result);
+  } catch (error) {
+    next(error);
+  }
+});
+
 publicRouter.get('/bill-check/meta', (_req, res) => {
   const period = getCapPeriod();
   res.json({

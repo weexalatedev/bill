@@ -552,6 +552,7 @@ the plan-specific pieces that were missing:
 | Bill validation + verified savings | 🟡 partial | engine + auditor done; verification/baseline is §4.3 (next) |
 | **Half-hourly CSV import + analysis** | ✅ built | `lib/consumption/*`, `/api/consumption/*`, Meter Data page |
 | Smart-meter integration | ⬜ planned | §3.2 (after CSV) |
+| **Scanned-bill OCR** | ✅ built | Gemini vision reads images/scanned PDFs directly (no Tesseract); `extractBillFromFile`, used automatically when there is no text layer |
 | **Stripe subscriptions** | ✅ built | `lib/billing/stripe.ts`, `routes/billing.ts` (checkout + signed webhook), Plans page checkout |
 | Next.js (plan) vs current Vite SPA | ⚠️ differs | see gaps below |
 

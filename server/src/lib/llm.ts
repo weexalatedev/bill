@@ -267,19 +267,38 @@ function isModelNotFound(status: number | undefined, detail: string): boolean {
  */
 export async function extractBill(text: string): Promise<ExtractedBill | null> {
   if (!geminiEnabled || !text.trim()) return null;
+  return runExtraction([
+    {
+      text: `Extract this electricity invoice:\n\n<invoice>\n${text.slice(0, 60_000)}\n</invoice>`,
+    },
+  ]);
+}
 
+/**
+ * OCR path: send the raw image or PDF bytes to Gemini's vision input. Gemini
+ * reads the text in the image/PDF itself, so no separate OCR engine is needed.
+ * Used when the file has no usable text layer (a scan or a phone photo).
+ */
+export async function extractBillFromFile(
+  buffer: Buffer,
+  mimeType: string,
+): Promise<ExtractedBill | null> {
+  if (!geminiEnabled || buffer.length === 0) return null;
+  return runExtraction([
+    { inline_data: { mime_type: mimeType, data: buffer.toString('base64') } },
+    {
+      text: 'Extract this electricity invoice from the attached file. Read all visible text in the image or PDF first, then record the fields.',
+    },
+  ]);
+}
+
+/** Shared generateContent loop for text and vision extraction. */
+async function runExtraction(
+  parts: Array<Record<string, unknown>>,
+): Promise<ExtractedBill | null> {
   const body = JSON.stringify({
     systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
-    contents: [
-      {
-        role: 'user',
-        parts: [
-          {
-            text: `Extract this electricity invoice:\n\n<invoice>\n${text.slice(0, 60_000)}\n</invoice>`,
-          },
-        ],
-      },
-    ],
+    contents: [{ role: 'user', parts }],
     generationConfig: {
       temperature: 0,
       responseMimeType: 'application/json',
@@ -287,8 +306,6 @@ export async function extractBill(text: string): Promise<ExtractedBill | null> {
     },
   });
 
-  // Two attempts max: the second only happens when Google retires the
-  // auto-picked model mid-flight (404) — re-discover and try once more.
   for (let attempt = 0; attempt < 2; attempt += 1) {
     const model = await resolveGeminiModel();
     const controller = new AbortController();
@@ -307,7 +324,7 @@ export async function extractBill(text: string): Promise<ExtractedBill | null> {
         const errorBody = await res.text();
         if (attempt === 0 && !env.analysis.geminiModel && isModelNotFound(res.status, errorBody)) {
           invalidateGeminiModel();
-          continue; // finally clears the timer; the loop re-resolves a fresh model
+          continue;
         }
         throw new Error(`Gemini API error ${res.status}: ${errorBody.slice(0, 300)}`);
       }
@@ -317,14 +334,11 @@ export async function extractBill(text: string): Promise<ExtractedBill | null> {
       };
       const raw = payload.candidates?.[0]?.content?.parts?.[0]?.text;
       if (!raw) return null;
-      // Defensive: a stray fence should not break extraction.
       const cleaned = raw.replace(/^```(?:json)?/i, '').replace(/```$/, '').trim();
       const parsed = JSON.parse(cleaned) as unknown;
       if (!parsed || typeof parsed !== 'object') return null;
       return normalise(parsed as Record<string, unknown>);
     } catch {
-      // Not configured, timed out, upstream error or unparseable — degrade to
-      // the manual entry form rather than failing the request.
       return null;
     } finally {
       clearTimeout(timer);
