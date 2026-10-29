@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import {
   Area,
   AreaChart,
@@ -264,32 +265,36 @@ export default function Dashboard() {
         <Card className="flex flex-col justify-between bg-ink-900 text-white">
           <div>
             <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-emerald-300">
-              <ShieldCheck className="h-3.5 w-3.5" /> Measurement methodology
+              <ShieldCheck className="h-3.5 w-3.5" /> Bill analysis in three steps
             </div>
-            <h3 className="text-base font-semibold">How savings are verified</h3>
-            <ol className="mt-4 space-y-3">
+            <ol className="mt-4 space-y-1">
               {[
-                ['Baseline', 'Model each site for 12 months before intervention.'],
-                ['Intervention', 'Apply approved actions and record every change.'],
-                ['Measured outcome', 'Compare normalised usage against the baseline.'],
-              ].map(([step, detail], index) => (
-                <li key={step} className="flex gap-3">
-                  <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-emerald-500/15 text-xs font-bold text-emerald-300">
-                    {index + 1}
-                  </span>
-                  <div>
-                    <p className="text-sm font-semibold">{step}</p>
-                    <p className="text-xs text-slate-400">{detail}</p>
-                  </div>
+                ['Add your sites', '/sites', 'Every bill is filed and benchmarked per site.'],
+                ['Upload your bills', '/bills', 'PDFs or photos — the AI reads them, with OCR when needed.'],
+                ['Read the savings score', '/analysis', 'Every bill is scored against the Ofgem cap.'],
+              ].map(([step, to, detail], index) => (
+                <li key={step}>
+                  <Link
+                    to={to}
+                    className="group flex gap-3 rounded-xl px-2 py-2 transition-colors hover:bg-white/5"
+                  >
+                    <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-emerald-500/15 text-xs font-bold text-emerald-300">
+                      {index + 1}
+                    </span>
+                    <div>
+                      <p className="text-sm font-semibold group-hover:text-emerald-300">{step}</p>
+                      <p className="text-xs text-slate-400">{detail}</p>
+                    </div>
+                  </Link>
                 </li>
               ))}
             </ol>
           </div>
           <div className="mt-5 rounded-xl bg-white/5 p-3 text-xs text-slate-300 ring-1 ring-inset ring-white/10">
             <p>
-              {gbp(metrics.automatedSaving)}/month already automated ·{' '}
-              {gbp(metrics.potentialMonthlySaving)}/month identified in total. You only pay a{' '}
-              {account.performanceFeePct}% performance fee on <span className="text-emerald-300">verified</span> savings.
+              {invoices.length === 0
+                ? 'No bills yet — upload your first invoice and the AI audit runs instantly.'
+                : `${metrics.issuesOpen} open issue${metrics.issuesOpen === 1 ? '' : 's'} across ${invoices.length} audited invoice${invoices.length === 1 ? '' : 's'}.`}
             </p>
           </div>
         </Card>

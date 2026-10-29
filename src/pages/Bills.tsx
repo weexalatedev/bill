@@ -1,492 +1,319 @@
+/**
+ * /bills — Invoices. Primary intake: upload a bill, the AI reads it (OCR if
+ * needed), audits against the Ofgem cap, writes advice, files it per site.
+ */
+
 import { useMemo, useRef, useState } from 'react';
-import {
-  AlertTriangle,
-  CheckCircle2,
-  Cloud,
-  FileSearch,
-  FileText,
-  Loader2,
-  Search,
-  ShieldCheck,
-  Trash2,
-  Upload,
-} from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { AlertTriangle, ArrowRight, CheckCircle2, FileSearch, Loader2, Search, ShieldCheck, Sparkles, Upload } from 'lucide-react';
 import { useApp } from '../store';
-import type { BillStatus } from '../types';
-import { Badge, Card, EmptyState, SectionHeading, StatCard } from '../components/ui';
+import type { IntakeResult } from '../lib/api';
+import type { BillStatus, FindingSeverity, Invoice } from '../types';
+import { Badge, Card, EmptyState, SectionHeading, StatCard, type Tone } from '../components/ui';
+import { cx } from '../lib/cx';
 import { gbp, gbp2, kwh, num, pence, signedGbp } from '../lib/format';
 
 type Filter = 'All' | BillStatus;
 
-const statusTone: Record<BillStatus, 'emerald' | 'rose' | 'sky'> = {
-  Clean: 'emerald',
-  Flagged: 'rose',
-  Recovered: 'sky',
-};
+const statusTone: Record<BillStatus, 'emerald' | 'rose' | 'sky'> = { Clean: 'emerald', Flagged: 'rose', Recovered: 'sky' };
+const severityDot: Record<FindingSeverity, string> = { high: 'bg-rose-500', medium: 'bg-amber-500', low: 'bg-sky-500', info: 'bg-slate-400' };
 
-interface FormState {
-  siteId: string;
-  supplier: string;
-  period: string;
-  consumptionKwh: string;
-  unitRateP: string;
-  standingChargeP: string;
-}
+function scoreTone(score: number): Tone { if (score >= 85) return 'emerald'; if (score >= 60) return 'amber'; return 'rose'; }
 
-const field =
-  'w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20';
+interface FormState { siteId: string; supplier: string; period: string; consumptionKwh: string; unitRateP: string; standingChargeP: string; }
+
+const field = 'w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20';
 const labelCls = 'mb-1 block text-xs font-medium text-slate-500';
-
-/** Cloudflare R2 document store for invoice PDFs / photos. */
-function DocumentsCard() {
-  const { uploads, uploadDocument, deleteUpload, documentUrl, pushToast } = useApp();
-  const inputRef = useRef<HTMLInputElement>(null);
+/** The primary upload card: pick a site, drop a bill, read the AI audit. */
+function UploadBillCard({ onSaved }: { onSaved: (invoice: Invoice) => void }) {
+  const { sites, analyseBillFile } = useApp();
+  const [siteId, setSiteId] = useState(sites[0]?.id ?? '');
   const [busy, setBusy] = useState(false);
+  const [drag, setDrag] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [outcome, setOutcome] = useState<{ result: IntakeResult; invoice: Invoice | null } | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
-  const onFile = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    event.target.value = '';
-    if (!file) return;
-    setBusy(true);
+  const pick = async (file?: File) => {
+    if (!file || busy) return;
+    if (!siteId) { setError('Choose a site first — the bill is filed against it.'); return; }
+    setBusy(true); setError(null); setOutcome(null);
     try {
-      await uploadDocument(file);
-    } catch (err) {
-      pushToast(err instanceof Error ? err.message : 'Upload failed');
-    } finally {
-      setBusy(false);
-    }
+      const res = await analyseBillFile(file, siteId);
+      if (res.result.ok) { setOutcome(res); if (res.invoice) onSaved(res.invoice); }
+      else { setError(res.result.note ?? 'We could not read that bill.'); }
+    } catch (err) { setError(err instanceof Error ? err.message : 'We could not read that file.'); }
+    finally { setBusy(false); }
   };
 
-  const open = async (id: string) => {
-    try {
-      const url = await documentUrl(id);
-      window.open(url, '_blank', 'noopener');
-    } catch (err) {
-      pushToast(err instanceof Error ? err.message : 'Could not open document');
-    }
-  };
+  const analysis = outcome?.result.analysis ?? null;
+  const advice = outcome?.result.advice ?? null;
+  const extracted = (outcome?.result.extracted ?? {}) as Record<string, unknown>;
+  const str = (value: unknown): string => (typeof value === 'string' ? value : '');
+  const total = typeof extracted.totalGbp === 'number' ? extracted.totalGbp : null;
+  const savingsPct = analysis && total && total > 0 ? (analysis.recoverableGbp / total) * 100 : null;
+  const siteName = outcome?.invoice ? sites.find((s) => s.id === outcome.invoice!.siteId)?.name : undefined;
+
+  if (sites.length === 0) {
+    return (
+      <Card>
+        <SectionHeading title="Upload a bill" subtitle="Add a site first — every invoice is filed and benchmarked per site." />
+        <Link to="/sites" className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-700">
+          Add your first site <ArrowRight className="h-4 w-4" />
+        </Link>
+      </Card>
+    );
+  }
 
   return (
     <Card>
-      <SectionHeading
-        title="Invoice documents"
-        subtitle="PDFs and photos are stored in Cloudflare R2, scoped to your account."
-        action={<Badge tone="sky">Cloudflare R2</Badge>}
-      />
-      <input
-        ref={inputRef}
-        type="file"
-        accept="application/pdf,image/*"
-        className="hidden"
-        onChange={onFile}
-      />
-      <button
-        type="button"
-        onClick={() => inputRef.current?.click()}
-        disabled={busy}
-        className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-60"
-      >
-        {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Cloud className="h-4 w-4" />}
-        Upload PDF or photo
-      </button>
+      <SectionHeading title="Upload a bill" subtitle="PDF, photo or text — the AI reads it (OCR if needed), audits it and files it against the site." />
 
-      {uploads.length === 0 ? (
-        <p className="mt-3 text-xs text-slate-400">No documents yet.</p>
-      ) : (
-        <ul className="mt-3 space-y-2">
-          {uploads.map((upload) => (
-            <li
-              key={upload.id}
-              className="flex items-center gap-2 rounded-xl border border-slate-100 bg-slate-50/60 px-3 py-2"
-            >
-              <FileText className="h-4 w-4 shrink-0 text-slate-400" />
-              <button
-                type="button"
-                onClick={() => void open(upload.id)}
-                className="min-w-0 flex-1 truncate text-left text-sm text-slate-700 hover:text-emerald-700"
-              >
-                {upload.filename}
-              </button>
-              <span className="shrink-0 text-[11px] text-slate-400">
-                {(upload.size / 1024).toFixed(0)} KB
-              </span>
-              <button
-                type="button"
-                onClick={() => void deleteUpload(upload.id)}
-                aria-label="Delete document"
-                className="shrink-0 text-slate-400 transition-colors hover:text-rose-600"
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
-            </li>
-          ))}
-        </ul>
+      <label className="mb-3 block max-w-xs">
+        <span className={labelCls}>File against site</span>
+        <select value={siteId} onChange={(e) => setSiteId(e.target.value)} className={field}>
+          {sites.map((site) => <option key={site.id} value={site.id}>{site.name}{site.city ? ` · ${site.city}` : ''}</option>)}
+        </select>
+      </label>
+
+      {outcome && (
+        <div className="mt-4 space-y-4 rounded-xl border border-emerald-100 bg-emerald-50/40 p-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <p className="text-sm font-bold text-slate-900">{str(extracted.supplier) || 'Your bill'}{str(extracted.periodStart) ? ` · ${str(extracted.periodStart)} → ${str(extracted.periodEnd)}` : ''}</p>
+              <p className="text-xs text-slate-500">{outcome.result.usedVision ? 'Read with AI vision (OCR)' : 'Read from the text layer'} · {outcome.result.textLength.toLocaleString()} characters</p>
+            </div>
+            {analysis && <Badge tone={scoreTone(analysis.score)}>Bill score {analysis.score}/100</Badge>}
+          </div>
+          {analysis && (
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div className="rounded-lg bg-white p-3 ring-1 ring-slate-100">
+                <p className="text-xs text-slate-500">Potential saving</p>
+                <p className="text-lg font-bold text-emerald-700">{gbp(analysis.recoverableGbp)}</p>
+                <p className="text-xs text-slate-500">{savingsPct !== null ? `${savingsPct.toFixed(1)}% of the bill` : 'recoverable overcharge'}</p>
+              </div>
+              <div className="rounded-lg bg-white p-3 ring-1 ring-slate-100">
+                <p className="text-xs text-slate-500">Effective rate</p>
+                <p className="text-lg font-bold text-slate-900">{pence(analysis.effectiveRateP ?? 0, 2)}</p>
+                <p className="text-xs text-slate-500">vs cap {pence(analysis.capPeriod.averageUnitRateP, 2)}/kWh</p>
+              </div>
+              <div className="rounded-lg bg-white p-3 ring-1 ring-slate-100">
+                <p className="text-xs text-slate-500">AI findings</p>
+                <p className="text-lg font-bold text-slate-900">{analysis.findings.length}</p>
+                <p className="text-xs text-slate-500">{analysis.findings.filter((f) => f.severity === 'high').length} high severity</p>
+              </div>
+            </div>
+          )}
+          {analysis && analysis.findings.length > 0 && (
+            <ul className="space-y-2">
+              {analysis.findings.slice(0, 4).map((finding) => (
+                <li key={finding.code} className="flex gap-3 rounded-lg bg-white p-3 ring-1 ring-slate-100">
+                  <span className={cx('mt-1.5 h-2 w-2 shrink-0 rounded-full', severityDot[finding.severity])} />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-sm font-semibold text-slate-800">{finding.title}</p>
+                      {finding.impactGbp > 0 && <span className="shrink-0 text-sm font-semibold text-rose-600">{signedGbp(finding.impactGbp)}</span>}
+                    </div>
+                    <p className="mt-0.5 text-xs text-slate-500">{finding.detail}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+          {advice?.summary && (
+            <div className="rounded-lg bg-white p-3 ring-1 ring-slate-100">
+              <p className="flex items-center gap-1.5 text-sm font-semibold text-slate-800"><Sparkles className="h-4 w-4 text-emerald-600" /> AI advice</p>
+              <p className="mt-1 text-sm text-slate-600">{advice.summary}</p>
+              {advice.actions.length > 0 && <ul className="mt-2 space-y-1">{advice.actions.map((action) => <li key={action} className="flex items-start gap-2 text-xs text-slate-600"><CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-500" />{action}</li>)}</ul>}
+            </div>
+          )}
+          {outcome.invoice ? (
+            <div className="flex items-center justify-between gap-2 rounded-lg bg-white px-3 py-2 ring-1 ring-slate-100">
+              <p className="text-xs text-slate-500">Filed against <strong className="text-slate-700">{siteName}</strong> as {outcome.invoice.id}</p>
+              <Link to="/analysis" className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 transition-colors hover:text-emerald-800">Full benchmark <ArrowRight className="h-3 w-3" /></Link>
+            </div>
+          ) : (
+            <p className="text-xs text-slate-500">Some figures were unreadable, so the bill was analysed but not filed — check the findings above, or enter the figures manually below.</p>
+          )}
+        </div>
       )}
     </Card>
   );
 }
 
-export default function Bills() {
-  const { invoices, sites, suppliers, metrics, analyseUpload, recoverInvoice, getSiteById } = useApp();
+/** Collapsed fallback for bills the AI could not fully read. */
+function ManualEntryCard({ onCreated }: { onCreated: (invoice: Invoice) => void }) {
+  const { sites, suppliers, analyseUpload } = useApp();
+  const [form, setForm] = useState<FormState>({ siteId: sites[0]?.id ?? '', supplier: suppliers[0] ?? '', period: '', consumptionKwh: '', unitRateP: '', standingChargeP: '' });
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const [filter, setFilter] = useState<Filter>('All');
+  const submit = async () => {
+    const consumptionKwh = Number(form.consumptionKwh);
+    const unitRateP = Number(form.unitRateP);
+    const standingChargeP = Number(form.standingChargeP);
+    if (!form.siteId || !form.supplier.trim() || !form.period.trim()) { setError('Site, supplier and billing period are required.'); return; }
+    if (!Number.isFinite(consumptionKwh) || consumptionKwh <= 0) { setError('Enter the consumption in kWh.'); return; }
+    if (!Number.isFinite(unitRateP) || unitRateP <= 0) { setError('Enter the unit rate in p/kWh.'); return; }
+    if (!Number.isFinite(standingChargeP) || standingChargeP < 0) { setError('Enter the standing charge in p/day.'); return; }
+    setBusy(true); setError(null);
+    try {
+      const invoice = await analyseUpload({ siteId: form.siteId, supplier: form.supplier.trim(), period: form.period.trim(), consumptionKwh, unitRateP, standingChargeP });
+      onCreated(invoice);
+    } catch (err) { setError(err instanceof Error ? err.message : 'Could not audit that bill.'); }
+    finally { setBusy(false); }
+  };
+
+  return (
+    <Card>
+      <details className="group">
+        <summary className="cursor-pointer list-none text-sm font-semibold text-slate-700 transition-colors hover:text-emerald-700">Can’t upload? Type the figures in →</summary>
+        <div className="mt-4 space-y-3">
+          <div>
+            <label className={labelCls}>Site</label>
+            <select className={field} value={form.siteId} onChange={(e) => setForm({ ...form, siteId: e.target.value })}>
+              {sites.map((site) => <option key={site.id} value={site.id}>{site.name}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className={labelCls}>Supplier</label>
+            <input className={field} value={form.supplier} placeholder="British Gas" onChange={(e) => setForm({ ...form, supplier: e.target.value })} />
+          </div>
+          <div>
+            <label className={labelCls}>Billing period</label>
+            <input className={field} value={form.period} placeholder="Feb 2026" onChange={(e) => setForm({ ...form, period: e.target.value })} />
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            <div>
+              <label className={labelCls}>kWh</label>
+              <input type="number" className={field} placeholder="38000" value={form.consumptionKwh} onChange={(e) => setForm({ ...form, consumptionKwh: e.target.value })} />
+            </div>
+            <div>
+              <label className={labelCls}>p/kWh</label>
+              <input type="number" step="0.1" className={field} placeholder="27.6" value={form.unitRateP} onChange={(e) => setForm({ ...form, unitRateP: e.target.value })} />
+            </div>
+            <div>
+              <label className={labelCls}>p/day</label>
+              <input type="number" step="0.1" className={field} placeholder="88" value={form.standingChargeP} onChange={(e) => setForm({ ...form, standingChargeP: e.target.value })} />
+            </div>
+          </div>
+          {error && <p className="rounded-lg bg-rose-50 px-3 py-2 text-xs text-rose-700">{error}</p>}
+          <button type="button" onClick={submit} disabled={busy} className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-700 disabled:opacity-60">
+            {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}{busy ? 'Auditing…' : 'Run AI audit'}
+          </button>
+        </div>
+      </details>
+
+    </Card>
+  );
+}
+
+export default function Bills() {
+  const { invoices, sites, metrics, recoverInvoice, getSiteById } = useApp();
+
+  const [filter, setFilter] = useState('All');
   const [query, setQuery] = useState('');
-  const [selectedId, setSelectedId] = useState<string | null>(invoices[0]?.id ?? null);
-  const [form, setForm] = useState<FormState>({
-    siteId: sites[0]?.id ?? '',
-    supplier: suppliers[0] ?? '',
-    period: 'Apr 2026',
-    consumptionKwh: '38000',
-    unitRateP: '27.6',
-    standingChargeP: '88',
-  });
+  const [selectedId, setSelectedId] = useState(invoices[0]?.id ?? null);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return invoices.filter((inv) => {
       const matchesFilter = filter === 'All' || inv.status === filter;
       const site = getSiteById(inv.siteId);
-      const matchesQuery =
-        q.length === 0 ||
-        inv.id.toLowerCase().includes(q) ||
-        inv.supplier.toLowerCase().includes(q) ||
-        (site ? `${site.name} ${site.city}`.toLowerCase().includes(q) : false);
+      const matchesQuery = q.length === 0 || inv.id.toLowerCase().includes(q) || inv.supplier.toLowerCase().includes(q) || (site ? `${site.name} ${site.city ?? ''}`.toLowerCase().includes(q) : false);
       return matchesFilter && matchesQuery;
     });
   }, [invoices, filter, query, getSiteById]);
 
   const selected = invoices.find((inv) => inv.id === selectedId) ?? null;
-
-  const recoveredValue = invoices
-    .filter((inv) => inv.status === 'Recovered')
-    .flatMap((inv) => inv.issues)
-    .reduce((total, issue) => total + Math.abs(issue.impact), 0);
-
-  const submit = async () => {
-    const consumptionKwh = Number(form.consumptionKwh);
-    const unitRateP = Number(form.unitRateP);
-    const standingChargeP = Number(form.standingChargeP);
-    if (!form.siteId || !form.supplier) return;
-    if (!Number.isFinite(consumptionKwh) || consumptionKwh <= 0) return;
-    if (!Number.isFinite(unitRateP) || unitRateP <= 0) return;
-    if (!Number.isFinite(standingChargeP) || standingChargeP < 0) return;
-
-    const created = await analyseUpload({
-      siteId: form.siteId,
-      supplier: form.supplier,
-      period: form.period,
-      consumptionKwh,
-      unitRateP,
-      standingChargeP,
-    });
-    setSelectedId(created.id);
-    setFilter('All');
-  };
+  const recoveredValue = invoices.filter((inv) => inv.status === 'Recovered').flatMap((inv) => inv.issues).reduce((total, issue) => total + Math.abs(issue.impact), 0);
 
   return (
     <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard
-          label="Invoices audited"
-          value={num(metrics.invoicesAudited)}
-          icon={<FileSearch className="h-5 w-5" />}
-          tone="sky"
-          sub="this billing cycle"
-        />
-        <StatCard
-          label="Issues open"
-          value={String(metrics.issuesOpen)}
-          icon={<AlertTriangle className="h-5 w-5" />}
-          tone="rose"
-          sub="awaiting challenge"
-        />
-        <StatCard
-          label="Value at risk"
-          value={gbp(metrics.issuesValue)}
-          icon={<ShieldCheck className="h-5 w-5" />}
-          tone="amber"
-          sub="overcharges detected"
-        />
-        <StatCard
-          label="Recovered"
-          value={gbp(recoveredValue)}
-          icon={<CheckCircle2 className="h-5 w-5" />}
-          tone="emerald"
-          sub="credit notes issued"
-        />
+        <StatCard label="Invoices audited" value={num(metrics.invoicesAudited)} icon={<FileSearch className="h-5 w-5" />} tone="sky" sub="filed across your sites" />
+        <StatCard label="Open issues" value={String(metrics.issuesOpen)} icon={<AlertTriangle className="h-5 w-5" />} tone="rose" sub="awaiting challenge" />
+        <StatCard label="Value at risk" value={gbp(metrics.issuesValue)} icon={<ShieldCheck className="h-5 w-5" />} tone="rose" sub="overcharges found" />
+        <StatCard label="Recovered to date" value={gbp(recoveredValue)} icon={<CheckCircle2 className="h-5 w-5" />} tone="emerald" sub="challenged with suppliers" />
       </div>
-
-      <div className="grid gap-4 lg:grid-cols-3">
-        <div className="space-y-4 lg:col-span-2">
-          <Card>
-            <SectionHeading
-              title="Upload & audit an invoice"
-              subtitle="Module B needs no hardware — upload a bill and the AI checks for incorrect charges, anomalies and tariff issues."
-              action={<Badge tone="violet">Module B</Badge>}
-            />
-            <div className="grid gap-3 sm:grid-cols-3">
-              <div>
-                <label className={labelCls}>Site</label>
-                <select
-                  className={field}
-                  value={form.siteId}
-                  onChange={(e) => setForm({ ...form, siteId: e.target.value })}
-                >
-                  {sites.map((site) => (
-                    <option key={site.id} value={site.id}>
-                      {site.name} · {site.city}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className={labelCls}>Supplier</label>
-                <select
-                  className={field}
-                  value={form.supplier}
-                  onChange={(e) => setForm({ ...form, supplier: e.target.value })}
-                >
-                  {suppliers.map((supplier) => (
-                    <option key={supplier} value={supplier}>
-                      {supplier}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className={labelCls}>Billing period</label>
-                <input
-                  className={field}
-                  value={form.period}
-                  onChange={(e) => setForm({ ...form, period: e.target.value })}
-                />
-              </div>
-              <div>
-                <label className={labelCls}>Consumption (kWh)</label>
-                <input
-                  type="number"
-                  className={field}
-                  value={form.consumptionKwh}
-                  onChange={(e) => setForm({ ...form, consumptionKwh: e.target.value })}
-                />
-              </div>
-              <div>
-                <label className={labelCls}>Unit rate (p/kWh)</label>
-                <input
-                  type="number"
-                  step="0.1"
-                  className={field}
-                  value={form.unitRateP}
-                  onChange={(e) => setForm({ ...form, unitRateP: e.target.value })}
-                />
-              </div>
-              <div>
-                <label className={labelCls}>Standing charge (p/day)</label>
-                <input
-                  type="number"
-                  step="0.1"
-                  className={field}
-                  value={form.standingChargeP}
-                  onChange={(e) => setForm({ ...form, standingChargeP: e.target.value })}
-                />
-              </div>
+      <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,380px)]">
+        <Card padded={false}>
+          <div className="flex flex-wrap items-center justify-between gap-3 p-4">
+            <div className="flex flex-wrap gap-1.5">
+              {(['All', 'Flagged', 'Clean', 'Recovered'] as Filter[]).map((option) => (
+                <button key={option} type="button" onClick={() => setFilter(option)} className={'rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ' + (filter === option ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200')}>{option}</button>
+              ))}
             </div>
-            <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-              <p className="text-xs text-slate-400">
-                Tip: unit rates above 26p/kWh or high standing charges get flagged by the audit.
-              </p>
-              <button
-                type="button"
-                onClick={submit}
-                className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-emerald-700"
-              >
-                <Upload className="h-4 w-4" />
-                Run AI audit
-              </button>
+            <div className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-1.5">
+              <Search className="h-4 w-4 text-slate-400" />
+              <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search invoices…" className="w-40 bg-transparent text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none" />
             </div>
-          </Card>
-
-          <DocumentsCard />
-
-          <Card padded={false}>
-            <div className="flex flex-wrap items-center justify-between gap-3 p-4">
-              <div className="flex flex-wrap gap-1.5">
-                {(['All', 'Flagged', 'Clean', 'Recovered'] as Filter[]).map((option) => (
-                  <button
-                    key={option}
-                    type="button"
-                    onClick={() => setFilter(option)}
-                    className={
-                      'rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ' +
-                      (filter === option
-                        ? 'bg-slate-900 text-white'
-                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200')
-                    }
-                  >
-                    {option}
-                  </button>
-                ))}
-              </div>
-              <div className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-1.5">
-                <Search className="h-4 w-4 text-slate-400" />
-                <input
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Search invoices…"
-                  className="w-40 bg-transparent text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none"
-                />
-              </div>
-            </div>
-
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse text-sm">
-                <thead>
-                  <tr className="border-y border-slate-100 bg-slate-50/70 text-left text-xs uppercase tracking-wide text-slate-500">
-                    <th className="px-4 py-2.5 font-semibold">Invoice</th>
-                    <th className="px-4 py-2.5 font-semibold">Site</th>
-                    <th className="px-4 py-2.5 font-semibold">Consumption</th>
-                    <th className="px-4 py-2.5 font-semibold">Unit rate</th>
-                    <th className="px-4 py-2.5 text-right font-semibold">Total</th>
-                    <th className="px-4 py-2.5 font-semibold">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filtered.map((inv) => {
-                    const site = getSiteById(inv.siteId);
-                    return (
-                      <tr
-                        key={inv.id}
-                        onClick={() => setSelectedId(inv.id)}
-                        className={
-                          'cursor-pointer border-b border-slate-50 transition-colors ' +
-                          (inv.id === selectedId ? 'bg-emerald-50/60' : 'hover:bg-slate-50')
-                        }
-                      >
-                        <td className="px-4 py-3">
-                          <p className="font-semibold text-slate-800">{inv.id}</p>
-                          <p className="text-xs text-slate-400">{inv.period}</p>
-                        </td>
-                        <td className="px-4 py-3">
-                          <p className="text-slate-700">{site?.name ?? inv.siteId}</p>
-                          <p className="text-xs text-slate-400">
-                            {site?.city} · {inv.supplier}
-                          </p>
-                        </td>
-                        <td className="px-4 py-3 text-slate-600">{kwh(inv.consumptionKwh)}</td>
-                        <td className="px-4 py-3 text-slate-600">{pence(inv.unitRateP)}</td>
-                        <td className="px-4 py-3 text-right font-semibold text-slate-800">
-                          {gbp2(inv.total)}
-                        </td>
-                        <td className="px-4 py-3">
-                          <Badge tone={statusTone[inv.status]}>{inv.status}</Badge>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-            {filtered.length === 0 && (
-              <div className="p-4">
-                <EmptyState title="No invoices match" hint="Try a different filter or search term." />
-              </div>
-            )}
-          </Card>
-        </div>
-
-        <div className="lg:sticky lg:top-24">
+          </div>
+          <div className="overflow-x-auto mt-2">
+            <table className="w-full border-collapse text-sm">
+              <thead><tr className="border-y border-slate-100 bg-slate-50/70 text-left text-xs uppercase tracking-wide text-slate-500"><th className="px-4 py-2.5 font-semibold">Invoice</th><th className="px-4 py-2.5 font-semibold">Site</th><th className="px-4 py-2.5 font-semibold">Consumption</th><th className="px-4 py-2.5 font-semibold">Unit rate</th><th className="px-4 py-2.5 text-right font-semibold">Total</th><th className="px-4 py-2.5 font-semibold">Status</th></tr></thead>
+              <tbody>
+                {filtered.map((inv) => {
+                  const site = getSiteById(inv.siteId);
+                  return (
+                    <tr key={inv.id} onClick={() => setSelectedId(inv.id)} className={'cursor-pointer border-b border-slate-50 transition-colors ' + (inv.id === selectedId ? 'bg-emerald-50/60' : 'hover:bg-slate-50')}>
+                      <td className="px-4 py-3"><p className="font-semibold text-slate-800">{inv.id}</p><p className="text-xs text-slate-400">{inv.period}</p></td>
+                      <td className="px-4 py-3"><p className="text-slate-700">{site?.name ?? inv.siteId}</p><p className="text-xs text-slate-400">{site?.city} · {inv.supplier}</p></td>
+                      <td className="px-4 py-3 text-slate-600">{kwh(inv.consumptionKwh)}</td>
+                      <td className="px-4 py-3 text-slate-600">{pence(inv.unitRateP)}</td>
+                      <td className="px-4 py-3 text-right font-semibold text-slate-800">{gbp2(inv.total)}</td>
+                      <td className="px-4 py-3"><Badge tone={statusTone[inv.status]}>{inv.status}</Badge></td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+            {filtered.length === 0 && <div className="p-4"><EmptyState title="No invoices match" hint="Try a different filter or search term." /></div>}
+          </div>
+        </Card>
+        <Card className="sticky top-24 space-y-4">
           {selected ? (
-            <Card className="space-y-4">
-              <div className="flex items-start justify-between gap-3">
+            <>
+              <div className="flex items-start justify-between gap-3 px-4 pt-3 pb-1">
                 <div>
                   <p className="text-xs uppercase tracking-wide text-slate-400">Invoice detail</p>
                   <p className="text-lg font-bold text-slate-900">{selected.id}</p>
-                  <p className="text-xs text-slate-500">
-                    {getSiteById(selected.siteId)?.name} · {selected.period}
-                  </p>
+                  <p className="text-xs text-slate-500">{getSiteById(selected.siteId)?.name} · {selected.period}</p>
                 </div>
                 <Badge tone={statusTone[selected.status]}>{selected.status}</Badge>
               </div>
-
               <dl className="space-y-2 rounded-xl bg-slate-50 p-3 text-sm">
-                <div className="flex justify-between">
-                  <dt className="text-slate-500">Supplier</dt>
-                  <dd className="font-medium text-slate-800">{selected.supplier}</dd>
-                </div>
-                <div className="flex justify-between">
-                  <dt className="text-slate-500">Consumption</dt>
-                  <dd className="font-medium text-slate-800">{kwh(selected.consumptionKwh)}</dd>
-                </div>
-                <div className="flex justify-between">
-                  <dt className="text-slate-500">Energy charge</dt>
-                  <dd className="font-medium text-slate-800">
-                    {gbp2((selected.consumptionKwh * selected.unitRateP) / 100)}
-                  </dd>
-                </div>
-                <div className="flex justify-between">
-                  <dt className="text-slate-500">Standing charge</dt>
-                  <dd className="font-medium text-slate-800">
-                    {gbp2((selected.standingChargeP * 31) / 100)}
-                  </dd>
-                </div>
-                <div className="flex justify-between border-t border-slate-200 pt-2">
-                  <dt className="font-semibold text-slate-700">Invoice total (ex. VAT)</dt>
-                  <dd className="font-bold text-slate-900">{gbp2(selected.total)}</dd>
-                </div>
+                <div className="flex justify-between"><dt className="text-slate-500">Supplier</dt><dd className="font-medium text-slate-800">{selected.supplier}</dd></div>
+                <div className="flex justify-between"><dt className="text-slate-500">Consumption</dt><dd className="font-medium text-slate-800">{kwh(selected.consumptionKwh)}</dd></div>
+                <div className="flex justify-between"><dt className="text-slate-500">Energy charge</dt><dd className="font-medium text-slate-800">{gbp2((selected.consumptionKwh * selected.unitRateP) / 100)}</dd></div>
+                <div className="flex justify-between"><dt className="text-slate-500">Standing charge</dt><dd className="font-medium text-slate-800">{gbp2((selected.standingChargeP * 31) / 100)}</dd></div>
+                <div className="flex justify-between border-t border-slate-200 pt-2"><dt className="font-semibold text-slate-700">Invoice total (ex. VAT)</dt><dd className="font-bold text-slate-900">{gbp2(selected.total)}</dd></div>
               </dl>
-
-              <div>
-                <p className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-slate-800">
-                  <ShieldCheck className="h-4 w-4 text-emerald-600" />
-                  AI audit findings
-                </p>
+              <div className="px-4 py-3">
+                <p className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-slate-800"><ShieldCheck className="h-4 w-4 text-emerald-600" /> AI audit findings</p>
                 {selected.issues.length === 0 ? (
-                  <div className="flex items-center gap-2 rounded-xl bg-emerald-50 px-3 py-2.5 text-sm text-emerald-700">
-                    <CheckCircle2 className="h-4 w-4" />
-                    No issues detected — this invoice looks correct.
-                  </div>
+                  <div className="flex items-center gap-2 rounded-xl bg-emerald-50 px-3 py-2.5 text-sm text-emerald-700"><CheckCircle2 className="h-4 w-4" /> No issues detected — this invoice looks correct.</div>
                 ) : (
                   <ul className="space-y-2">
                     {selected.issues.map((issue) => (
-                      <li
-                        key={issue.type}
-                        className="rounded-xl border border-rose-100 bg-rose-50/60 p-3"
-                      >
-                        <div className="flex items-center justify-between gap-2">
-                          <p className="text-sm font-semibold text-rose-700">{issue.type}</p>
-                          {issue.impact < 0 && (
-                            <span className="text-sm font-semibold text-rose-700">
-                              {signedGbp(issue.impact)}
-                            </span>
-                          )}
-                        </div>
+                      <li key={issue.type} className="rounded-xl border border-rose-100 bg-rose-50/60 p-3">
+                        <div className="flex items-center justify-between gap-2"><p className="text-sm font-semibold text-rose-700">{issue.type}</p>{issue.impact < 0 && <span className="text-sm font-semibold text-rose-700">{signedGbp(issue.impact)}</span>}</div>
                         <p className="mt-1 text-xs text-rose-600/90">{issue.detail}</p>
                       </li>
                     ))}
                   </ul>
                 )}
+                {selected.status === 'Flagged' ? (
+                  <button type="button" onClick={() => recoverInvoice(selected.id)} className="w-full rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-slate-800">Challenge supplier &amp; request recovery</button>
+                ) : selected.status === 'Recovered' ? (
+                  <div className="rounded-lg bg-sky-50 px-4 py-2.5 text-center text-sm font-semibold text-sky-700">Recovery in progress</div>
+                ) : null}
               </div>
-
-              {selected.status === 'Flagged' ? (
-                <button
-                  type="button"
-                  onClick={() => recoverInvoice(selected.id)}
-                  className="w-full rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-slate-800"
-                >
-                  Challenge supplier &amp; request recovery
-                </button>
-              ) : selected.status === 'Recovered' ? (
-                <div className="rounded-lg bg-sky-50 px-4 py-2.5 text-center text-sm font-semibold text-sky-700">
-                  Recovery in progress
-                </div>
-              ) : null}
-            </Card>
+            </>
           ) : (
-            <Card>
-              <EmptyState title="Select an invoice" hint="Choose a row to see the AI audit detail." />
-            </Card>
+            <Card><EmptyState title="Select an invoice" hint="Choose a row to see the AI audit detail." /></Card>
           )}
-        </div>
+        </Card>
       </div>
     </div>
   );

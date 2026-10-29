@@ -8,7 +8,7 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import { api, type SiteDraft, type UploadedDocument, type WorkspaceData } from './lib/api';
+import { api, type IntakeResult, type SiteDraft, type UploadedDocument, type WorkspaceData } from './lib/api';
 import { useAuth } from './lib/auth';
 import type {
   Account,
@@ -68,6 +68,10 @@ interface AppContextValue {
   addSite: (draft: SiteDraft) => Promise<Site>;
   removeSite: (id: string) => Promise<void>;
   analyseUpload: (payload: UploadPayload) => Promise<Invoice>;
+  analyseBillFile: (
+    file: File,
+    siteId: string,
+  ) => Promise<{ result: IntakeResult; invoice: Invoice | null }>;
   uploadDocument: (file: File, invoiceId?: string) => Promise<UploadedDocument>;
   deleteUpload: (id: string) => Promise<void>;
   documentUrl: (id: string) => Promise<string>;
@@ -80,6 +84,20 @@ interface AppContextValue {
 const AppContext = createContext<AppContextValue | null>(null);
 
 const sum = (values: number[]): number => values.reduce((total, value) => total + value, 0);
+
+/** Human label for a bill period from ISO dates, e.g. "Feb 2026 – Mar 2026". */
+function billPeriod(start: string, end: string): string {
+  const label = (iso: string): string | null => {
+    const date = iso ? new Date(iso) : null;
+    return date && !Number.isNaN(date.getTime())
+      ? date.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })
+      : null;
+  };
+  const from = label(start);
+  const to = label(end);
+  if (from && to && from !== to) return `${from} – ${to}`;
+  return from ?? to ?? 'Latest bill';
+}
 
 const EMPTY_ACCOUNT: Account = {
   name: '—',
@@ -205,6 +223,56 @@ export function AppProvider({ children }: { children: ReactNode }) {
           : `AI audit complete — ${invoice.id} is clean.`,
       );
       return invoice;
+    },
+    [withToken, pushToast],
+  );
+
+  /**
+   * The primary intake path: upload a bill file, have the AI read it (OCR when
+   * there is no text layer), and — when the figures were readable — file it as
+   * an audited invoice against the chosen site so it appears in the list.
+   */
+  const analyseBillFile = useCallback(
+    async (file: File, siteId: string): Promise<{ result: IntakeResult; invoice: Invoice | null }> => {
+      const result = await withToken((token) => api.analyseFile(token, file, siteId || undefined));
+      const e = (result.extracted ?? {}) as Record<string, unknown>;
+      const supplier = typeof e.supplier === 'string' ? e.supplier.trim() : '';
+      const consumptionKwh = typeof e.consumptionKwh === 'number' ? e.consumptionKwh : NaN;
+      const unitRateP = typeof e.unitRateP === 'number' ? e.unitRateP : NaN;
+      const standingChargeP = typeof e.standingChargeP === 'number' ? e.standingChargeP : NaN;
+
+      let invoice: Invoice | null = null;
+      if (
+        result.ok &&
+        supplier &&
+        Number.isFinite(consumptionKwh) &&
+        consumptionKwh > 0 &&
+        Number.isFinite(unitRateP) &&
+        unitRateP > 0 &&
+        Number.isFinite(standingChargeP) &&
+        standingChargeP >= 0
+      ) {
+        const start = typeof e.periodStart === 'string' ? e.periodStart : '';
+        const end = typeof e.periodEnd === 'string' ? e.periodEnd : '';
+        const { invoice: created } = await withToken((token) =>
+          api.createInvoice(token, {
+            siteId,
+            supplier,
+            period: billPeriod(start, end),
+            consumptionKwh,
+            unitRateP,
+            standingChargeP,
+          }),
+        );
+        invoice = created;
+        setWorkspace((prev) => ({ ...prev, invoices: [created, ...prev.invoices] }));
+        pushToast(
+          created.issues.length > 0
+            ? `Audited and filed as ${created.id} — ${created.issues.length} issue${created.issues.length > 1 ? 's' : ''} found.`
+            : `Audited and filed as ${created.id} — this bill looks clean.`,
+        );
+      }
+      return { result, invoice };
     },
     [withToken, pushToast],
   );
@@ -337,6 +405,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     addSite,
     removeSite,
     analyseUpload,
+    analyseBillFile,
     uploadDocument,
     deleteUpload,
     documentUrl,

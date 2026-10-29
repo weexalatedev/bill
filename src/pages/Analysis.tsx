@@ -370,9 +370,15 @@ return (
     <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
-          label="Recoverable from this bill"
+          label="Potential saving"
           value={analysis ? gbp(analysis.recoverableGbp) : '—'}
-          sub={analysis ? `${analysis.findings.length} findings` : 'Run an analysis'}
+          sub={
+            analysis
+              ? form.totalGbp && Number(form.totalGbp) > 0
+                ? `${pct((analysis.recoverableGbp / Number(form.totalGbp)) * 100)} of the bill · ${analysis.findings.length} findings`
+                : `${analysis.findings.length} findings`
+              : 'Run an analysis'
+          }
           icon={<Scale className="h-5 w-5" />}
           tone={analysis && analysis.recoverableGbp > 0 ? 'rose' : 'emerald'}
         />

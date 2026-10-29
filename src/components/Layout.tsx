@@ -3,18 +3,13 @@ import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
   AlertTriangle,
   Bell,
-  Bot,
   Building2,
-  CreditCard,
-  Database,
   LayoutDashboard,
   Loader2,
   Menu,
-  Radio,
   Receipt,
   RefreshCw,
   ScanSearch,
-  Search,
   Sparkles,
   Zap,
 } from 'lucide-react';
@@ -27,64 +22,41 @@ import { useApp } from '../store';
 interface NavItem {
   to: string;
   label: string;
-  hint: string;
   icon: typeof LayoutDashboard;
-  badge?: 'issues' | 'savings';
+  badge?: 'issues';
 }
 
+/** The console is deliberately small: upload invoices, analyse them, manage sites. */
 const NAV: NavItem[] = [
-  { to: '/', label: 'Dashboard', hint: 'Module A', icon: LayoutDashboard },
-  { to: '/analysis', label: 'Smart Analysis', hint: 'AI Energy Brain', icon: ScanSearch },
-  { to: '/bills', label: 'Bill Auditor', hint: 'Module B', icon: Receipt, badge: 'issues' },
-  { to: '/optimiser', label: 'Optimiser', hint: 'Module C', icon: Sparkles, badge: 'savings' },
-  { to: '/sites', label: 'Sites', hint: 'Layer 1 · Data OS', icon: Building2 },
-  { to: '/data', label: 'Meter Data', hint: 'Layer 1 · Data OS', icon: Database },
-  { to: '/live', label: 'Live Market', hint: 'Real-time prices', icon: Radio },
-  { to: '/copilot', label: 'Copilot', hint: 'AI Energy Brain', icon: Bot },
-  { to: '/plans', label: 'Plans & Billing', hint: 'Subscription', icon: CreditCard },
+  { to: '/', label: 'Dashboard', icon: LayoutDashboard },
+  { to: '/bills', label: 'Invoices', icon: Receipt, badge: 'issues' },
+  { to: '/analysis', label: 'Smart Analysis', icon: ScanSearch },
+  { to: '/sites', label: 'Sites', icon: Building2 },
 ];
 
 const PAGE_META: Record<string, { title: string; subtitle: string }> = {
   '/': {
-    title: 'Energy Intelligence',
-    subtitle: 'What will we consume, what will it cost, what should we change?',
+    title: 'Dashboard',
+    subtitle: 'Your energy at a glance — spend, savings and open issues.',
+  },
+  '/bills': {
+    title: 'Invoices',
+    subtitle: 'Upload a bill — we read it with AI, audit it, and file it against the right site.',
   },
   '/analysis': {
     title: 'Smart Analysis',
-    subtitle: 'Check any invoice against Ofgem’s cap, the licence conditions and your own baseline.',
-  },
-  '/bills': {
-    title: 'AI Bill Auditor',
-    subtitle: 'Every invoice checked for incorrect charges, anomalies and tariff issues.',
-  },
-  '/optimiser': {
-    title: 'Energy Optimiser',
-    subtitle: 'Recommended actions with verified savings — approve, then automate.',
+    subtitle: 'Benchmark any bill against the Ofgem cap and get a savings score.',
   },
   '/sites': {
     title: 'Sites',
-    subtitle: 'Controllable assets and performance across the portfolio.',
-  },
-  '/live': {
-    title: 'Live Market',
-    subtitle: 'Real half-hourly UK electricity prices and grid carbon, for your region.',
-  },
-  '/data': {
-    title: 'Meter Data',
-    subtitle: 'Import half-hourly consumption and turn it into verified savings.',
-  },
-  '/copilot': { title: 'EnerOS Copilot', subtitle: 'Ask anything about your energy spend.' },
-  '/plans': {
-    title: 'Plans & Billing',
-    subtitle: 'Your subscription, performance fee and forecast.',
+    subtitle: 'Add your sites — invoices are filed and benchmarked per site.',
   },
 };
 
 export default function Layout() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
-  const [globalQuery, setGlobalQuery] = useState('');
-  const { account, sites, invoices, metrics, toast, controlMode, loading, error, refresh } = useApp();
+  const { sites, invoices, metrics, toast, loading, error, refresh } = useApp();
   const location = useLocation();
   const navigate = useNavigate();
   const meta = PAGE_META[location.pathname] ?? PAGE_META['/'];
@@ -132,7 +104,6 @@ export default function Layout() {
 
   const badgeCount: Record<string, number | undefined> = {
     issues: metrics.issuesOpen,
-    savings: metrics.potentialMonthlySaving,
   };
 
   const sidebar = (
@@ -177,7 +148,7 @@ export default function Layout() {
                   <span className="flex-1">{item.label}</span>
                   {count !== undefined && count > 0 && (
                     <span className="rounded-full bg-emerald-500/15 px-1.5 py-0.5 text-[11px] font-semibold text-emerald-300">
-                      {item.badge === 'savings' ? `£${count}` : count}
+                      {count}
                     </span>
                   )}
                 </>
@@ -186,19 +157,6 @@ export default function Layout() {
           );
         })}
       </nav>
-
-      <div className="m-3 rounded-xl bg-white/5 p-3 ring-1 ring-inset ring-white/10">
-        <div className="flex items-center gap-2">
-          <Radio className="h-3.5 w-3.5 text-emerald-400" />
-          <span className="text-[11px] font-semibold uppercase tracking-wide text-emerald-300">
-            Live · Half-hourly
-          </span>
-        </div>
-        <p className="mt-1.5 text-xs font-medium text-white">{account.name}</p>
-        <p className="text-[11px] text-slate-400">
-          {account.sites} sites · {account.planId} plan
-        </p>
-      </div>
     </div>
   );
 
@@ -238,41 +196,6 @@ export default function Layout() {
               </h1>
               <p className="hidden truncate text-xs text-slate-500 sm:block">{meta.subtitle}</p>
             </div>
-
-            <form
-              className="hidden items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 md:flex"
-              onSubmit={(event) => {
-                event.preventDefault();
-                // The search only has one meaningful target today: the sites
-                // index. Navigating there with the term in the URL keeps the
-                // query shareable and survives a refresh.
-                const term = globalQuery.trim();
-                navigate(term ? `/sites?q=${encodeURIComponent(term)}` : '/sites');
-              }}
-            >
-              <Search className="h-4 w-4 text-slate-400" />
-              <input
-                type="search"
-                value={globalQuery}
-                onChange={(event) => setGlobalQuery(event.target.value)}
-                placeholder="Search sites…"
-                aria-label="Search sites"
-                className="w-40 bg-transparent text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none lg:w-56"
-              />
-            </form>
-
-            <span
-              className={cx(
-                'hidden items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold ring-1 ring-inset sm:inline-flex',
-                controlMode === 'Automate'
-                  ? 'bg-emerald-50 text-emerald-700 ring-emerald-600/20'
-                  : controlMode === 'Approve'
-                    ? 'bg-sky-50 text-sky-700 ring-sky-600/20'
-                    : 'bg-amber-50 text-amber-700 ring-amber-600/20',
-              )}
-            >
-              {controlMode} mode
-            </span>
 
             <div className="relative">
               <button
