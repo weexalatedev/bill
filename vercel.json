@@ -3,14 +3,7 @@
   "services": {
     "app": {
       "root": ".",
-      "framework": "vite",
-      "outputDirectory": "dist",
-      "rewrites": [
-        {
-          "source": "/(.*)",
-          "destination": "/index.html"
-        }
-      ]
+      "framework": "nextjs"
     },
     "server": {
       "root": "server",

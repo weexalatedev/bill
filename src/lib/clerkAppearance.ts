@@ -1,3 +1,4 @@
+'use client';
 /**
  * Clerk appearance — one place so the hosted Clerk components match the EnerOS
  * chrome on every screen (auth pages, and the user button in the header).

@@ -10,7 +10,7 @@ credentials**:
 
 | Folder | App | Stack |
 | --- | --- | --- |
-| `/` (root) | Web console | React 19 + Vite + Tailwind |
+| `/` (root) | Web console | Next.js 16 (App Router) + React 19 + Tailwind |
 | `mobile/` | iOS / Android app | React Native (Expo) |
 | `server/` | Shared API | Node + Express + MongoDB (Mongoose) |
 

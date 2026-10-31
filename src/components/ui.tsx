@@ -1,3 +1,4 @@
+'use client';
 import { useEffect, type ReactNode } from 'react';
 import { ArrowDownRight, ArrowUpRight, X } from 'lucide-react';
 import { cx } from '../lib/cx';

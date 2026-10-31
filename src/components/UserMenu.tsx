@@ -1,3 +1,4 @@
+'use client';
 import { useEffect, useRef, useState } from 'react';
 import { SignOutButton, useClerk } from '@clerk/clerk-react';
 import { ChevronDown, LogOut, Settings, ShieldCheck, User } from 'lucide-react';

@@ -1,3 +1,4 @@
+'use client';
 // Unified auth for the web app. When the API reports `authMode: 'clerk'` the
 // app signs in with Clerk; otherwise it uses the dev-auth demo login. Either
 // way the surface is the same (`useAuth()`), so the rest of the app is agnostic.

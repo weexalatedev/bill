@@ -1,5 +1,6 @@
-import { useState, type ReactNode } from 'react';
-import { Navigate } from 'react-router-dom';
+'use client';
+import { useEffect, useState, type ReactNode } from 'react';
+import { useRouter } from 'next/navigation';
 import { AlertTriangle, Loader2, LogIn, Zap } from 'lucide-react';
 import { useAuth } from '../lib/auth';
 
@@ -123,11 +124,16 @@ function DevSignIn() {
 /** Gates the console routes behind a valid session. */
 export default function AuthGate({ children }: { children: ReactNode }) {
   const { mode, isLoaded, isSignedIn } = useAuth();
+  const router = useRouter();
+  useEffect(() => {
+    if (!isLoaded || isSignedIn || mode !== 'clerk') return;
+    router.replace('/sign-in');
+  }, [isLoaded, isSignedIn, mode, router]);
 
   if (!isLoaded) return <Splash />;
   if (isSignedIn) return <>{children}</>;
 
   // Clerk mode → the real auth route. Dev mode → inline form (no Clerk session exists).
-  if (mode === 'clerk') return <Navigate to="/sign-in" replace />;
+  if (mode === 'clerk') return <Splash />;
   return <DevSignIn />;
 }

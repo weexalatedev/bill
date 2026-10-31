@@ -1,3 +1,4 @@
+'use client';
 // Formatting helpers — UK / en-GB conventions throughout (£, kWh, p/kWh).
 
 const currency0 = new Intl.NumberFormat('en-GB', {

@@ -1,5 +1,7 @@
+'use client';
 import { useState } from 'react';
-import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   AlertTriangle,
   Bell,
@@ -53,15 +55,15 @@ const PAGE_META: Record<string, { title: string; subtitle: string }> = {
   },
 };
 
-export default function Layout() {
+export default function Layout({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const { sites, invoices, metrics, toast, loading, error, refresh } = useApp();
-  const location = useLocation();
-  const navigate = useNavigate();
-  const meta = PAGE_META[location.pathname] ?? PAGE_META['/'];
+  const pathname = usePathname() || '/';
+  const router = useRouter();
+  const meta = PAGE_META[pathname] ?? PAGE_META['/'];
   /** The Copilot owns the viewport height: a chat app should not page-scroll. */
-  const isChat = location.pathname === '/copilot';
+  const isChat = pathname === '/copilot';
 
   /** Open issues drive the notifications panel — the only live alerts we have. */
   const flaggedInvoices = invoices.filter((invoice) => invoice.status === 'Flagged');
@@ -122,38 +124,35 @@ export default function Layout() {
         {NAV.map((item) => {
           const Icon = item.icon;
           const count = item.badge ? badgeCount[item.badge] : undefined;
+          const isActive =
+            item.to === '/' ? pathname === '/' : pathname.startsWith(item.to);
           return (
-            <NavLink
+            <Link
               key={item.to}
-              to={item.to}
-              end={item.to === '/'}
+              href={item.to}
               onClick={() => setMobileOpen(false)}
-              className={({ isActive }) =>
-                cx(
-                  'group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors',
-                  isActive
-                    ? 'bg-emerald-500/10 text-white ring-1 ring-inset ring-emerald-500/30'
-                    : 'text-slate-400 hover:bg-white/5 hover:text-white',
-                )
-              }
-            >
-              {({ isActive }) => (
-                <>
-                  <Icon
-                    className={cx(
-                      'h-[18px] w-[18px]',
-                      isActive ? 'text-emerald-400' : 'text-slate-500',
-                    )}
-                  />
-                  <span className="flex-1">{item.label}</span>
-                  {count !== undefined && count > 0 && (
-                    <span className="rounded-full bg-emerald-500/15 px-1.5 py-0.5 text-[11px] font-semibold text-emerald-300">
-                      {count}
-                    </span>
-                  )}
-                </>
+              className={cx(
+                'group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors',
+                isActive
+                  ? 'bg-emerald-500/10 text-white ring-1 ring-inset ring-emerald-500/30'
+                  : 'text-slate-400 hover:bg-white/5 hover:text-white',
               )}
-            </NavLink>
+            >
+              <>
+                <Icon
+                  className={cx(
+                    'h-[18px] w-[18px]',
+                    isActive ? 'text-emerald-400' : 'text-slate-500',
+                  )}
+                />
+                <span className="flex-1">{item.label}</span>
+                {count !== undefined && count > 0 && (
+                  <span className="rounded-full bg-emerald-500/15 px-1.5 py-0.5 text-[11px] font-semibold text-emerald-300">
+                    {count}
+                  </span>
+                )}
+              </>
+            </Link>
           );
         })}
       </nav>
@@ -250,7 +249,7 @@ export default function Layout() {
                                 type="button"
                                 onClick={() => {
                                   setNotifOpen(false);
-                                  navigate('/bills');
+                                  router.push('/bills');
                                 }}
                                 className="flex w-full items-start justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-slate-50"
                               >
@@ -278,7 +277,7 @@ export default function Layout() {
                         type="button"
                         onClick={() => {
                           setNotifOpen(false);
-                          navigate('/bills');
+                          router.push('/bills');
                         }}
                         className="text-xs font-semibold text-slate-600 transition-colors hover:text-slate-900"
                       >
@@ -300,7 +299,7 @@ export default function Layout() {
             isChat ? 'flex min-h-0 flex-col overflow-hidden' : 'px-4 py-6 sm:px-6',
           )}
         >
-          <Outlet />
+          {children}
         </main>
 
         {!isChat && (

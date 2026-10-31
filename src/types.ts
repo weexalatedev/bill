@@ -1,3 +1,4 @@
+'use client';
 // EnerOS domain model — see the business plan:
 // Layer 1 Energy Data OS → Layer 2 AI Energy Brain → Modules A–E.
 

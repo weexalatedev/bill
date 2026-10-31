@@ -1,3 +1,4 @@
+'use client';
 import type { ReactNode } from 'react';
 import { ClerkLoaded, ClerkLoading as ClerkIsLoading } from '@clerk/clerk-react';
 import { Loader2, Zap } from 'lucide-react';

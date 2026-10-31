@@ -1,3 +1,4 @@
+'use client';
 // REST client for the EnerOS API. Requests use the same origin by default and
 // can target a separate API host through VITE_API_URL. Each call takes an
 // optional bearer token, which the store obtains from the active auth provider.
@@ -16,7 +17,7 @@ import type {
 } from '../types';
 
 export const API_URL: string =
-  (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '') ?? '';
+  (process.env.NEXT_PUBLIC_API_URL as string | undefined)?.replace(/\/$/, '') ?? '';
 
 export interface ApiConfig {
   authMode: 'clerk' | 'dev';
