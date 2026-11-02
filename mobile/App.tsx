@@ -12,6 +12,7 @@ import {
   CreditCard,
   FileSearch,
   LayoutDashboard,
+  Settings,
   Sparkles,
   Zap,
   type LucideIcon,
@@ -32,6 +33,7 @@ import SitesScreen from './src/screens/SitesScreen';
 import CopilotScreen from './src/screens/CopilotScreen';
 import PlansScreen from './src/screens/PlansScreen';
 import LiveScreen from './src/screens/LiveScreen';
+import SettingsScreen from './src/screens/SettingsScreen';
 
 export type TabParamList = {
   Dashboard: undefined;
@@ -41,6 +43,7 @@ export type TabParamList = {
   Sites: undefined;
   Copilot: undefined;
   Plans: undefined;
+  Settings: undefined;
 };
 
 const Tab = createBottomTabNavigator<TabParamList>();
@@ -55,6 +58,7 @@ const TABS: TabDef[] = [
   { name: 'Sites', label: 'Sites', Icon: Building2 },
   { name: 'Copilot', label: 'Copilot', Icon: Bot },
   { name: 'Plans', label: 'Plans', Icon: CreditCard },
+  { name: 'Settings', label: 'Settings', Icon: Settings },
 ];
 
 const SCREENS: Record<keyof TabParamList, React.ComponentType> = {
@@ -65,6 +69,7 @@ const SCREENS: Record<keyof TabParamList, React.ComponentType> = {
   Sites: SitesScreen,
   Copilot: CopilotScreen,
   Plans: PlansScreen,
+  Settings: SettingsScreen,
 };
 
 /** Navigation theme aligned with the EnerOS palette. */

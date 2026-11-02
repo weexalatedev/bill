@@ -17,6 +17,7 @@ follow it, not the other way round.
 | 4. Smart Control tab | `src/components/settings/SmartControlTab.tsx` — read-only, existing behaviour preserved |
 | 5–7. Dashboard, readiness, yesterday explainer, AI prompt | `src/components/settings/DeviceDataTab.tsx` — `/readiness` gate, `/dashboard` totals + hourly profile, `/live` when a Home Mini exists, `/yesterday` findings with their measured / estimate / possible-cause labels, and the ready-made `agent_prompt` |
 | 8. Error handling | `errorGuidance()` in `src/lib/connector.ts` maps 401 / 404 / 422 / 423 / 429 / 502 to the wording the brief asks for |
+| Mobile parity | `mobile/src/lib/connector.ts` + `mobile/src/screens/SettingsScreen.tsx` (Settings tab in `mobile/App.tsx`): site picker, Devices with connect/remove and status refresh, Rate plan with Octopus auto-fill, Hardware with the backend-computed battery total, Pause with the `effective` cards |
 | 9. Polling | Data loads on demand plus a Refresh button; `/devices/refresh` is only ever called by that button (initial load uses the cheap `/devices`) |
 
 Screens live at `/settings` (tabs: Devices, Rate Plan, Smart Control, Hardware, Pause
