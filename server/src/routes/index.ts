@@ -12,6 +12,7 @@ import { copilotRouter } from './copilot.js';
 import { publicRouter } from './public.js';
 import { billingRouter } from './billing.js';
 import { consumptionRouter } from './consumption.js';
+import { connectorRouter } from './connector.js';
 
 export const apiRouter = Router();
 
@@ -27,6 +28,7 @@ apiRouter.use('/billing', billingRouter);
 apiRouter.use('/consumption', consumptionRouter);
 apiRouter.use('/live', liveRouter);
 apiRouter.use('/copilot', copilotRouter);
+apiRouter.use('/connector', connectorRouter);
 
 /**
  * Public bootstrap config. Lets the web and mobile apps discover the auth mode,

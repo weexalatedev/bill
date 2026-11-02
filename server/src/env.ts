@@ -26,9 +26,9 @@ const list = (value: string | undefined): string[] =>
     : [];
 
 export const env = {
-  port: Number(str(process.env.PORT, '4000')),
-  mongoUri: str(process.env.MONGODB_URI, 'mongodb://127.0.0.1:27017/eneros'),
-  mongoDb: process.env.MONGODB_DB?.trim() || undefined,
+  get port(): number { return Number(str(process.env.PORT, '4000')); },
+  get mongoUri(): string { return str(process.env.MONGODB_URI, 'mongodb://127.0.0.1:27017/eneros'); },
+  get mongoDb(): string | undefined { return process.env.MONGODB_DB?.trim() || undefined; },
   /**
    * Clerk publishable key. Two names are accepted because the canonical Clerk
    * variable in Next.js docs is `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` while the
@@ -155,3 +155,11 @@ export const r2Enabled = Boolean(
 );
 
 /** LLM-assisted bill extraction is optional; the rules engine never depends on it. */
+
+/** Python connector backend (FastAPI) — proxied server-to-server. */
+export const pythonBackend = {
+  /** Base URL of the running FastAPI connector service (default port 8000). */
+  baseUrl: str(process.env.PYTHON_BACKEND_URL, 'http://127.0.0.1:8000'),
+  /** Bearer token the Python backend requires on every call (APP_API_TOKEN). */
+  appApiToken: str(process.env.APP_API_TOKEN, ''),
+};

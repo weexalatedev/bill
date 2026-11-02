@@ -325,6 +325,17 @@ export default function PublicBillCheck() {
                     {result.note}
                   </p>
                 </Card>
+{/* ── CTA: connect energy account after public bill check ──────────────── */}
+                {result && (
+                  <div className="mt-3 flex items-center justify-center">
+                    <Link
+                      href="/sign-in"
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-ink-900 hover:bg-emerald-500"
+                    >
+                      <ArrowRight className="h-4 w-4" /> Continue to account setup
+                    </Link>
+                  </div>
+                )}
 
                 <Card className="bg-ink-900 text-white">
                   <p className="text-sm font-semibold">Want the fixes, not just the findings?</p>

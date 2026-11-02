@@ -18,7 +18,26 @@ function check(name: string, ok: boolean, detail?: string): void {
 }
 
 async function main(): Promise<void> {
+  // ── Force a clean dev-auth, in-memory environment ─────────────────────────
+  // `env.js` reads process.env at import time, and `server/.env` (committed) ships
+  // with real Clerk + R2 keys. To make this smoke test self-contained and
+  // repeatable (it verifies the dev-auth + rules-only + in-memory feature stack
+  // end to end), clear the cloud credentials and supply dev-only values BEFORE any
+  // server module imports env:
   const mongod = await MongoMemoryServer.create();
+  process.env.CLERK_PUBLISHABLE_KEY = '';
+  process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = '';
+  process.env.CLERK_SECRET_KEY = '';
+  process.env.R2_ACCOUNT_ID = '';
+  process.env.R2_ACCESS_KEY_ID = '';
+  process.env.R2_SECRET_ACCESS_KEY = '';
+  process.env.R2_BUCKET = '';
+  // devAuthSecret is required by auth.ts to sign tokens; supply a dev-only value.
+  process.env.DEV_AUTH_SECRET = 'smoke-dev-secret';
+  // dev-auth credentials (must exist for `env.demo` to resolve non-empty, which
+  // `auth.ts` needs to sign tokens).
+  process.env.DEMO_EMAIL = 'demo@eneros.app';
+  process.env.DEMO_PASSWORD = 'EnerOS-demo-2026';
   process.env.MONGODB_URI = mongod.getUri('eneros');
 
   const { connectDb, disconnectDb } = await import('../db.js');

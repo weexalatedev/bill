@@ -25,4 +25,13 @@ dist-ssr
 # Env
 .env
 .env.*
+
+# Next.js build cache (turbopack SST files are binary and >100MB)
+.next
+*.sst
+*.meta
+/backend/eneros.db
+
+# Build artifacts (TypeScript declaration/compiler outputs)
+tsconfig.tsbuildinfo
 !.env.example
