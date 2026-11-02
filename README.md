@@ -194,17 +194,19 @@ npm run build      # tsc --noEmit
 
 ### 2. Web app
 
+From the repository root (Next.js app, port 3000):
+
 ```bash
 npm install
-npm run dev        # http://localhost:5173
+npm run dev        # http://localhost:3000
 ```
 
 Other scripts:
 
 ```bash
-npm run build      # type-check (tsc --noEmit) then production build to dist/
-npm run preview    # preview the production build
-npm run typecheck  # type-check only
+npm run dev:all     # web :3000 + Node API :4000 + Python connector :8000
+npm run build       # production build
+npm run typecheck   # type-check only
 ```
 
 ### Deploying the web app and API to Vercel

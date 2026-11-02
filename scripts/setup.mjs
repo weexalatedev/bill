@@ -39,7 +39,16 @@ const ok = (message) => console.log(`  ✓ ${message}`);
 const warn = (message) => console.log(`  ! ${message}`);
 
 function run(command, args, cwd, { shell = false } = {}) {
-  const result = spawnSync(command, args, { cwd, stdio: 'inherit', env: process.env, shell });
+  // With `shell: true` (Windows .cmd shims) pass one command string instead of
+  // an args array — Node 22+ deprecates the latter (DEP0190).
+  const result = shell
+    ? spawnSync([command, ...args].join(' '), {
+        cwd,
+        stdio: 'inherit',
+        env: process.env,
+        shell: true,
+      })
+    : spawnSync(command, args, { cwd, stdio: 'inherit', env: process.env });
   if (result.error) throw new Error(`could not run \`${command}\`: ${result.error.message}`);
   if (result.status !== 0) {
     throw new Error(`\`${[command, ...args].join(' ')}\` failed (exit code ${result.status})`);
@@ -112,7 +121,7 @@ function setupEnvFile() {
 
 function findPython() {
   const candidates = [];
-  if (process.env.PYTHON_BIN) candidates.push(process.env.PYTHON_BIN.split(' '));
+  if (process.env.PYTHON_BIN) candidates.push([process.env.PYTHON_BIN]);
   candidates.push(['python'], ['py', '-3'], ['python3']);
 
   for (const candidate of candidates) {
