@@ -3,13 +3,14 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "EnerOS \u2014 the AI energy manager for UK SMEs. Energy billing, bill auditing and optimisation console.",
+  "description": "EnerOS — the AI energy manager for UK SMEs. Energy billing, bill auditing and optimisation console.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
-    "lint": "next lint"
+    "lint": "next lint",
+    "verify:connector": "tsx scripts/verify-connector.ts"
   },
   "dependencies": {
     "@clerk/clerk-react": "^5.61.3",
@@ -26,6 +27,7 @@
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "tailwindcss": "^4.3.3",
+    "tsx": "^4.23.15",
     "typescript": "^7.0.2"
   }
 }

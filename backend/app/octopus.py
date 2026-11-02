@@ -66,7 +66,13 @@ class OctopusClient:
 
     # ---------------------------------------------------------------- REST
     def _get(self, url: str, params: dict | None = None) -> dict[str, Any]:
-        r = self._http.get(url, params=params, auth=(self._key, ""))
+        try:
+            r = self._http.get(url, params=params, auth=(self._key, ""))
+        except httpx.HTTPError as e:
+            # A network/DNS/TLS failure is a provider error (502), not a bug in this service.
+            raise OctopusError(
+                "Couldn't reach Octopus Energy: check this server's network and try again."
+            ) from e
         if r.status_code in (401, 403):
             raise OctopusAuthError(
                 "Octopus rejected these credentials, or the account number doesn't belong to this API key."
@@ -77,7 +83,10 @@ class OctopusClient:
             raise OctopusRateLimited("Octopus rate limit hit; retry shortly.")
         if r.status_code >= 400:
             raise OctopusError(f"Octopus returned HTTP {r.status_code}.")
-        return r.json()
+        try:
+            return r.json()
+        except ValueError as e:
+            raise OctopusError(f"Octopus returned a non-JSON reply (HTTP {r.status_code}).") from e
 
     def _paginate(self, url: str, params: dict | None, max_pages: int = 200) -> list[dict]:
         out: list[dict] = []
@@ -119,11 +128,19 @@ class OctopusClient:
     # ------------------------------------------------------------- GraphQL
     def _graphql(self, query: str, variables: dict | None = None, token: str | None = None) -> dict:
         headers = {"Authorization": token} if token else {}
-        r = self._http.post(self._gql, json={"query": query, "variables": variables or {}},
-                            headers=headers)
+        try:
+            r = self._http.post(self._gql, json={"query": query, "variables": variables or {}},
+                                headers=headers)
+        except httpx.HTTPError as e:
+            raise OctopusError(
+                "Couldn't reach Octopus Energy: check this server's network and try again."
+            ) from e
         if r.status_code == 429:
             raise OctopusRateLimited("Octopus rate limit hit; retry shortly.")
-        body = r.json()
+        try:
+            body = r.json()
+        except ValueError as e:
+            raise OctopusError(f"Octopus GraphQL returned a non-JSON reply (HTTP {r.status_code}).") from e
         # GraphQL answers HTTP 200 even on failure: errors live in the body
         if body.get("errors"):
             msg = body["errors"][0].get("message", "GraphQL error")
