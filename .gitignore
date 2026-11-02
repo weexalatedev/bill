@@ -35,3 +35,6 @@ dist-ssr
 # Build artifacts (TypeScript declaration/compiler outputs)
 tsconfig.tsbuildinfo
 !.env.example
+# Python bytecode / virtualenv caches
+__pycache__/
+*.pyc
