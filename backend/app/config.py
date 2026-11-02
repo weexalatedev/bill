@@ -1,6 +1,21 @@
 import os
 from dataclasses import dataclass
 from functools import lru_cache
+from pathlib import Path
+
+# The service can be started three ways: by `npm run dev:all` (which loads the
+# repo-root `.env` for it), by hand from `backend/`, or by a test runner. When
+# python-dotenv is installed, load `backend/.env` so a manual
+# `uvicorn app.main:app` picks up the same APP_API_TOKEN. A variable that is
+# already set always wins, so this never changes behaviour for CI, Docker or the
+# dev script (which exports the root `.env` itself).
+try:
+    from dotenv import load_dotenv
+except ModuleNotFoundError:  # pragma: no cover - optional dependency
+    load_dotenv = None
+
+if load_dotenv is not None:
+    load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 
 
 @dataclass(frozen=True)
