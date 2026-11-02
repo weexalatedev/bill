@@ -31,9 +31,9 @@ const assetIcon = (asset: string) => {
   return Zap;
 };
 
-const statusTone: Record<ActionStatus, 'muted' | 'muted' | 'solid'> = {
+const statusTone: Record<ActionStatus, 'muted' | 'outline' | 'solid'> = {
   Recommended: 'muted',
-  Approved: 'muted',
+  Approved: 'outline',
   Automated: 'solid',
 };
 

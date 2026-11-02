@@ -101,7 +101,7 @@ export default function RatePlanTab({ token, homeId, plan, octopusConnectionId, 
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Badge tone={source === 'octopus' ? 'muted' : 'muted'}>
+          <Badge tone={source === 'octopus' ? 'solid' : 'muted'}>
             {source === 'octopus' ? 'From Octopus' : 'Manual'}
           </Badge>
           {octopusConnectionId && (

@@ -37,7 +37,15 @@ const severityTone: Record<FindingSeverity, Tone> = {
   high: 'solid',
   medium: 'outline',
   low: 'muted',
-  info: 'muted',
+  info: 'ghost',
+};
+
+/** The severity glyph behind each finding — same ramp as the badge. */
+const severityChip: Record<FindingSeverity, string> = {
+  high: 'bg-ink-900 text-white',
+  medium: 'bg-white text-ink-900 ring-1 ring-inset ring-ink-900/20',
+  low: 'bg-neutral-100 text-neutral-700',
+  info: 'bg-transparent text-neutral-500 ring-1 ring-inset ring-neutral-200',
 };
 
 const field =
@@ -90,7 +98,7 @@ function toQuery(form: FormState): BillQuery {
 
 function scoreTone(score: number | undefined): Tone {
   if (score === undefined) return 'muted';
-  if (score >= 85) return 'solid';
+  if (score >= 85) return 'muted';
   if (score >= 60) return 'outline';
   return 'solid';
 }
@@ -381,7 +389,7 @@ return (
               : 'Run an analysis'
           }
           icon={<Scale className="h-5 w-5" />}
-          tone={analysis && analysis.recoverableGbp > 0 ? 'solid' : 'solid'}
+          tone={analysis && analysis.recoverableGbp > 0 ? 'solid' : 'muted'}
         />
         <StatCard
           label="Bill health score"
@@ -930,13 +938,7 @@ function FindingRow({ finding }: { finding: AnalysisFinding }) {
           <span
             className={cx(
               'grid h-7 w-7 shrink-0 place-items-center rounded-md',
-              finding.severity === 'high'
-                ? 'bg-neutral-100 text-neutral-600'
-                : finding.severity === 'medium'
-                  ? 'bg-neutral-100 text-neutral-600'
-                  : finding.severity === 'low'
-                    ? 'bg-neutral-100 text-neutral-600'
-                    : 'bg-neutral-100 text-neutral-600',
+              severityChip[finding.severity],
             )}
           >
             {finding.severity === 'info' ? (
@@ -952,7 +954,7 @@ function FindingRow({ finding }: { finding: AnalysisFinding }) {
             <span
               className={cx(
                 'text-sm font-semibold',
-                finding.impactGbp > 0 ? 'text-neutral-600' : 'text-neutral-600',
+                finding.impactGbp > 0 ? 'text-ink-900' : 'text-neutral-500',
               )}
             >
               {signedGbp(finding.impactGbp)}

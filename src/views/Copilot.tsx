@@ -203,8 +203,8 @@ export default function Copilot() {
               className={cx(
                 'hidden shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold ring-1 ring-inset sm:inline-flex',
                 online
-                  ? 'bg-neutral-50 text-neutral-700 ring-neutral-600/20'
-                  : 'bg-neutral-50 text-neutral-700 ring-neutral-600/20',
+                  ? 'bg-ink-900 text-white ring-ink-900'
+                  : 'bg-neutral-50 text-neutral-500 ring-neutral-300',
               )}
             >
               {online ? 'Live' : 'Offline'}

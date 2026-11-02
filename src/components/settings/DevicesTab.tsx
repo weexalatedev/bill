@@ -13,11 +13,11 @@ import { OctopusConnectModal, SolisConnectModal } from './ConnectDeviceModals';
 /** Providers this connector service does not cover yet — the app keeps them as before. */
 const OTHER_PROVIDERS = ['Axle', 'Daikin', 'myenergi Eddi', 'Ohme'];
 
-const pillTone: Record<DeviceStatusRow['status'], 'solid' | 'outline' | 'solid'> = {
+const pillTone: Record<DeviceStatusRow['status'], 'solid' | 'outline' | 'muted'> = {
   connected: 'solid',
-  reconnect_required: 'solid',
-  paused: 'outline',
-  error: 'solid',
+  reconnect_required: 'outline',
+  paused: 'muted',
+  error: 'outline',
 };
 
 const pillLabel: Record<DeviceStatusRow['status'], string> = {

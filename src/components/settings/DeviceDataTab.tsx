@@ -31,8 +31,8 @@ interface Props {
   devices: Device[];
 }
 
-const evidenceTone: Record<Evidence, 'muted' | 'outline' | 'muted'> = {
-  measured: 'muted',
+const evidenceTone: Record<Evidence, 'solid' | 'outline' | 'muted'> = {
+  measured: 'solid',
   estimated: 'outline',
   guess: 'muted',
 };
@@ -43,10 +43,10 @@ const evidenceLabel: Record<Evidence, string> = {
   guess: 'Possible cause',
 };
 
-const readinessTone: Record<Readiness['status'], 'solid' | 'outline' | 'solid'> = {
+const readinessTone: Record<Readiness['status'], 'solid' | 'outline' | 'muted'> = {
   ready: 'solid',
   limited: 'outline',
-  no_data: 'solid',
+  no_data: 'muted',
 };
 
 export default function DeviceDataTab({ token, devices }: Props) {
@@ -150,8 +150,8 @@ export default function DeviceDataTab({ token, devices }: Props) {
         <div
           className={`flex items-start gap-2 rounded-lg border px-3 py-2 text-sm ${
             error.paused
-              ? 'border-neutral-200 bg-neutral-50 text-neutral-800'
-              : 'border-neutral-200 bg-neutral-50 text-neutral-800'
+              ? 'border-ink-900/30 bg-white text-ink-900'
+              : 'border-neutral-300 bg-neutral-50 text-neutral-700'
           }`}
         >
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
@@ -272,7 +272,7 @@ export default function DeviceDataTab({ token, devices }: Props) {
               <div className="flex items-center gap-2">
                 <Badge tone="muted">{kwh(yesterday.totals.kwh)}</Badge>
                 <Badge tone="muted">{gbp2(yesterday.totals.cost_gbp)}</Badge>
-                <Badge tone={yesterday.totals.delta_kwh >= 0 ? 'solid' : 'solid'}>
+                <Badge tone={yesterday.totals.delta_kwh >= 0 ? 'solid' : 'muted'}>
                   {yesterday.totals.delta_pct >= 0 ? '+' : ''}
                   {yesterday.totals.delta_pct}% vs normal
                 </Badge>

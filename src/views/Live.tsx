@@ -55,9 +55,9 @@ const stampFmt = new Intl.DateTimeFormat('en-GB', {
   second: '2-digit',
 });
 
-const carbonTone: Record<string, 'solid' | 'muted' | 'outline' | 'solid' | 'muted'> = {
-  'very low': 'solid',
-  low: 'solid',
+const carbonTone: Record<string, 'muted' | 'outline' | 'solid'> = {
+  'very low': 'muted',
+  low: 'muted',
   moderate: 'outline',
   high: 'solid',
   'very high': 'solid',

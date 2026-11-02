@@ -17,7 +17,7 @@ import {
 import { gbp, num, signedGbp } from '../lib/format';
 
 const statusTone: Record<SiteStatus, Tone> = {
-  Optimal: 'solid',
+  Optimal: 'muted',
   Watch: 'outline',
   Anomaly: 'solid',
 };
@@ -278,8 +278,8 @@ export default function Sites() {
                     <dd
                       className={
                         saving >= 0
-                          ? 'mt-0.5 text-sm font-semibold text-neutral-600'
-                          : 'mt-0.5 text-sm font-semibold text-neutral-600'
+                          ? 'mt-0.5 text-sm font-semibold text-neutral-600 tabular-nums'
+                          : 'mt-0.5 text-sm font-semibold text-ink-900 tabular-nums'
                       }
                     >
                       {signedGbp(saving)}

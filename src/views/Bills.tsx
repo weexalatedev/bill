@@ -16,10 +16,10 @@ import { gbp, gbp2, kwh, num, pence, signedGbp } from '../lib/format';
 
 type Filter = 'All' | BillStatus;
 
-const statusTone: Record<BillStatus, 'solid' | 'solid' | 'muted'> = { Clean: 'solid', Flagged: 'solid', Recovered: 'muted' };
+const statusTone: Record<BillStatus, 'muted' | 'outline' | 'solid'> = { Clean: 'muted', Flagged: 'solid', Recovered: 'outline' };
 const severityDot: Record<FindingSeverity, string> = { high: 'bg-ink-900', medium: 'bg-neutral-500', low: 'bg-neutral-400', info: 'bg-neutral-300' };
 
-function scoreTone(score: number): Tone { if (score >= 85) return 'solid'; if (score >= 60) return 'outline'; return 'solid'; }
+function scoreTone(score: number): Tone { if (score >= 85) return 'muted'; if (score >= 60) return 'outline'; return 'solid'; }
 
 interface FormState { siteId: string; supplier: string; period: string; consumptionKwh: string; unitRateP: string; standingChargeP: string; }
 
