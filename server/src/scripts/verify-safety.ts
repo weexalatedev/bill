@@ -84,6 +84,7 @@ const analysis: BillAnalysis = {
   effectiveRateP: 31.36,
   region: { id: 'north-western-england', name: 'North Western England', estimated: false },
   capPeriod: { id: '2026-Q4', label: '1 Oct – 31 Dec 2026', averageUnitRateP: 26.32, electricityVatPct: 0 },
+  benchmark: null,
 };
 
 const bill: BillInput = {

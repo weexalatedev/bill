@@ -139,5 +139,68 @@ expect('recoverable value is positive and itemised', scored.recoverableGbp > 0, 
 expect('every finding carries evidence', scored.findings.every((f) => f.evidence.length > 0));
 expect('every finding carries a recommendation', scored.findings.every((f) => f.recommendation.length > 20));
 
+// ── Benchmark: the "you could save £X vs the UK median" number ─────────────────
+console.log('\nBenchmark vs the UK reference rate');
+
+// The acquisition story: 1,500 kWh at 34p + 65p/day over 31 days billed at £540,
+// against the GB average cap. The benchmark is the same usage priced at the
+// reference rate, so the saving is simply what was charged minus that.
+const overpriced = analyseBill({
+  consumptionKwh: 1_500,
+  unitRateP: 34,
+  standingChargeP: 65,
+  totalGbp: 540,
+  periodStart: '2026-10-01',
+  periodEnd: '2026-10-31',
+});
+expect('benchmark is always present', overpriced.benchmark !== null);
+expect(
+  'benchmark prices the same consumption at the reference rate',
+  overpriced.benchmark !== null &&
+    Math.abs(
+      (overpriced.benchmark.expectedTotalGbp ?? 0) -
+        (1_500 * overpriced.benchmark.unitRateP) / 100 -
+        (overpriced.benchmark.standingChargeP * overpriced.benchmark.periodDays) / 100,
+    ) < 0.02,
+);
+expect(
+  'an over-priced bill reports a positive saving',
+  (overpriced.benchmark?.savingGbp ?? 0) > 0,
+  `saving ${overpriced.benchmark?.savingGbp}`,
+);
+expect(
+  'the saving equals charged minus benchmark',
+  overpriced.benchmark !== null &&
+    Math.abs(
+      (overpriced.benchmark.savingGbp ?? 0) -
+        (540 - (overpriced.benchmark.expectedTotalGbp ?? 0)),
+    ) < 0.02,
+);
+
+// A bill priced exactly at the regional cap has nothing to save.
+const nwRegion = regionForPostcode('M1 1AA');
+expect('the North West cap region resolves for the benchmark test', nwRegion !== undefined);
+const atBenchmark = analyseBill(
+  {
+    consumptionKwh: 1_000,
+    unitRateP: nwRegion?.unitRateP ?? 0,
+    standingChargeP: nwRegion?.standingChargeP ?? 0,
+    periodStart: '2026-10-01',
+    periodEnd: '2026-10-30',
+  },
+  { region: 'north-western-england' } as Site,
+);
+expect(
+  'a bill priced exactly at the regional cap has nothing to save',
+  atBenchmark.benchmark !== null && Math.abs(atBenchmark.benchmark.savingGbp ?? 1) < 0.02,
+  `saving ${atBenchmark.benchmark?.savingGbp}`,
+);
+
+// Without consumption there is nothing to price, so the benchmark is honest.
+expect(
+  'no consumption means no benchmark total',
+  analyseBill({ totalGbp: 500 }).benchmark?.expectedTotalGbp === null,
+);
+
 console.log(`\n${checks - failures}/${checks} checks passed.\n`);
 process.exit(failures === 0 ? 0 : 1);

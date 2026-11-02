@@ -1,56 +1,64 @@
 'use client';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { SignIn } from '@clerk/clerk-react';
 import { ClerkGate } from '../../components/auth/ClerkStates';
 import AuthShell from './AuthShell';
+import DevSignInForm from '../../components/auth/DevSignIn';
+import { useAuth } from '../../lib/auth';
 import { clerkAppearance } from '../../lib/clerkAppearance';
 
 /**
- * /sign-in — Clerk's hosted sign-in, embedded in the EnerOS shell.
+ * /sign-in — reached from inside the acquisition flow ("create an account to save
+ * money"), not as the front door. Clerk handles its own sub-routes
+ * (forgot-password, reset-password) underneath this URL.
  *
  * `routing="path"` + `path="/sign-in"` means Clerk renders at a real URL and
- * handles its own sub-routes (forgot-password, reset-password) underneath this
- * one, so React Router only needs a single entry here.
+ * handles those sub-routes itself, so the app only needs this one entry.
  */
 export default function SignInPage() {
+  const { config } = useAuth();
+  const router = useRouter();
+
+  const footer = (
+    <>
+      New to EnerOS?{' '}
+      <Link
+        href="/sign-up"
+        className="font-semibold text-emerald-700 transition-colors hover:text-emerald-800 hover:underline"
+      >
+        Create an account
+      </Link>
+    </>
+  );
+
+  // Dev mode has no Clerk instance, so the demo login is rendered in its place.
+  if (config.authMode === 'dev') {
+    return (
+      <AuthShell
+        title="Welcome back"
+        subtitle="Demo mode — sign in with the demo account to open your console."
+        footer={footer}
+      >
+        <DevSignInForm onSuccess={() => router.replace('/onboarding')} />
+      </AuthShell>
+    );
+  }
+
   return (
     <AuthShell
       title="Welcome back"
       subtitle="Sign in to your energy console."
-      footer={
-        <>
-          New to EnerOS?{' '}
-          <Link
-            href="/sign-up"
-            className="font-semibold text-emerald-700 transition-colors hover:text-emerald-800 hover:underline"
-          >
-            Create an account
-          </Link>
-          <span className="mx-1.5 text-slate-300">·</span>
-          <Link
-            href="/check"
-            className="font-semibold text-emerald-700 transition-colors hover:text-emerald-800 hover:underline"
-          >
-            Check a bill free
-          </Link>
-          <span className="mx-1.5 text-slate-300">·</span>
-          <Link
-            href="/get-started"
-            className="font-semibold text-emerald-700 transition-colors hover:text-emerald-800 hover:underline"
-          >
-            Upload a bill
-          </Link>
-        </>
-      }
+      footer={footer}
     >
       <ClerkGate>
         <SignIn
           path="/sign-in"
           routing="path"
           appearance={clerkAppearance}
-          fallbackRedirectUrl="/welcome"
+          fallbackRedirectUrl="/onboarding"
           signUpUrl="/sign-up"
-          forceRedirectUrl="/welcome"
+          forceRedirectUrl="/onboarding"
         />
       </ClerkGate>
     </AuthShell>

@@ -121,6 +121,8 @@ publicRouter.post('/bill-check', (req, res) => {
       averageUnitRateP: capPeriod.averageUnitRateP,
       averageStandingChargeP: capPeriod.averageStandingChargeP,
     },
+    // The "what should this have cost?" number the acquisition flow quotes.
+    benchmark: analysis.benchmark,
     note:
       'This is a deterministic check against Ofgem reference rates and your own figures. It is not a final determination — a business contract may legitimately differ. Create an account to save it against a site.',
   });
@@ -153,7 +155,26 @@ publicRouter.post('/bill-check/file', upload.single('file'), async (req, res, ne
       res.status(400).json({ error: 'Upload a PDF or text file (max 12 MB).' });
       return;
     }
-    const result = await analyseDocument(req.file.buffer, undefined, req.file.mimetype);
+    // An optional postcode lets the benchmark use the site's own Ofgem region
+    // instead of the GB average — the same heuristic the manual form uses.
+    const postcode = typeof req.body?.postcode === 'string' ? req.body.postcode.trim() : '';
+    const region = postcode ? regionForPostcode(postcode) : undefined;
+    const site = {
+      id: 'public',
+      name: 'Your site',
+      city: '',
+      region: region?.id ?? '',
+      type: 'Restaurant',
+      annualSpend: 0,
+      monthActual: 0,
+      monthExpected: 0,
+      meterType: 'Smart',
+      status: 'Optimal',
+      postcode: postcode || undefined,
+      loads: [],
+      lastSynced: new Date().toISOString(),
+    } as unknown as Site;
+    const result = await analyseDocument(req.file.buffer, site, req.file.mimetype);
     res.status(result.ok ? 200 : 422).json(result);
   } catch (error) {
     next(error);

@@ -18,10 +18,11 @@ demonstrations.
 
 | Route | Purpose |
 | --- | --- |
-| `/sign-up` | Clerk `<SignUp>` embedded in the EnerOS shell |
-| `/sign-in` | Clerk `<SignIn>` embedded in the EnerOS shell |
-| `/welcome` | Post-sign-up onboarding (business name, site count, postcode) |
-| everything else | Gated by `AuthGate`; signed-out users redirect to `/sign-in` |
+| `/start` | The public acquisition flow — **ask for a bill → audit vs the UK reference rate → create an account**. The front door for signed-out visitors. |
+| `/sign-up`, `/sign-in` | Clerk `<SignUp>` / `<SignIn>` embedded in the EnerOS shell. Reached from *inside* the flow, and both land on `/onboarding`. In dev-auth mode (no Clerk keys) the demo sign-in form renders in their place, so the flow still works locally. |
+| `/onboarding` | Phase-wise, skippable post-signup setup: **site → more sites → devices → dashboard**. `/welcome` redirects here. |
+| `/check`, `/get-started` | Redirect into `/start`. |
+| everything else | Gated by `AuthGate`; signed-out users redirect to `/start`. |
 
 Clerk's hosted components render at real URLs (`routing="path"`), so
 `/sign-up/verify-email/:code`, forgot-password and reset-password all work and

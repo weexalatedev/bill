@@ -53,9 +53,9 @@ export default function Providers({ children }: { children: React.ReactNode }) {
         appearance={clerkAppearance}
         signInUrl="/sign-in"
         signUpUrl="/sign-up"
-        afterSignOutUrl="/sign-in"
-        signInFallbackRedirectUrl="/"
-        signUpFallbackRedirectUrl="/welcome"
+        afterSignOutUrl="/start"
+        signInFallbackRedirectUrl="/onboarding"
+        signUpFallbackRedirectUrl="/onboarding"
       >
         <ClerkAuthProvider config={config}>{app}</ClerkAuthProvider>
       </ClerkProvider>
