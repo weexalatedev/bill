@@ -1,27 +1,96 @@
 /**
  * Verifies the Settings screens' contract against a running stack.
  *
- * Start the two services first:
- *   cd backend && ENCRYPTION_KEY=... APP_API_TOKEN=... uvicorn app.main:app --port 8000
- *   cd server  && APP_API_TOKEN=... PYTHON_BACKEND_URL=http://127.0.0.1:8000 npm run dev:memory
+ * Start the whole stack first — one command, three labelled processes:
+ *   npm run dev:all          # web :3000 + Node API :4000 + Python connector :8000
  *
- * Then:
+ * If you prefer separate terminals:
+ *   npm run dev:backend      # uvicorn on 127.0.0.1:8000 (uses the root .env)
+ *   npm run dev:api          # Node API on :4000 (in-memory MongoDB)
+ *
+ * Then, in a second terminal:
  *   npm run verify:connector            # Settings-only checks (no provider calls)
  *   VERIFY_HOME_ID=demo VERIFY_CONNECTION_ID=<id> npm run verify:connector
  *                                       # also checks the 423 pause gate
  *
  * Everything goes through the Node proxy at /api/connector, using the same
- * client module the UI uses (src/lib/connector.ts).
+ * client module the UI uses (src/lib/connector.ts). The root `.env` is loaded
+ * here too, so APP_API_TOKEN matches the API and the Python backend.
  */
+import 'dotenv/config';
+import net from 'node:net';
+
 const BASE = process.env.NEXT_PUBLIC_CONNECTOR_API_URL ?? 'http://127.0.0.1:4000/api/connector';
 process.env.NEXT_PUBLIC_CONNECTOR_API_URL = BASE;
 
-const TOKEN = process.env.APP_API_TOKEN ?? 'dev-token-123';
+const TOKEN = process.env.APP_API_TOKEN ?? 'devtoken123';
 const HOME = process.env.VERIFY_HOME_ID ?? `verify-${Date.now().toString(36)}`;
 const CONNECTION = process.env.VERIFY_CONNECTION_ID ?? '';
 
 let checks = 0;
 let failures = 0;
+
+/** Resolve a configured URL, falling back when it is a path-only proxy value. */
+function endpoint(raw: string, fallback: string): URL {
+  try {
+    return new URL(raw);
+  } catch {
+    return new URL(fallback);
+  }
+}
+
+/** TCP probe: a missing service should give an instruction, not ECONNREFUSED. */
+function isListening(host: string, port: number): Promise<boolean> {
+  return new Promise((resolve) => {
+    const socket = net.connect({ host, port });
+    const finish = (listening: boolean) => {
+      socket.removeAllListeners();
+      socket.destroy();
+      resolve(listening);
+    };
+    socket.setTimeout(1500);
+    socket.once('connect', () => finish(true));
+    socket.once('timeout', () => finish(false));
+    socket.once('error', () => finish(false));
+  });
+}
+
+/**
+ * Fail fast and say exactly which command starts what. Without this the first
+ * request throws "Could not reach the device service", which hides the fact that
+ * the Node API (4000) or the Python backend (8000) was never started.
+ */
+async function preflight(): Promise<boolean> {
+  const apiUrl = endpoint(BASE, 'http://127.0.0.1:4000');
+  const pythonUrl = endpoint(
+    process.env.PYTHON_BACKEND_URL ?? 'http://127.0.0.1:8000',
+    'http://127.0.0.1:8000',
+  );
+
+  const targets = [
+    { label: 'Node API', url: apiUrl, alone: 'npm run dev:api' },
+    { label: 'Python connector service', url: pythonUrl, alone: 'npm run dev:backend' },
+  ];
+
+  const down: typeof targets = [];
+  for (const target of targets) {
+    const port = Number(target.url.port || (target.url.protocol === 'https:' ? 443 : 80));
+    if (!(await isListening(target.url.hostname, port))) down.push(target);
+  }
+  if (down.length === 0) return true;
+
+  console.error('\n✗ Cannot verify the connector: a service it needs is not running.\n');
+  for (const target of down) {
+    const port = target.url.port || (target.url.protocol === 'https:' ? '443' : '80');
+    console.error(`  • ${target.label} (${target.url.origin}) — nothing is listening on port ${port}.`);
+    console.error(`      start everything:  npm run dev:all`);
+    console.error(`      or this one only:  ${target.alone}`);
+    console.error('');
+  }
+  console.error('  First time here? Run `npm run setup` once, then keep `npm run dev:all`');
+  console.error('  running in its own terminal while this check runs.\n');
+  return false;
+}
 
 function check(name: string, ok: boolean, detail = ''): void {
   checks += 1;
@@ -34,6 +103,10 @@ function check(name: string, ok: boolean, detail = ''): void {
 }
 
 async function main(): Promise<void> {
+  if (!(await preflight())) {
+    process.exit(1);
+  }
+
   const { ConnectorApi, ConnectorError, devicePill, errorGuidance } = await import(
     '../src/lib/connector.ts'
   );
