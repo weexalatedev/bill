@@ -10,18 +10,18 @@ import { clerkAppearance } from '@/lib/clerkAppearance';
 
 function BootScreen({ error }: { error?: string | null }) {
   return (
-    <div className="grid min-h-screen place-items-center bg-slate-50 px-4">
+    <div className="grid min-h-screen place-items-center bg-neutral-50 px-4">
       <div className="flex flex-col items-center gap-3 text-center">
-        <div className="grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600 shadow-lg shadow-emerald-500/20">
-          <Zap className="h-5 w-5 text-ink-900" strokeWidth={2.5} />
+        <div className="grid h-11 w-11 place-items-center rounded-lg bg-ink-900">
+          <Zap className="h-5 w-5 text-white" strokeWidth={2.5} />
         </div>
         {error ? (
           <div className="max-w-sm">
-            <p className="text-sm font-semibold text-slate-800">Cannot reach the EnerOS API</p>
-            <p className="mt-1 text-xs text-slate-500">{error}</p>
+            <p className="text-sm font-semibold text-neutral-800">Cannot reach the EnerOS API</p>
+            <p className="mt-1 text-xs text-neutral-500">{error}</p>
           </div>
         ) : (
-          <p className="flex items-center gap-2 text-sm text-slate-500">
+          <p className="flex items-center gap-2 text-sm text-neutral-500">
             <Loader2 className="h-4 w-4 animate-spin" /> Connecting to EnerOS…
           </p>
         )}

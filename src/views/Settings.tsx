@@ -110,9 +110,9 @@ export default function Settings() {
   if (sites.length === 0) {
     return (
       <Card className="p-8 text-center">
-        <Gauge className="mx-auto h-6 w-6 text-slate-300" />
-        <p className="mt-3 text-sm font-semibold text-slate-800">Add a site first</p>
-        <p className="mt-1 text-sm text-slate-500">
+        <Gauge className="mx-auto h-6 w-6 text-neutral-300" />
+        <p className="mt-3 text-sm font-semibold text-neutral-800">Add a site first</p>
+        <p className="mt-1 text-sm text-neutral-500">
           Devices and settings belong to a site — that site id is the connector&apos;s home id.
         </p>
       </Card>
@@ -123,15 +123,15 @@ export default function Settings() {
     <div className="space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold tracking-tight text-slate-900">Settings</h1>
-          <p className="mt-1 text-sm text-slate-500">
+          <h1 className="text-xl font-semibold tracking-tight text-neutral-900">Settings</h1>
+          <p className="mt-1 text-sm text-neutral-500">
             Devices, tariffs, hardware and pause switches for the selected site. Everything here is
             stored by the connector service, not in this browser.
           </p>
         </div>
         <div className="flex items-end gap-2">
           <label className="block">
-            <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-neutral-500">
               Site
             </span>
             <select
@@ -150,7 +150,7 @@ export default function Settings() {
             type="button"
             onClick={() => void load()}
             disabled={loading}
-            className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-60"
+            className="inline-flex items-center gap-2 rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm font-semibold text-neutral-700 transition-colors hover:bg-neutral-50 disabled:opacity-60"
           >
             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
             Reload
@@ -165,10 +165,10 @@ export default function Settings() {
             type="button"
             onClick={() => goToTab(id)}
             className={cx(
-              'inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors',
+              'inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-semibold transition-colors',
               tab === id
-                ? 'bg-slate-900 text-white'
-                : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-50',
+                ? 'bg-neutral-900 text-white'
+                : 'border border-neutral-200 bg-white text-neutral-600 hover:bg-neutral-50',
             )}
           >
             <Icon className="h-4 w-4" />
@@ -177,7 +177,7 @@ export default function Settings() {
         ))}
         {settings && (
           <span className="ml-auto self-center">
-            <Badge tone={settings.pause.effective.sync_active ? 'emerald' : 'amber'}>
+            <Badge tone={settings.pause.effective.sync_active ? 'solid' : 'outline'}>
               {settings.pause.effective.sync_active ? 'Sync active' : 'Sync paused'}
             </Badge>
           </span>
@@ -185,14 +185,14 @@ export default function Settings() {
       </div>
 
       {error && (
-        <div className="flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800">
+        <div className="flex items-start gap-2 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm text-neutral-800">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
           <span>{error}</span>
         </div>
       )}
 
       {!settings && (loading || !error) ? (
-        <Card className="flex items-center gap-2 p-6 text-sm text-slate-500">
+        <Card className="flex items-center gap-2 p-6 text-sm text-neutral-500">
           <Loader2 className="h-4 w-4 animate-spin" /> Loading settings…
         </Card>
       ) : settings ? (

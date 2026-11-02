@@ -48,15 +48,15 @@ export default function SiteStep({
   return (
     <div className="space-y-4">
       {saving !== null && saving > 0.5 && (
-        <Card className="flex items-start gap-3 border-emerald-200 bg-emerald-50/70">
-          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-emerald-500/15 text-emerald-700">
+        <Card className="flex items-start gap-3 border-neutral-300 bg-neutral-50/70">
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-neutral-100 text-neutral-700">
             <Building2 className="h-4 w-4" />
           </span>
           <div>
-            <p className="text-sm font-semibold text-emerald-900">
+            <p className="text-sm font-semibold text-neutral-900">
               Your audit found {gbp(saving)} on that bill
             </p>
-            <p className="mt-0.5 text-xs text-emerald-800/90">
+            <p className="mt-0.5 text-xs text-neutral-800/90">
               Add the site below and we will keep checking it — every bill, every month.
             </p>
           </div>
@@ -74,26 +74,26 @@ export default function SiteStep({
             />
           </Field>
 
-          <div className="border-t border-slate-100 pt-5">
+          <div className="border-t border-neutral-100 pt-5">
             <SiteFields values={values} set={set} />
           </div>
 
           {touched && !values.name.trim() && (
-            <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs font-medium text-amber-800">
+            <p className="rounded-md bg-neutral-50 px-3 py-2 text-xs font-medium text-neutral-800">
               Give the site a name so we can file its bills and benchmarks against it.
             </p>
           )}
           {error && (
-            <p className="rounded-lg bg-rose-50 px-3 py-2 text-xs font-medium text-rose-700">
+            <p className="rounded-md bg-neutral-50 px-3 py-2 text-xs font-medium text-neutral-700">
               {error}
             </p>
           )}
 
-          <div className="flex flex-wrap items-center gap-3 border-t border-slate-100 pt-5">
+          <div className="flex flex-wrap items-center gap-3 border-t border-neutral-100 pt-5">
             <button
               type="submit"
               disabled={busy}
-              className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-emerald-700 disabled:opacity-60"
+              className="inline-flex items-center gap-2 rounded-md bg-neutral-900 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-neutral-800 disabled:opacity-60"
             >
               {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
               {busy ? 'Saving your site…' : 'Save and continue'}
@@ -101,7 +101,7 @@ export default function SiteStep({
             <button
               type="button"
               onClick={onSkip}
-              className="text-sm font-medium text-slate-400 transition-colors hover:text-slate-600"
+              className="text-sm font-medium text-neutral-400 transition-colors hover:text-neutral-600"
             >
               Skip for now
             </button>

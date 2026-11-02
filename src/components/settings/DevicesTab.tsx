@@ -13,11 +13,11 @@ import { OctopusConnectModal, SolisConnectModal } from './ConnectDeviceModals';
 /** Providers this connector service does not cover yet — the app keeps them as before. */
 const OTHER_PROVIDERS = ['Axle', 'Daikin', 'myenergi Eddi', 'Ohme'];
 
-const pillTone: Record<DeviceStatusRow['status'], 'emerald' | 'amber' | 'rose'> = {
-  connected: 'emerald',
-  reconnect_required: 'rose',
-  paused: 'amber',
-  error: 'rose',
+const pillTone: Record<DeviceStatusRow['status'], 'solid' | 'outline' | 'solid'> = {
+  connected: 'solid',
+  reconnect_required: 'solid',
+  paused: 'outline',
+  error: 'solid',
 };
 
 const pillLabel: Record<DeviceStatusRow['status'], string> = {
@@ -95,7 +95,7 @@ export default function DevicesTab({
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <SectionHeading title="Devices" />
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-neutral-500">
             Connect a provider once and every dashboard, audit and Copilot answer for this site can
             use its readings. Keys are encrypted by the connector service and never reach this
             browser.
@@ -105,7 +105,7 @@ export default function DevicesTab({
           type="button"
           onClick={() => void refresh()}
           disabled={refreshing}
-          className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-60"
+          className="inline-flex items-center gap-2 rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm font-semibold text-neutral-700 transition-colors hover:bg-neutral-50 disabled:opacity-60"
         >
           {refreshing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
           Refresh status
@@ -114,10 +114,10 @@ export default function DevicesTab({
 
       {banner && (
         <div
-          className={`flex items-start gap-2 rounded-xl border px-3 py-2 text-sm ${
+          className={`flex items-start gap-2 rounded-lg border px-3 py-2 text-sm ${
             banner.tone === 'ok'
-              ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
-              : 'border-rose-200 bg-rose-50 text-rose-800'
+              ? 'border-neutral-300 bg-neutral-50 text-neutral-800'
+              : 'border-neutral-200 bg-neutral-50 text-neutral-800'
           }`}
         >
           {banner.tone === 'ok' ? (
@@ -151,14 +151,14 @@ export default function DevicesTab({
       </div>
 
       <Card className="p-5">
-        <p className="text-sm font-semibold text-slate-800">Not covered by the connector yet</p>
-        <p className="mt-1 text-sm text-slate-500">
+        <p className="text-sm font-semibold text-neutral-800">Not covered by the connector yet</p>
+        <p className="mt-1 text-sm text-neutral-500">
           These keep their existing behaviour — the connector service only supplies Octopus and
           Solis.
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
           {OTHER_PROVIDERS.map((name) => (
-            <Badge key={name} tone="slate">
+            <Badge key={name} tone="muted">
               {name}
             </Badge>
           ))}
@@ -227,33 +227,33 @@ function ProviderCard({
     device && status
       ? { label: pillLabel[status.status], tone: pillTone[status.status] }
       : device
-        ? { label: 'Connected · press Refresh status', tone: 'slate' as const }
+        ? { label: 'Connected · press Refresh status', tone: 'muted' as const }
         : null;
 
   return (
     <Card className="flex flex-col gap-3 p-5">
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="grid h-10 w-10 place-items-center rounded-xl bg-emerald-500/10 text-emerald-600">
+          <div className="grid h-10 w-10 place-items-center rounded-lg bg-neutral-100 text-neutral-600">
             <PlugZap className="h-5 w-5" />
           </div>
           <div>
-            <p className="text-sm font-semibold text-slate-900">{title}</p>
-            <p className="text-xs text-slate-500">{subtitle}</p>
+            <p className="text-sm font-semibold text-neutral-900">{title}</p>
+            <p className="text-xs text-neutral-500">{subtitle}</p>
           </div>
         </div>
-        <Badge tone={pill ? pill.tone : 'slate'}>
+        <Badge tone={pill ? pill.tone : 'muted'}>
           {pill ? pill.label : 'Not connected · connect when ready'}
         </Badge>
       </div>
 
-      {device && status && <p className="text-sm text-slate-600">{status.message}</p>}
+      {device && status && <p className="text-sm text-neutral-600">{status.message}</p>}
 
       <div className="mt-auto flex flex-wrap gap-2">
         <button
           type="button"
           onClick={onConnect}
-          className="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-3.5 py-2 text-sm font-semibold text-white transition-colors hover:bg-slate-800"
+          className="inline-flex items-center gap-2 rounded-md bg-neutral-900 px-3.5 py-2 text-sm font-semibold text-white transition-colors hover:bg-neutral-800"
         >
           {device ? 'Reconnect' : 'Connect'}
         </button>
@@ -262,7 +262,7 @@ function ProviderCard({
             type="button"
             onClick={onRemove}
             disabled={removing}
-            className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3.5 py-2 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-50 disabled:opacity-60"
+            className="inline-flex items-center gap-2 rounded-md border border-neutral-200 px-3.5 py-2 text-sm font-semibold text-neutral-600 transition-colors hover:bg-neutral-50 disabled:opacity-60"
           >
             {removing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
             Remove

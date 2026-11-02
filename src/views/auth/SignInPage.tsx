@@ -25,7 +25,7 @@ export default function SignInPage() {
       New to EnerOS?{' '}
       <Link
         href="/sign-up"
-        className="font-semibold text-emerald-700 transition-colors hover:text-emerald-800 hover:underline"
+        className="font-semibold text-neutral-700 transition-colors hover:text-neutral-800 hover:underline"
       >
         Create an account
       </Link>

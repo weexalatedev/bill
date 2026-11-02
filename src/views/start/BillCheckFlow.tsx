@@ -132,7 +132,7 @@ export default function BillCheckFlow() {
       aside={
         <Link
           href="/sign-in"
-          className="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:text-slate-900"
+          className="rounded-md px-3 py-2 text-sm font-medium text-neutral-600 transition-colors hover:text-neutral-900"
         >
           Sign in
         </Link>
@@ -176,12 +176,12 @@ export default function BillCheckFlow() {
           footer={
             <Card className="bg-ink-900 text-white">
               <p className="flex items-center gap-2 text-sm font-semibold">
-                <PiggyBank className="h-4 w-4 text-emerald-400" />
+                <PiggyBank className="h-4 w-4 text-neutral-400" />
                 {canSave(audit)
                   ? `Save ${gbp(audit.benchmark?.savingGbp ?? 0)} — and every bill after it`
                   : 'Keep this working for you'}
               </p>
-              <p className="mt-1.5 max-w-2xl text-xs leading-relaxed text-slate-300">
+              <p className="mt-1.5 max-w-2xl text-xs leading-relaxed text-neutral-300">
                 EnerOS stores this audit against your site, re-checks every future bill against the
                 same UK reference rate, and verifies the money you recover — from £49 per site per
                 month.
@@ -190,14 +190,14 @@ export default function BillCheckFlow() {
                 <button
                   type="button"
                   onClick={() => setStep('account')}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-500 px-3.5 py-2 text-sm font-semibold text-ink-900 transition-colors hover:bg-emerald-400"
+                  className="inline-flex items-center gap-1.5 rounded-md bg-neutral-900 px-3.5 py-2 text-sm font-semibold text-white transition-colors hover:bg-neutral-800"
                 >
                   Create an account to save money <ArrowRight className="h-4 w-4" />
                 </button>
                 <button
                   type="button"
                   onClick={reset}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-white/20 px-3.5 py-2 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+                  className="inline-flex items-center gap-1.5 rounded-md border border-white/20 px-3.5 py-2 text-sm font-semibold text-white transition-colors hover:bg-white/10"
                 >
                   Check another bill
                 </button>
@@ -289,16 +289,16 @@ function IntroStep({ onUpload, onManual }: { onUpload: () => void; onManual: () 
         <button
           type="button"
           onClick={onUpload}
-          className="group flex flex-col rounded-2xl border-2 border-emerald-200 bg-white p-6 text-left shadow-sm transition-colors hover:border-emerald-400 hover:bg-emerald-50/40"
+          className="group flex flex-col rounded-xl border-2 border-neutral-300 bg-white p-6 text-left shadow-sm transition-colors hover:border-neutral-400 hover:bg-neutral-50/40"
         >
-          <span className="grid h-11 w-11 place-items-center rounded-xl bg-emerald-500/10 text-emerald-600">
+          <span className="grid h-11 w-11 place-items-center rounded-lg bg-neutral-100 text-neutral-600">
             <Upload className="h-5 w-5" />
           </span>
-          <span className="mt-4 text-base font-semibold text-slate-900">Upload your bill</span>
-          <span className="mt-1 text-sm leading-relaxed text-slate-500">
+          <span className="mt-4 text-base font-semibold text-neutral-900">Upload your bill</span>
+          <span className="mt-1 text-sm leading-relaxed text-neutral-500">
             A PDF or a photo — we read the figures for you, even from a scan.
           </span>
-          <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-emerald-700">
+          <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-neutral-700">
             Start with a file <ArrowRight className="h-4 w-4" />
           </span>
         </button>
@@ -306,26 +306,26 @@ function IntroStep({ onUpload, onManual }: { onUpload: () => void; onManual: () 
         <button
           type="button"
           onClick={onManual}
-          className="group flex flex-col rounded-2xl border border-slate-200 bg-white p-6 text-left shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50"
+          className="group flex flex-col rounded-xl border border-neutral-200 bg-white p-6 text-left shadow-sm transition-colors hover:border-neutral-300 hover:bg-neutral-50"
         >
-          <span className="grid h-11 w-11 place-items-center rounded-xl bg-slate-500/10 text-slate-600">
+          <span className="grid h-11 w-11 place-items-center rounded-lg bg-neutral-100 text-neutral-600">
             <Keyboard className="h-5 w-5" />
           </span>
-          <span className="mt-4 text-base font-semibold text-slate-900">Enter the figures</span>
-          <span className="mt-1 text-sm leading-relaxed text-slate-500">
+          <span className="mt-4 text-base font-semibold text-neutral-900">Enter the figures</span>
+          <span className="mt-1 text-sm leading-relaxed text-neutral-500">
             Type the numbers from your bill — quickest if you have it open in front of you.
           </span>
-          <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-slate-600">
+          <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-neutral-600">
             Type it in <ArrowRight className="h-4 w-4" />
           </span>
         </button>
       </div>
 
-      <Card className="flex items-start gap-3 bg-slate-50/70">
-        <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
+      <Card className="flex items-start gap-3 bg-neutral-50/70">
+        <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-neutral-600" />
         <div>
-          <p className="text-sm font-semibold text-slate-800">What we check</p>
-          <p className="mt-1 text-xs leading-relaxed text-slate-500">
+          <p className="text-sm font-semibold text-neutral-800">What we check</p>
+          <p className="mt-1 text-xs leading-relaxed text-neutral-500">
             Your unit rate and standing charge against the published Ofgem price cap for your
             region, the bill&apos;s own arithmetic, and the VAT treatment — then we tell you what the
             same usage would cost at the UK median rate.
@@ -340,16 +340,16 @@ function IntroStep({ onUpload, onManual }: { onUpload: () => void; onManual: () 
 function ReadingStep() {
   return (
     <Card className="flex flex-col items-center gap-4 py-14 text-center">
-      <span className="grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-600 shadow-lg shadow-emerald-500/20">
-        <Loader2 className="h-5 w-5 animate-spin text-ink-900" />
+      <span className="grid h-12 w-12 place-items-center rounded-xl bg-ink-900">
+        <Loader2 className="h-5 w-5 animate-spin text-white" />
       </span>
       <div>
-        <p className="text-sm font-semibold text-slate-800">Running the audit</p>
-        <p className="mt-1 text-xs text-slate-500">
+        <p className="text-sm font-semibold text-neutral-800">Running the audit</p>
+        <p className="mt-1 text-xs text-neutral-500">
           Reading the bill, benchmarking it against the Ofgem cap, and totalling what you could save.
         </p>
       </div>
-      <p className="flex items-center gap-1.5 text-[11px] text-slate-400">
+      <p className="flex items-center gap-1.5 text-[11px] text-neutral-400">
         <Zap className="h-3.5 w-3.5" /> Deterministic — the engine decides, nothing is guessed.
       </p>
     </Card>
@@ -363,15 +363,15 @@ function AccountStep({ audit, onBack }: { audit: AuditView; onBack: () => void }
   return (
     <div className="space-y-4">
       <Card className="bg-ink-900 text-white">
-        <span className="grid h-12 w-12 place-items-center rounded-2xl bg-emerald-500/15 text-emerald-400">
+        <span className="grid h-12 w-12 place-items-center rounded-xl bg-white/10 text-white">
           <PiggyBank className="h-6 w-6" />
         </span>
-        <h2 className="mt-4 text-2xl font-bold tracking-tight">
+        <h2 className="mt-4 text-2xl font-semibold tracking-tight">
           {canSaveMoney
             ? `Create an account to save ${gbp(saving ?? 0)}`
             : 'Create your free account'}
         </h2>
-        <p className="mt-2 max-w-xl text-sm leading-relaxed text-slate-300">
+        <p className="mt-2 max-w-xl text-sm leading-relaxed text-neutral-300">
           {canSaveMoney
             ? `Your bill is ${gbp(saving ?? 0)} above what the UK median rate says it should be. An account saves this audit to your site and keeps checking every bill that follows.`
             : 'An account saves this audit to your site and keeps checking every bill that follows.'}
@@ -379,13 +379,13 @@ function AccountStep({ audit, onBack }: { audit: AuditView; onBack: () => void }
         <div className="mt-5 flex flex-wrap gap-2">
           <Link
             href="/sign-up"
-            className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-ink-900 transition-colors hover:bg-emerald-400"
+            className="inline-flex items-center gap-1.5 rounded-md bg-neutral-900 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-neutral-800"
           >
             Create a free account <ArrowRight className="h-4 w-4" />
           </Link>
           <Link
             href="/sign-in"
-            className="inline-flex items-center gap-1.5 rounded-lg border border-white/20 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+            className="inline-flex items-center gap-1.5 rounded-md border border-white/20 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-white/10"
           >
             I already have an account
           </Link>
@@ -393,7 +393,7 @@ function AccountStep({ audit, onBack }: { audit: AuditView; onBack: () => void }
       </Card>
 
       <Card>
-        <p className="text-sm font-semibold text-slate-900">What happens next</p>
+        <p className="text-sm font-semibold text-neutral-900">What happens next</p>
         <ol className="mt-3 space-y-3">
           {[
             ['Tell us about your site', 'Name, postcode and a couple of details — 30 seconds.'],
@@ -401,12 +401,12 @@ function AccountStep({ audit, onBack }: { audit: AuditView; onBack: () => void }
             ['Connect your devices', 'Your energy provider and inverter, if you want live data.'],
           ].map(([title, detail], index) => (
             <li key={title} className="flex gap-3">
-              <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-emerald-500/10 text-xs font-bold text-emerald-700">
+              <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-neutral-100 text-xs font-semibold text-neutral-700">
                 {index + 1}
               </span>
               <span>
-                <span className="block text-sm font-semibold text-slate-800">{title}</span>
-                <span className="block text-xs text-slate-500">{detail}</span>
+                <span className="block text-sm font-semibold text-neutral-800">{title}</span>
+                <span className="block text-xs text-neutral-500">{detail}</span>
               </span>
             </li>
           ))}
@@ -414,7 +414,7 @@ function AccountStep({ audit, onBack }: { audit: AuditView; onBack: () => void }
         <button
           type="button"
           onClick={onBack}
-          className="mt-4 text-xs font-semibold text-slate-400 transition-colors hover:text-slate-600"
+          className="mt-4 text-xs font-semibold text-neutral-400 transition-colors hover:text-neutral-600"
         >
           ← Back to my audit
         </button>

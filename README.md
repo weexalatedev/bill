@@ -22,6 +22,29 @@ workspace — persisted in MongoDB, keyed by the authenticated user.
 > **£10,180 saved** — exactly the plan’s example. It lives in MongoDB (not the bundle) and is
 > written by `server/src/seed/seed.ts`.
 
+## Design language
+
+The interface is **monochrome** and set in the **system sans-serif** — no webfont request, so
+nothing flashes or falls back to Arial on a slow connection. There is no accent colour: emphasis
+is a ramp from black to near-white, and everything else is carried by weight, scale and hairline
+rules.
+
+| Token | Meaning |
+| --- | --- |
+| `solid` | ink fill, paper text — the loudest level (a headline figure, a high-severity finding) |
+| `outline` | paper fill with an ink hairline — assertive but quiet |
+| `muted` | grey fill, no border — secondary metadata |
+| `ghost` | no fill, grey hairline — the quietest |
+
+Semantic states map onto that ramp rather than onto hue: a *connected* device is `solid`, a
+*disconnected* one is `outline`, a paused one is `muted`. The same applies to bill severity,
+site status and plan emphasis.
+
+Two files hold the whole system — `src/index.css` (palette, type scale, radii) and
+`src/components/ui.tsx` (the tone ramp). Run **`npm run verify:theme`** after touching either: it
+renders every primitive and the two most style-sensitive screens and fails if a chromatic class
+or `font-mono` creeps back in.
+
 ## Feature overview (mapped to the plan)
 
 | Page | Plan module | What it does |
