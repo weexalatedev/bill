@@ -108,3 +108,18 @@ def test_pause_gates_solis(client):
     client.put("/v1/homes/sol-home/settings/pause", headers=H, json={"home_connections": False})
     assert client.get(f"/v1/solis/connections/{cid}/dashboard", headers=H).status_code == 423
     assert client.delete(f"/v1/solis/connections/{cid}", headers=H).status_code == 204
+
+
+def test_unreachable_soliscloud_is_502_not_500(client):
+    """SolisCloud being unreachable is a 502 with a readable message, not a 500 traceback."""
+    def offline(request: httpx.Request) -> httpx.Response:
+        raise httpx.ConnectError("connection refused", request=request)
+
+    solis._transport = httpx.MockTransport(offline)
+    try:
+        r = client.post("/v1/solis/connections", headers=H,
+                        json={"api_id": "goodid123", "api_secret": SECRET, "home_id": "off-home"})
+        assert r.status_code == 502, r.text
+        assert "reach SolisCloud" in r.json()["error"]
+    finally:
+        solis._transport = httpx.MockTransport(fake_solis)

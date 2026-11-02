@@ -239,3 +239,29 @@ def test_rates_to_periods_merges_and_splits():
              {"value_inc_vat": 9, "valid_from": "2026-06-09T23:00:00Z", "valid_to": "2026-06-10T04:30:00Z"}]
     out = rates_to_periods(rates, d0, d1, tz)
     assert [(p["start"], p["end"], p["p_per_kwh"]) for p in out] == [("00:00", "05:30", 9), ("05:30", "24:00", 30)]
+
+
+def offline(request: httpx.Request) -> httpx.Response:
+    """A provider that cannot be reached at all: DNS/TLS/connection failure."""
+    raise httpx.ConnectError("connection refused", request=request)
+
+
+def test_unreachable_provider_is_502_not_500(client):
+    """A network failure must surface as a provider error (502 / status 'error'), never a 500."""
+    r = client.post("/v1/connections", headers=H,
+                    json={"api_key": "sk_live_abcdefgh", "account_number": "a-1234abcd", "home_id": "net-home"})
+    assert r.status_code == 201, r.text
+    cid = r.json()["connection_id"]
+    octopus._transport = httpx.MockTransport(offline)
+    try:
+        ready = client.get(f"/v1/connections/{cid}/readiness", headers=H)
+        assert ready.status_code == 502, ready.text
+        assert "reach Octopus" in ready.json()["error"]
+
+        rows = client.post("/v1/homes/net-home/devices/refresh", headers=H)
+        assert rows.status_code == 200, rows.text
+        device = rows.json()[0]
+        assert device["status"] == "error"
+        assert "reach Octopus" in device["message"]
+    finally:
+        octopus._transport = httpx.MockTransport(mock_octopus)

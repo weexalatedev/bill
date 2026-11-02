@@ -1,15 +1,17 @@
-import 'dotenv/config';
 import { config as loadEnv } from 'dotenv';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 
-// `dotenv/config` above only loads `.env` from the process cwd. Load the
-// server's own `.env` explicitly as well, so the API picks up its keys however
-// it was started (from `server/`, from the repo root, or from a workspace task).
-// dotenv never overrides an already-set variable, so real environment variables
-// (Vercel, Docker, CI) always win over the file.
+// One `.env` at the repo root is the single source of truth shared with the
+// Next.js app and the Python connector (see the root `.env.example`), so
+// APP_API_TOKEN can never drift between the API and the connector.
+// `server/.env` is still honoured as a fallback for API-only runs, and a real
+// environment variable (Vercel, Docker, CI) always wins because dotenv never
+// overwrites an already-set variable.
 const here = dirname(fileURLToPath(import.meta.url));
+loadEnv({ path: resolve(here, '../../.env') });
 loadEnv({ path: resolve(here, '../.env') });
+loadEnv();
 
 const str = (value: string | undefined, fallback: string): string =>
   value && value.trim().length > 0 ? value.trim() : fallback;

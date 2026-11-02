@@ -22,9 +22,10 @@ dist-ssr
 *.sln
 *.sw?
 
-# Env
+# Env — local secrets. Only the committed `*.env.example` templates are tracked.
 .env
 .env.*
+!**/.env.example
 
 # Next.js build cache (turbopack SST files are binary and >100MB)
 .next
@@ -35,3 +36,11 @@ dist-ssr
 # Build artifacts (TypeScript declaration/compiler outputs)
 tsconfig.tsbuildinfo
 !.env.example
+# Python bytecode / virtualenv caches
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+# Local SQLite database written by the connector backend
+backend/eneros.db

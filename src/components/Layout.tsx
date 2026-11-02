@@ -12,6 +12,7 @@ import {
   Receipt,
   RefreshCw,
   ScanSearch,
+  Settings as SettingsIcon,
   Sparkles,
   Zap,
 } from 'lucide-react';
@@ -34,6 +35,7 @@ const NAV: NavItem[] = [
   { to: '/bills', label: 'Invoices', icon: Receipt, badge: 'issues' },
   { to: '/analysis', label: 'Smart Analysis', icon: ScanSearch },
   { to: '/sites', label: 'Sites', icon: Building2 },
+  { to: '/settings', label: 'Settings', icon: SettingsIcon },
 ];
 
 const PAGE_META: Record<string, { title: string; subtitle: string }> = {
@@ -52,6 +54,10 @@ const PAGE_META: Record<string, { title: string; subtitle: string }> = {
   '/sites': {
     title: 'Sites',
     subtitle: 'Add your sites — invoices are filed and benchmarked per site.',
+  },
+  '/settings': {
+    title: 'Settings',
+    subtitle: 'Devices, rate plan, hardware and pause switches — wired to the connector service.',
   },
 };
 

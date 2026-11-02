@@ -58,7 +58,13 @@ class SolisClient:
     def post(self, resource: str, body: dict) -> Any:
         raw = json.dumps(body, separators=(",", ":"))  # signed bytes must equal sent bytes
         headers = sign_headers(self._id, self._secret, resource, raw, datetime.now(timezone.utc))
-        r = self._http.post(BASE_URL + resource, content=raw.encode(), headers=headers)
+        try:
+            r = self._http.post(BASE_URL + resource, content=raw.encode(), headers=headers)
+        except httpx.HTTPError as e:
+            # Offline/DNS/TLS trouble is a provider failure (502), not a 500 from this service.
+            raise ProviderError(
+                "Couldn't reach SolisCloud: check this server's network and try again."
+            ) from e
         if r.status_code in (401, 403):
             raise ProviderAuthError("SolisCloud rejected the signature: check API ID/Secret, "
                                     "and that this server's clock is within 15 minutes of real time.")
@@ -66,7 +72,10 @@ class SolisClient:
             raise ProviderRateLimited("SolisCloud rate limit hit; retry shortly.")
         if r.status_code >= 400:
             raise ProviderError(f"SolisCloud returned HTTP {r.status_code}.")
-        env = r.json()  # envelope: {success, code, msg, data}
+        try:
+            env = r.json()  # envelope: {success, code, msg, data}
+        except ValueError as e:
+            raise ProviderError(f"SolisCloud returned a non-JSON reply (HTTP {r.status_code}).") from e
         if not env.get("success") or str(env.get("code")) not in ("0", "None"):
             raise ProviderError(f"SolisCloud error {env.get('code')}: {env.get('msg')}")
         return env.get("data")

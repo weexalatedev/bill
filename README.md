@@ -35,6 +35,7 @@ workspace — persisted in MongoDB, keyed by the authenticated user.
 | **Optimiser** | Module C & D | Recommended actions with schedule changes, model confidence and £ savings. **Recommend → Approve → Automate** control mode plus a per-action approve/automate flow. |
 | **Meter Data** | Layer 1 – Energy Data OS | Import half-hourly consumption (long `timestamp,kwh` or wide `date,p1..p48` CSV), idempotent, with a quality report. Deterministic analysis prices the period at the live rate and surfaces overnight base load, peak demand, anomalies and a baseline-vs-recent **verified saving**. |
 | **Sites** | Layer 1 – Energy Data OS | Portfolio of sites with controllable loads, meter type, spend, savings and status (Optimal / Watch / Anomaly). |
+| **Settings** | Layer 1 – Energy Data OS | **Devices, Rate Plan, Smart Control, Hardware and Pause Connections**, wired to the device-connector service in `backend/` (`docs/SETTINGS_WIRING.md`). Connect Octopus (`API key` + account number) or a Solis inverter once per site; pills show *Connected · live / reconnect required / Paused*. Rate plans auto-fill from Octopus, `effective.sync_active` drives the pause cards, `423` is shown as *Paused* and never retried, and the Live data tab renders readiness, the hourly profile and yesterday's findings with their measured / estimate / possible-cause labels. |
 | **Copilot** | Layer 2 – AI Energy Brain | A **grounded** chat assistant. The server computes the workspace numbers and the live market snapshot; Gemini narrates them (`POST /api/copilot/chat`). Falls back to deterministic answers and labels the source honestly when no key is set. The Copilot *explains*; the optimisation engine *decides*. |
 | **Live Market** | Layer 1 – Energy Data OS | **Real-time UK market data, no keys.** The live half-hourly Agile Octopus price curve for the site's own distribution region (A–P, mapped from its Ofgem cap region), the cheapest and peak windows of the day, a live flexibility shift calculator priced off the real curve, and GB grid carbon intensity. Sources: `server/src/lib/live/`. |
 
@@ -108,7 +109,54 @@ lucide-react-native, `@clerk/clerk-expo`.
 **Server** — Node + Express 4, MongoDB via Mongoose 8, Zod validation, `multer` multipart
 uploads, `@clerk/express` for session verification, `@aws-sdk/client-s3` for Cloudflare R2.
 
-## Getting started
+## Run locally on Windows (PowerShell)
+
+The web console, the Node API and the Python connector are **three processes**.
+`npm run dev:all` starts all three with labelled output (`[web]`, `[api]`, `[py]`),
+so the site stops showing `ECONNREFUSED` on port 4000 and
+`npm run verify:connector` can reach port 8000.
+
+Prerequisites: **Node.js 20.9+** (comes with npm) and **Python 3.10+**
+(`python --version`). No MongoDB install is needed for local development.
+
+Open PowerShell in the repository root (the folder containing `package.json`) and run,
+in this order:
+
+```powershell
+npm run setup            # npm install (root + server), backend/.venv + requirements, .env with a generated ENCRYPTION_KEY
+npm run dev:all          # web :3000  ·  Node API :4000  ·  Python connector :8000 (labelled output)
+```
+
+Leave that window running, open a **second** PowerShell window in the same folder, then:
+
+```powershell
+npm run verify:connector # Settings API checks through http://127.0.0.1:4000/api/connector
+```
+
+What you should see:
+
+- `npm run setup` — `✓ Setup complete.` after installing root/server dependencies,
+  creating `backend/.venv`, installing `backend/requirements.txt` and writing
+  `ENCRYPTION_KEY` into `.env`.
+- `npm run dev:all` — three labelled streams:
+  `[web]` Next.js on `http://localhost:3000`, `[api]` `EnerOS API (in-memory) on
+  http://localhost:4000`, `[py]` `Uvicorn running on http://127.0.0.1:8000`.
+- `npm run verify:connector` — a list of `PASS` lines ending in
+  `13/13 checks passed` (5 more pause-gate checks run when you set
+  `VERIFY_CONNECTION_ID`).
+
+Notes:
+
+- `npm run setup` is idempotent; re-running it keeps your `.env` and virtualenv.
+- All three services read the **one** `.env` at the repo root, so `APP_API_TOKEN`
+  never drifts. It is gitignored — edit `.env.example` for shareable defaults.
+- `npm run dev:all` runs the API with an in-memory MongoDB (`npm run dev:api`), so
+  data is recreated on each start and the first run downloads a MongoDB binary
+  once (~1–2 min). With a local `mongod`, use `npm run dev:api:mongo` instead.
+- Stop everything with `Ctrl+C` in the `dev:all` window.
+- Run one service on its own: `npm run dev:web`, `npm run dev:api`, or
+  `npm run dev:backend`.
+
 
 ### 1. Backend (required by both clients)
 
@@ -146,17 +194,19 @@ npm run build      # tsc --noEmit
 
 ### 2. Web app
 
+From the repository root (Next.js app, port 3000):
+
 ```bash
 npm install
-npm run dev        # http://localhost:5173
+npm run dev        # http://localhost:3000
 ```
 
 Other scripts:
 
 ```bash
-npm run build      # type-check (tsc --noEmit) then production build to dist/
-npm run preview    # preview the production build
-npm run typecheck  # type-check only
+npm run dev:all     # web :3000 + Node API :4000 + Python connector :8000
+npm run build       # production build
+npm run typecheck   # type-check only
 ```
 
 ### Deploying the web app and API to Vercel
