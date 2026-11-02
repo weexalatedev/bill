@@ -7,6 +7,7 @@ import { useAuth } from '../../lib/auth';
 import { useApp } from '../../store';
 import FlowShell, { type FlowStep } from '../../components/flow/FlowShell';
 import {
+  clearAuditSummary,
   markOnboardingSkipped,
   readAuditSummary,
   wasOnboardingSkipped,
@@ -131,6 +132,9 @@ export default function OnboardingFlow() {
   };
 
   const finish = () => {
+    // The audit recap has served its purpose — drop it so it cannot leak into a
+    // later session on a shared device.
+    clearAuditSummary();
     markOnboardingSkipped();
     router.replace('/');
   };
