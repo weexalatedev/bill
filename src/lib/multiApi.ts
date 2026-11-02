@@ -1,5 +1,18 @@
 // ── Runtime URLs (resolved at module init, after next/config rewrite) ──────
 
+import type {
+  CapRegion,
+  UploadedDocument,
+  WorkspaceData,
+} from './api';
+import type {
+  ControlMode,
+  Invoice,
+  MonthlyPoint,
+  OptimisationAction,
+  Site,
+} from '../types';
+
 /**
  * ENROS_URL: root of the Node/Express API on port 4000.
  * All /api/* calls from the browser flow through this proxy.
@@ -456,8 +469,12 @@ export const api = {
     }),
 
   priceCap: (postcode: string) =>
-    request<PriceCapRow[]>(
-      `/api/analysis/price-cap?postcode=${encodeURIComponent(postcode)}`,
+    request<{
+      region: Pick<CapRegion, 'id' | 'name' | 'unitRateP' | 'standingChargeP'> | null;
+      estimated?: boolean;
+      note?: string;
+    }>(
+      `/api/analysis/region?postcode=${encodeURIComponent(postcode)}`,
     ),
 
   getProfile: (token: string) =>
