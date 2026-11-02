@@ -109,7 +109,54 @@ lucide-react-native, `@clerk/clerk-expo`.
 **Server** — Node + Express 4, MongoDB via Mongoose 8, Zod validation, `multer` multipart
 uploads, `@clerk/express` for session verification, `@aws-sdk/client-s3` for Cloudflare R2.
 
-## Getting started
+## Run locally on Windows (PowerShell)
+
+The web console, the Node API and the Python connector are **three processes**.
+`npm run dev:all` starts all three with labelled output (`[web]`, `[api]`, `[py]`),
+so the site stops showing `ECONNREFUSED` on port 4000 and
+`npm run verify:connector` can reach port 8000.
+
+Prerequisites: **Node.js 20.9+** (comes with npm) and **Python 3.10+**
+(`python --version`). No MongoDB install is needed for local development.
+
+Open PowerShell in the repository root (the folder containing `package.json`) and run,
+in this order:
+
+```powershell
+npm run setup            # npm install (root + server), backend/.venv + requirements, .env with a generated ENCRYPTION_KEY
+npm run dev:all          # web :3000  ·  Node API :4000  ·  Python connector :8000 (labelled output)
+```
+
+Leave that window running, open a **second** PowerShell window in the same folder, then:
+
+```powershell
+npm run verify:connector # Settings API checks through http://127.0.0.1:4000/api/connector
+```
+
+What you should see:
+
+- `npm run setup` — `✓ Setup complete.` after installing root/server dependencies,
+  creating `backend/.venv`, installing `backend/requirements.txt` and writing
+  `ENCRYPTION_KEY` into `.env`.
+- `npm run dev:all` — three labelled streams:
+  `[web]` Next.js on `http://localhost:3000`, `[api]` `EnerOS API (in-memory) on
+  http://localhost:4000`, `[py]` `Uvicorn running on http://127.0.0.1:8000`.
+- `npm run verify:connector` — a list of `PASS` lines ending in
+  `13/13 checks passed` (5 more pause-gate checks run when you set
+  `VERIFY_CONNECTION_ID`).
+
+Notes:
+
+- `npm run setup` is idempotent; re-running it keeps your `.env` and virtualenv.
+- All three services read the **one** `.env` at the repo root, so `APP_API_TOKEN`
+  never drifts. It is gitignored — edit `.env.example` for shareable defaults.
+- `npm run dev:all` runs the API with an in-memory MongoDB (`npm run dev:api`), so
+  data is recreated on each start and the first run downloads a MongoDB binary
+  once (~1–2 min). With a local `mongod`, use `npm run dev:api:mongo` instead.
+- Stop everything with `Ctrl+C` in the `dev:all` window.
+- Run one service on its own: `npm run dev:web`, `npm run dev:api`, or
+  `npm run dev:backend`.
+
 
 ### 1. Backend (required by both clients)
 
