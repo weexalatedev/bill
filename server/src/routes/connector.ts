@@ -32,8 +32,6 @@ const target = pythonBackend.baseUrl.replace(/\/$/, '');
  * Never logs request bodies (they may contain API keys/secrets).
  */
 connectorRouter.all('*', async (req, res) => {
-  const path = (req.originalRoute ?? req.url.replace(/^\/api\/connector/, '')) || '/';
-  const url = `${target}${path}${req.url.includes('?') ? '' : ''}`;
   // Preserve query string (req.url already includes it after /api/connector)
   const fullUrl = `${target}${req.url.replace(/^\/api\/connector/, '')}`;
 

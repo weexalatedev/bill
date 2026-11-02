@@ -12,6 +12,7 @@ import {
 import { AlertTriangle, Gauge, PiggyBank, ShieldCheck, TrendingDown } from 'lucide-react';
 import { useApp } from '../store';
 import { Badge, Card, ProgressBar, SectionHeading, StatCard } from '../components/ui';
+import SetupChecklist from '../components/SetupChecklist';
 import { compactGbp, gbp, pct, share, signedGbp } from '../lib/format';
 
 function SpendTooltip({
@@ -83,6 +84,10 @@ export default function Dashboard() {
           Savings measured, not estimated
         </Badge>
       </div>
+
+      {(sites.length === 0 || invoices.length === 0) && (
+        <SetupChecklist siteCount={sites.length} invoiceCount={invoices.length} />
+      )}
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard

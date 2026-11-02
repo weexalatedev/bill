@@ -7,6 +7,7 @@ import type {
   AnalysisFinding,
   AssetSlice,
   BillAnalysis,
+  BillBenchmark,
   ControlMode,
   Invoice,
   MonthlyPoint,
@@ -131,6 +132,8 @@ export interface PublicBillCheck {
   expectedTotalGbp: number | null;
   region: { id: string; name: string; estimated: boolean } | null;
   capPeriod: { label: string; averageUnitRateP: number; averageStandingChargeP: number };
+  /** The same bill priced at the UK reference (Ofgem cap) rate. */
+  benchmark: BillBenchmark | null;
   note: string;
 }
 
@@ -198,7 +201,7 @@ export interface PortfolioRisk {
   capPeriod: string;
 }
 
-export type { AnalysisFinding, BillAnalysis, SiteRisk };
+export type { AnalysisFinding, BillAnalysis, BillBenchmark, SiteRisk };
 
 // ── Live UK energy data ────────────────────────────────────────────────────────
 
@@ -437,9 +440,10 @@ export const api = {
   },
 
   /** Public: upload a bill and get audit + advice, no account needed. */
-  publicBillCheckFile: (file: File) => {
+  publicBillCheckFile: (file: File, postcode?: string) => {
     const form = new FormData();
     form.append('file', file);
+    if (postcode) form.append('postcode', postcode);
     return request<IntakeResult>('/api/public/bill-check/file', {
       method: 'POST',
       formData: form,

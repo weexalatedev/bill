@@ -225,6 +225,35 @@ export interface PriorBill {
   isEstimate?: boolean;
 }
 
+/**
+ * The bill measured against the published UK reference rate — the "what should
+ * this have cost?" number behind the acquisition story ("you paid £500, the UK
+ * median says £400, so you could save £100").
+ *
+ * Money convention matches the rest of the engine: `savingGbp > 0` means the
+ * customer paid *more* than the benchmark, i.e. money they could recover.
+ */
+export interface BillBenchmark {
+  /** What the reference is: the Ofgem cap for the resolved region, or the GB average. */
+  label: string;
+  /** Reference unit rate, pence per kWh. */
+  unitRateP: number;
+  /** Reference standing charge, pence per day. */
+  standingChargeP: number;
+  /** Consumption the benchmark was priced on, kWh. */
+  consumptionKwh: number | null;
+  /** Days used for the standing charge. */
+  periodDays: number;
+  /** What this consumption would cost at the reference rate, GBP. */
+  expectedTotalGbp: number | null;
+  /** What the supplier actually charged for the same period, GBP. */
+  actualTotalGbp: number | null;
+  /** actual − expected. Positive = the customer could save this much. */
+  savingGbp: number | null;
+  /** `savingGbp` as a share of the actual total, %. */
+  savingPct: number | null;
+}
+
 export interface BillAnalysis {
   /** 0–100. 100 = nothing found. */
   score: number;
@@ -239,6 +268,8 @@ export interface BillAnalysis {
   effectiveRateP: number | null;
   region: { id: string; name: string; estimated: boolean } | null;
   capPeriod: { id: string; label: string; averageUnitRateP: number; electricityVatPct: number };
+  /** The same bill priced at the UK reference rate. Null when consumption is unknown. */
+  benchmark: BillBenchmark | null;
 }
 
 export interface SiteRisk {

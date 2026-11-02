@@ -22,6 +22,7 @@ import {
 import type {
   AnalysisFinding,
   BillAnalysis,
+  BillBenchmark,
   BillInput,
   FindingSeverity,
   PriorBill,
@@ -494,6 +495,48 @@ export function analyseBill(input: BillInput, site?: Site): BillAnalysis {
       ? round2((input.totalGbp * 100) / input.consumptionKwh)
       : null;
 
+  // The "what should this have cost?" benchmark: the same consumption priced at
+  // the published reference rate — the site's own Ofgem region when we know it,
+  // otherwise the GB average. This is the number the acquisition flow quotes as
+  // the median UK bill rate ("you paid £500, the UK median says £400").
+  const reference = resolved
+    ? {
+        label: `${resolved.region.name} Ofgem cap`,
+        unitRateP: unitRateFor(resolved.region, input.paymentMethod ?? 'direct-debit'),
+        standingChargeP: resolved.region.standingChargeP,
+      }
+    : {
+        label: 'GB average Ofgem cap',
+        unitRateP: capPeriod.averageUnitRateP,
+        standingChargeP: capPeriod.averageStandingChargeP,
+      };
+  const benchmarkExpectedGbp =
+    input.consumptionKwh !== undefined
+      ? round2(
+          (input.consumptionKwh * reference.unitRateP) / 100 +
+            (reference.standingChargeP * chargedDays) / 100,
+        )
+      : null;
+  const actualTotalGbp = input.totalGbp ?? expectedTotalGbp;
+  const benchmarkSavingGbp =
+    benchmarkExpectedGbp !== null && actualTotalGbp !== null
+      ? round2(actualTotalGbp - benchmarkExpectedGbp)
+      : null;
+  const benchmark: BillBenchmark = {
+    label: reference.label,
+    unitRateP: reference.unitRateP,
+    standingChargeP: reference.standingChargeP,
+    consumptionKwh: input.consumptionKwh ?? null,
+    periodDays: chargedDays,
+    expectedTotalGbp: benchmarkExpectedGbp,
+    actualTotalGbp: actualTotalGbp ?? null,
+    savingGbp: benchmarkSavingGbp,
+    savingPct:
+      benchmarkSavingGbp !== null && actualTotalGbp
+        ? round2((benchmarkSavingGbp / actualTotalGbp) * 100)
+        : null,
+  };
+
   const penalty = findings.reduce((sum, f) => sum + SEVERITY_PENALTY[f.severity], 0);
   return {
     score: Math.max(0, 100 - penalty),
@@ -515,6 +558,7 @@ export function analyseBill(input: BillInput, site?: Site): BillAnalysis {
       averageUnitRateP: capPeriod.averageUnitRateP,
       electricityVatPct: capPeriod.electricityVatPct,
     },
+    benchmark,
   };
 }
 

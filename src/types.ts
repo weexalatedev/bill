@@ -183,6 +183,35 @@ export interface BillAnalysis {
     averageUnitRateP: number;
     electricityVatPct: number;
   };
+  /** The same bill priced at the UK reference (Ofgem cap) rate. */
+  benchmark: BillBenchmark | null;
+}
+
+/**
+ * The bill measured against the published UK reference rate — the number behind
+ * "you paid £500, the UK median says £400, so you could save £100".
+ *
+ * `savingGbp > 0` means the customer paid more than the benchmark.
+ */
+export interface BillBenchmark {
+  /** What the reference is: the site's regional Ofgem cap, or the GB average. */
+  label: string;
+  /** Reference unit rate, pence per kWh. */
+  unitRateP: number;
+  /** Reference standing charge, pence per day. */
+  standingChargeP: number;
+  /** Consumption the benchmark was priced on, kWh. */
+  consumptionKwh: number | null;
+  /** Days used for the standing charge. */
+  periodDays: number;
+  /** What this consumption would cost at the reference rate, GBP. */
+  expectedTotalGbp: number | null;
+  /** What the supplier actually charged for the same period, GBP. */
+  actualTotalGbp: number | null;
+  /** actual − expected. Positive = the customer could save this much. */
+  savingGbp: number | null;
+  /** `savingGbp` as a share of the actual total, %. */
+  savingPct: number | null;
 }
 
 export interface SiteRisk {
