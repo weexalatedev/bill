@@ -4,7 +4,7 @@ import { api } from '../../lib/api';
 import BrandPanel from './BrandPanel';
 
 /**
- * Split-screen shell shared by /sign-in, /sign-up and /welcome.
+ * Split-screen shell shared by the auth routes.
  *
  * The left panel carries the pitch and — deliberately — live numbers: the
  * current Ofgem cap rate, pulled from `/api/analysis/price-cap`, so a prospect
@@ -51,19 +51,19 @@ export default function AuthShell({
       <main className="flex flex-col justify-center px-5 py-10 sm:px-8 lg:px-14">
         <div className="mx-auto w-full max-w-md animate-fade-in">
           <div className="mb-7">
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900">{title}</h1>
-            <p className="mt-1.5 text-sm text-slate-500">{subtitle}</p>
+            <h1 className="text-2xl font-semibold tracking-tight text-neutral-900">{title}</h1>
+            <p className="mt-1.5 text-sm text-neutral-500">{subtitle}</p>
           </div>
 
           {children}
 
           {footer && (
-            <div className="mt-6 border-t border-slate-100 pt-6 text-center text-sm text-slate-500">
+            <div className="mt-6 border-t border-neutral-200 pt-6 text-center text-sm text-neutral-500">
               {footer}
             </div>
           )}
 
-          <p className="mt-8 text-center text-[11px] leading-relaxed text-slate-400">
+          <p className="mt-8 text-center text-[11px] leading-relaxed text-neutral-400">
             By continuing you agree to EnerOS processing your billing data to produce energy
             analysis. We never sell it, and we never share it with your supplier.
           </p>

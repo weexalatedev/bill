@@ -17,9 +17,9 @@ import {
 import { gbp, num, signedGbp } from '../lib/format';
 
 const statusTone: Record<SiteStatus, Tone> = {
-  Optimal: 'emerald',
-  Watch: 'amber',
-  Anomaly: 'rose',
+  Optimal: 'muted',
+  Watch: 'outline',
+  Anomaly: 'solid',
 };
 
 const SITE_TYPES: SiteType[] = [
@@ -181,11 +181,11 @@ export default function Sites() {
           subtitle="Every site gets a continuously updated digital energy model."
           action={
             <div className="flex items-center gap-2">
-              <Badge tone="emerald">Saved this month {signedGbp(metrics.savings)}</Badge>
+              <Badge tone="solid">Saved this month {signedGbp(metrics.savings)}</Badge>
               <button
                 type="button"
                 onClick={() => setFormOpen(true)}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-slate-800"
+                className="inline-flex items-center gap-1.5 rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-neutral-800"
               >
                 <Plus className="h-4 w-4" />
                 Add site
@@ -194,14 +194,14 @@ export default function Sites() {
           }
         />
         <div className="mb-4 flex flex-wrap items-center gap-2">
-          <div className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-1.5">
-            <Search className="h-4 w-4 text-slate-400" />
+          <div className="flex items-center gap-2 rounded-md border border-neutral-200 px-3 py-1.5">
+            <Search className="h-4 w-4 text-neutral-400" />
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search sites…"
               aria-label="Search sites"
-              className="w-44 bg-transparent text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none"
+              className="w-44 bg-transparent text-sm text-neutral-700 placeholder:text-neutral-400 focus:outline-none"
             />
           </div>
           <select
@@ -236,12 +236,12 @@ export default function Sites() {
                 setStatus('All');
                 setType('All');
               }}
-              className="rounded-lg px-2.5 py-1.5 text-sm font-medium text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700"
+              className="rounded-md px-2.5 py-1.5 text-sm font-medium text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-700"
             >
               Clear
             </button>
           )}
-          <span className="ml-auto text-xs text-slate-400">
+          <span className="ml-auto text-xs text-neutral-400">
             Showing {num(visible.length)} of {num(sites.length)}
           </span>
         </div>
@@ -252,42 +252,42 @@ export default function Sites() {
             return (
               <div
                 key={site.id}
-                className="group flex flex-col rounded-xl border border-slate-200 bg-white p-5 transition-colors hover:border-slate-300"
+                className="group flex flex-col rounded-lg border border-neutral-200 bg-white p-5 transition-colors hover:border-neutral-300"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="truncate text-base font-semibold text-slate-900">{site.name}</p>
-                    <p className="mt-1 text-sm text-slate-500">
+                    <p className="truncate text-base font-semibold text-neutral-900">{site.name}</p>
+                    <p className="mt-1 text-sm text-neutral-500">
                       {[site.city, site.region].filter(Boolean).join(', ') || 'Location not set'}
                     </p>
                   </div>
                   <Badge tone={statusTone[site.status]}>{site.status}</Badge>
                 </div>
 
-                <dl className="mt-4 grid grid-cols-3 gap-3 border-y border-slate-100 py-3">
+                <dl className="mt-4 grid grid-cols-3 gap-3 border-y border-neutral-100 py-3">
                   <div>
-                    <dt className="text-[11px] uppercase tracking-wide text-slate-400">
+                    <dt className="text-[11px] uppercase tracking-wide text-neutral-400">
                       This month
                     </dt>
-                    <dd className="mt-0.5 text-sm font-bold text-slate-900">
+                    <dd className="mt-0.5 text-sm font-semibold text-neutral-900">
                       {gbp(site.monthActual)}
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-[11px] uppercase tracking-wide text-slate-400">Saved</dt>
+                    <dt className="text-[11px] uppercase tracking-wide text-neutral-400">Saved</dt>
                     <dd
                       className={
                         saving >= 0
-                          ? 'mt-0.5 text-sm font-bold text-emerald-600'
-                          : 'mt-0.5 text-sm font-bold text-rose-600'
+                          ? 'mt-0.5 text-sm font-semibold text-neutral-600 tabular-nums'
+                          : 'mt-0.5 text-sm font-semibold text-ink-900 tabular-nums'
                       }
                     >
                       {signedGbp(saving)}
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-[11px] uppercase tracking-wide text-slate-400">Annual</dt>
-                    <dd className="mt-0.5 text-sm font-bold text-slate-900">
+                    <dt className="text-[11px] uppercase tracking-wide text-neutral-400">Annual</dt>
+                    <dd className="mt-0.5 text-sm font-semibold text-neutral-900">
                       {gbp(site.annualSpend)}
                     </dd>
                   </div>
@@ -295,12 +295,12 @@ export default function Sites() {
 
                 <div className="mt-3 flex min-h-[1.75rem] flex-wrap content-start gap-1.5">
                   {site.loads.length === 0 ? (
-                    <span className="text-xs text-slate-400">No controllable loads recorded</span>
+                    <span className="text-xs text-neutral-400">No controllable loads recorded</span>
                   ) : (
                     site.loads.map((load) => (
                       <span
                         key={load}
-                        className="rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600"
+                        className="rounded-md bg-neutral-100 px-2 py-0.5 text-[11px] font-medium text-neutral-600"
                       >
                         {load}
                       </span>
@@ -309,7 +309,7 @@ export default function Sites() {
                 </div>
 
                 <div className="mt-auto flex items-center justify-between gap-2 pt-4">
-                  <div className="min-w-0 text-xs text-slate-400">
+                  <div className="min-w-0 text-xs text-neutral-400">
                     <p className="truncate">
                       {site.type} · {site.meterType} meter
                     </p>
@@ -319,7 +319,7 @@ export default function Sites() {
                     type="button"
                     onClick={() => setPendingDelete(site)}
                     aria-label={`Remove ${site.name}`}
-                    className="shrink-0 rounded-lg p-1.5 text-slate-300 opacity-0 transition hover:bg-rose-50 hover:text-rose-600 focus:opacity-100 group-hover:opacity-100"
+                    className="shrink-0 rounded-md p-1.5 text-neutral-300 opacity-0 transition hover:bg-neutral-50 hover:text-neutral-600 focus:opacity-100 group-hover:opacity-100"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
@@ -329,7 +329,7 @@ export default function Sites() {
           })}
         </div>
         {visible.length === 0 && (
-          <p className="py-12 text-center text-sm text-slate-500">
+          <p className="py-12 text-center text-sm text-neutral-500">
             No sites match your filters.
           </p>
         )}
@@ -364,21 +364,21 @@ export default function Sites() {
             <button
               type="button"
               onClick={() => setPendingDelete(null)}
-              className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50"
+              className="rounded-md border border-neutral-200 bg-white px-4 py-2 text-sm font-semibold text-neutral-700 transition-colors hover:bg-neutral-50"
             >
               Cancel
             </button>
             <button
               type="button"
               onClick={() => void confirmDelete()}
-              className="rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-rose-700"
+              className="rounded-md bg-neutral-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-neutral-700"
             >
               Remove site
             </button>
           </>
         }
       >
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-neutral-600">
           This cannot be undone. The site is removed from the portfolio along with its invoices and
           optimisation actions.
         </p>
@@ -426,7 +426,7 @@ function AddSiteModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50"
+            className="rounded-md border border-neutral-200 bg-white px-4 py-2 text-sm font-semibold text-neutral-700 transition-colors hover:bg-neutral-50"
           >
             Cancel
           </button>
@@ -434,7 +434,7 @@ function AddSiteModal({
             type="submit"
             form="add-site-form"
             disabled={saving}
-            className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-700 disabled:opacity-60"
+            className="inline-flex items-center gap-2 rounded-md bg-neutral-900 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-neutral-800 disabled:opacity-60"
           >
             {saving && <Loader2 className="h-4 w-4 animate-spin" />}
             {saving ? 'Adding…' : 'Add site'}
@@ -444,7 +444,7 @@ function AddSiteModal({
     >
       <form id="add-site-form" onSubmit={onSubmit} className="space-y-4">
         {saveError && (
-          <p className="rounded-lg bg-rose-50 px-3 py-2 text-sm font-medium text-rose-700">
+          <p className="rounded-md bg-neutral-50 px-3 py-2 text-sm font-medium text-neutral-700">
             {saveError}
           </p>
         )}

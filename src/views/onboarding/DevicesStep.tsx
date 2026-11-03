@@ -70,13 +70,13 @@ export default function DevicesStep({
     return (
       <div className="space-y-4">
         <Card className="flex items-start gap-3">
-          <PlugZap className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
+          <PlugZap className="mt-0.5 h-4 w-4 shrink-0 text-neutral-400" />
           <div>
-            <p className="text-sm font-semibold text-slate-800">Add a site first</p>
-            <p className="mt-1 text-xs leading-relaxed text-slate-500">
+            <p className="text-sm font-semibold text-neutral-800">Add a site first</p>
+            <p className="mt-1 text-xs leading-relaxed text-neutral-500">
               Devices are attached to a site — that site id is the connector&apos;s home. Add one from
               the{' '}
-              <Link href="/sites" className="font-semibold text-emerald-700 underline underline-offset-2">
+              <Link href="/sites" className="font-semibold text-neutral-700 underline underline-offset-2">
                 Sites page
               </Link>{' '}
               and connect devices from Settings when you are ready.
@@ -87,14 +87,14 @@ export default function DevicesStep({
           <button
             type="button"
             onClick={onContinue}
-            className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-emerald-700"
+            className="inline-flex items-center gap-2 rounded-md bg-neutral-900 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-neutral-800"
           >
             Continue <ArrowRight className="h-4 w-4" />
           </button>
           <button
             type="button"
             onClick={onSkip}
-            className="text-sm font-medium text-slate-400 transition-colors hover:text-slate-600"
+            className="text-sm font-medium text-neutral-400 transition-colors hover:text-neutral-600"
           >
             Skip for now
           </button>
@@ -106,14 +106,14 @@ export default function DevicesStep({
   return (
     <div className="space-y-4">
       {banner && (
-        <div className="flex items-start gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-sm text-emerald-800">
+        <div className="flex items-start gap-2 rounded-lg border border-neutral-300 bg-neutral-50 px-3 py-2.5 text-sm text-neutral-800">
           <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
           <span>{banner}</span>
         </div>
       )}
 
       {error && (
-        <div className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-sm text-amber-800">
+        <div className="flex items-start gap-2 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm text-neutral-800">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
           <span>
             {error} You can connect devices any time from{' '}
@@ -147,9 +147,9 @@ export default function DevicesStep({
         />
       </div>
 
-      <Card className="flex items-start gap-3 bg-slate-50/70">
-        <Zap className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
-        <p className="text-xs leading-relaxed text-slate-500">
+      <Card className="flex items-start gap-3 bg-neutral-50/70">
+        <Zap className="mt-0.5 h-4 w-4 shrink-0 text-neutral-400" />
+        <p className="text-xs leading-relaxed text-neutral-500">
           Keys are encrypted by the connector service and never reach this browser. More providers —
           gas, EV chargers, batteries — are on the way.
         </p>
@@ -159,7 +159,7 @@ export default function DevicesStep({
         <button
           type="button"
           onClick={onContinue}
-          className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-emerald-700"
+          className="inline-flex items-center gap-2 rounded-md bg-neutral-900 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-neutral-800"
         >
           {connected > 0 ? 'Continue' : 'Continue without devices'}
           <ArrowRight className="h-4 w-4" />
@@ -167,7 +167,7 @@ export default function DevicesStep({
         <button
           type="button"
           onClick={onSkip}
-          className="text-sm font-medium text-slate-400 transition-colors hover:text-slate-600"
+          className="text-sm font-medium text-neutral-400 transition-colors hover:text-neutral-600"
         >
           Skip for now
         </button>
@@ -225,24 +225,24 @@ function DeviceCard({
     <Card className="flex flex-col gap-3 p-5">
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
-          <span className="grid h-10 w-10 place-items-center rounded-xl bg-emerald-500/10 text-emerald-600">
+          <span className="grid h-10 w-10 place-items-center rounded-lg bg-neutral-100 text-neutral-600">
             <PlugZap className="h-5 w-5" />
           </span>
           <div>
-            <p className="text-xs uppercase tracking-wide text-slate-400">{title}</p>
-            <p className="text-sm font-semibold text-slate-900">{product}</p>
+            <p className="text-xs uppercase tracking-wide text-neutral-400">{title}</p>
+            <p className="text-sm font-semibold text-neutral-900">{product}</p>
           </div>
         </div>
-        <Badge tone={connected ? 'emerald' : 'slate'}>
+        <Badge tone={connected ? 'solid' : 'muted'}>
           {connected ? 'Connected' : 'Not connected'}
         </Badge>
       </div>
-      <p className="text-sm text-slate-500">{detail}</p>
+      <p className="text-sm text-neutral-500">{detail}</p>
       <button
         type="button"
         onClick={onConnect}
         disabled={busy}
-        className="mt-auto inline-flex items-center justify-center gap-2 rounded-lg bg-slate-900 px-3.5 py-2 text-sm font-semibold text-white transition-colors hover:bg-slate-800 disabled:opacity-60"
+        className="mt-auto inline-flex items-center justify-center gap-2 rounded-md bg-neutral-900 px-3.5 py-2 text-sm font-semibold text-white transition-colors hover:bg-neutral-800 disabled:opacity-60"
       >
         {busy && <Loader2 className="h-4 w-4 animate-spin" />}
         {connected ? 'Reconnect' : 'Connect'}

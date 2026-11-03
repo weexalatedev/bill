@@ -10,10 +10,10 @@ import {
   Info,
   Loader2,
   MapPin,
+  Quote,
   Receipt,
   Scale,
   ShieldCheck,
-  Sparkles,
   Thermometer,
 } from 'lucide-react';
 import { useApp } from '../store';
@@ -34,15 +34,23 @@ import { gbp, gbp2, pct, pence, signedGbp } from '../lib/format';
 import { cx } from '../lib/cx';
 
 const severityTone: Record<FindingSeverity, Tone> = {
-  high: 'rose',
-  medium: 'amber',
-  low: 'sky',
-  info: 'slate',
+  high: 'solid',
+  medium: 'outline',
+  low: 'muted',
+  info: 'ghost',
+};
+
+/** The severity glyph behind each finding — same ramp as the badge. */
+const severityChip: Record<FindingSeverity, string> = {
+  high: 'bg-ink-900 text-white',
+  medium: 'bg-white text-ink-900 ring-1 ring-inset ring-ink-900/20',
+  low: 'bg-neutral-100 text-neutral-700',
+  info: 'bg-transparent text-neutral-500 ring-1 ring-inset ring-neutral-200',
 };
 
 const field =
-  'w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20';
-const labelCls = 'mb-1 block text-xs font-medium text-slate-500';
+  'w-full rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-800 focus:border-neutral-900 focus:outline-none focus:ring-2 focus:ring-neutral-900/12';
+const labelCls = 'mb-1 block text-xs font-medium text-neutral-500';
 
 interface FormState {
   supplier: string;
@@ -89,10 +97,10 @@ function toQuery(form: FormState): BillQuery {
 }
 
 function scoreTone(score: number | undefined): Tone {
-  if (score === undefined) return 'slate';
-  if (score >= 85) return 'emerald';
-  if (score >= 60) return 'amber';
-  return 'rose';
+  if (score === undefined) return 'muted';
+  if (score >= 85) return 'muted';
+  if (score >= 60) return 'outline';
+  return 'solid';
 }
 
 /** Indicative annual cost for a region at a given usage — makes rate gaps concrete. */
@@ -103,11 +111,11 @@ function annualCostAt(region: CapRegion, annualKwh: number): string {
 function Fact({ label, value, icon }: { label: string; value: string; icon?: React.ReactNode }) {
   return (
     <div>
-      <dt className="flex items-center gap-1.5 text-xs text-slate-500">
+      <dt className="flex items-center gap-1.5 text-xs text-neutral-500">
         {icon}
         {label}
       </dt>
-      <dd className="mt-0.5 text-sm font-semibold text-slate-900">{value}</dd>
+      <dd className="mt-0.5 text-sm font-semibold text-neutral-900">{value}</dd>
     </div>
   );
 }
@@ -381,7 +389,7 @@ return (
               : 'Run an analysis'
           }
           icon={<Scale className="h-5 w-5" />}
-          tone={analysis && analysis.recoverableGbp > 0 ? 'rose' : 'emerald'}
+          tone={analysis && analysis.recoverableGbp > 0 ? 'solid' : 'muted'}
         />
         <StatCard
           label="Bill health score"
@@ -395,7 +403,7 @@ return (
           value={analysis?.effectiveRateP ? pence(analysis.effectiveRateP, 2) : '—'}
           sub={cap ? `GB average ${pence(cap.period.averageUnitRateP, 2)}` : 'All-in cost per kWh'}
           icon={<Receipt className="h-5 w-5" />}
-          tone="sky"
+          tone="muted"
         />
         <StatCard
           label="Regional cap"
@@ -404,7 +412,7 @@ return (
           }
           sub={cap?.period.label}
           icon={<ShieldCheck className="h-5 w-5" />}
-          tone="emerald"
+          tone="solid"
         />
       </div>
 
@@ -454,8 +462,8 @@ return (
                 <Card>
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
-                      <p className="text-sm font-semibold text-slate-900">Dispute letter</p>
-                      <p className="mt-0.5 max-w-lg text-xs text-slate-500">
+                      <p className="text-sm font-semibold text-neutral-900">Dispute letter</p>
+                      <p className="mt-0.5 max-w-lg text-xs text-neutral-500">
                         A formal letter claiming {gbp(analysis.recoverableGbp)}. It quotes only the
                         proven findings and sets a 14-day deadline.
                       </p>
@@ -464,7 +472,7 @@ return (
                       type="button"
                       onClick={downloadLetter}
                       disabled={letterBusy}
-                      className="inline-flex items-center gap-2 rounded-lg bg-ink-900 px-3.5 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-800 disabled:opacity-60"
+                      className="inline-flex items-center gap-2 rounded-md bg-ink-900 px-3.5 py-2 text-sm font-medium text-white transition-colors hover:bg-neutral-800 disabled:opacity-60"
                     >
                       {letterBusy ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
@@ -541,19 +549,19 @@ function BillUploadCard({
         }}
         onClick={() => ref.current?.click()}
         className={cx(
-          'flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed px-4 py-6 text-center transition-colors',
-          drag ? 'border-emerald-400 bg-emerald-50/60' : 'border-slate-200 bg-slate-50/60 hover:border-emerald-300',
+          'flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed px-4 py-6 text-center transition-colors',
+          drag ? 'border-neutral-400 bg-neutral-50/60' : 'border-neutral-200 bg-neutral-50/60 hover:border-neutral-300',
         )}
       >
         {busy ? (
-          <Loader2 className="h-6 w-6 animate-spin text-emerald-600" />
+          <Loader2 className="h-6 w-6 animate-spin text-neutral-600" />
         ) : (
-          <Upload className="h-6 w-6 text-emerald-600" />
+          <Upload className="h-6 w-6 text-neutral-600" />
         )}
-        <p className="mt-2 text-sm font-semibold text-slate-900">
+        <p className="mt-2 text-sm font-semibold text-neutral-900">
           {busy ? 'Reading your bill…' : 'Drop a PDF here or click to choose'}
         </p>
-        <p className="mt-0.5 text-xs text-slate-500">PDF, photo or text · up to 12 MB</p>
+        <p className="mt-0.5 text-xs text-neutral-500">PDF, photo or text · up to 12 MB</p>
         <input
           ref={ref}
           type="file"
@@ -563,7 +571,7 @@ function BillUploadCard({
         />
       </div>
       {error && (
-        <p className="mt-2 flex items-start gap-1.5 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">
+        <p className="mt-2 flex items-start gap-1.5 rounded-md bg-neutral-50 px-3 py-2 text-xs text-neutral-800">
           <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" /> {error}
         </p>
       )}
@@ -584,26 +592,26 @@ function NarrationCard({
   return (
     <Card>
       <SectionHeading
-        title="AI explanation"
-        subtitle="Plain-English summary of the engine's findings. The engine decides; the AI explains."
+        title="Explanation"
+        subtitle="Plain-English summary of the engine's findings. The engine decides; the summary explains."
         action={
           narration?.source === 'gemini' ? (
-            <Badge tone="violet">Gemini</Badge>
+            <Badge tone="muted">Gemini</Badge>
           ) : unavailable ? (
-            <Badge tone="amber">AI unavailable</Badge>
+            <Badge tone="outline">Unavailable</Badge>
           ) : null
         }
       />
       {narration?.summary ? (
         <div className="space-y-3">
-          <div className="whitespace-pre-line text-sm leading-relaxed text-slate-700">
+          <div className="whitespace-pre-line text-sm leading-relaxed text-neutral-700">
             {narration.summary}
           </div>
           {narration.actions.length > 0 && (
             <ul className="space-y-1.5">
               {narration.actions.map((action, i) => (
-                <li key={i} className="flex items-start gap-2 text-sm text-slate-700">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
+                <li key={i} className="flex items-start gap-2 text-sm text-neutral-700">
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-neutral-500" />
                   {action}
                 </li>
               ))}
@@ -616,12 +624,12 @@ function NarrationCard({
             type="button"
             onClick={onNarrate}
             disabled={narrating}
-            className="inline-flex items-center gap-2 rounded-lg bg-ink-900 px-3.5 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-800 disabled:opacity-60"
+            className="inline-flex items-center gap-2 rounded-md bg-ink-900 px-3.5 py-2 text-sm font-medium text-white transition-colors hover:bg-neutral-800 disabled:opacity-60"
           >
-            {narrating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+            {narrating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Quote className="h-4 w-4" />}
             {narrating ? 'Asking Gemini…' : 'Explain this audit'}
           </button>
-          <span className="text-xs text-slate-400">
+          <span className="text-xs text-neutral-400">
             {unavailable
               ? 'Gemini is not configured or failed just now — set GEMINI_API_KEY on the API, then try again. The findings above are the deterministic engine.'
               : 'Runs automatically after every analysis.'}
@@ -636,11 +644,11 @@ function AnalysisEmptyState() {
   return (
     <Card>
       <div className="grid place-items-center px-6 py-14 text-center">
-        <span className="grid h-12 w-12 place-items-center rounded-xl bg-emerald-500/10">
-          <Sparkles className="h-6 w-6 text-emerald-600" />
+        <span className="grid h-12 w-12 place-items-center rounded-lg bg-neutral-100">
+          <Quote className="h-6 w-6 text-neutral-400" />
         </span>
-        <p className="mt-4 text-sm font-semibold text-slate-800">Enter a bill to start the audit</p>
-        <p className="mt-1.5 max-w-md text-xs leading-relaxed text-slate-500">
+        <p className="mt-4 text-sm font-semibold text-neutral-800">Enter a bill to start the audit</p>
+        <p className="mt-1.5 max-w-md text-xs leading-relaxed text-neutral-500">
           The engine checks the unit rate and standing charge against Ofgem&rsquo;s cap for your
           region, re-adds the invoice arithmetic, verifies VAT treatment, and compares consumption
           with this site&rsquo;s own baseline.
@@ -710,16 +718,16 @@ function BillForm({
     <Card>
       <SectionHeading
         title="Analyse a bill"
-        subtitle="Paste a bill for AI extraction, or fill the fields — the engine runs whichever checks the data supports."
+        subtitle="Paste a bill to fill the fields automatically, or type them in — the engine runs whichever checks the data supports."
       />
 
-      {/* AI extraction — Gemini reads the raw invoice and fills the form. */}
-      <div className="mb-4 rounded-xl border border-dashed border-emerald-300 bg-emerald-50/40 p-3.5">
-        <p className="flex items-center gap-1.5 text-xs font-semibold text-emerald-800">
-          <Sparkles className="h-3.5 w-3.5" />
-          Paste a bill — extract with Gemini
+      {/* Paste-a-bill extraction — the model reads the raw invoice and fills the form. */}
+      <div className="mb-4 rounded-lg border border-dashed border-neutral-300 bg-neutral-50/40 p-3.5">
+        <p className="flex items-center gap-1.5 text-xs font-semibold text-neutral-800">
+          <Quote className="h-3.5 w-3.5" />
+          Paste a bill — extract the figures
         </p>
-        <p className="mt-1 text-[11px] leading-relaxed text-emerald-700/80">
+        <p className="mt-1 text-[11px] leading-relaxed text-neutral-700/80">
           Paste the raw text of an electricity invoice. Gemini reads exactly what is printed,
           fills the fields below, and the engine audits it immediately.
         </p>
@@ -730,10 +738,10 @@ function BillForm({
           placeholder={
             'e.g.\nOctopus Energy Business — Invoice\nPeriod 01/09/2026 – 30/09/2026\n12,480 kWh @ 26.49p/kWh\nStanding charge 45.68p/day\nTotal incl. VAT £3,300.00'
           }
-          className="mt-2 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+          className="mt-2 w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-800 placeholder:text-neutral-400 focus:border-neutral-900 focus:outline-none focus:ring-2 focus:ring-neutral-900/12"
         />
         {ai.info && (
-          <p className="mt-2 text-[11px] leading-relaxed text-emerald-800">
+          <p className="mt-2 text-[11px] leading-relaxed text-neutral-800">
             Extracted at {Math.round(ai.info.confidence * 100)}% confidence.
             {ai.info.review.length > 0
               ? ` Worth a glance: ${ai.info.review.join(', ')}.`
@@ -741,7 +749,7 @@ function BillForm({
           </p>
         )}
         {ai.error && (
-          <p className="mt-2 rounded-lg bg-rose-50 px-3 py-2 text-xs font-medium text-rose-700">
+          <p className="mt-2 rounded-md bg-neutral-50 px-3 py-2 text-xs font-medium text-neutral-700">
             {ai.error}
           </p>
         )}
@@ -749,17 +757,17 @@ function BillForm({
           type="button"
           onClick={ai.onExtract}
           disabled={ai.extracting || ai.text.trim().length < 20}
-          className="mt-2 inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3.5 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+          className="mt-2 inline-flex items-center gap-2 rounded-md bg-neutral-900 px-3.5 py-2 text-sm font-semibold text-white transition-colors hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {ai.extracting ? (
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
-            <Sparkles className="h-4 w-4" />
+            <Quote className="h-4 w-4" />
           )}
           {ai.extracting ? 'Reading the bill…' : 'Extract & analyse'}
         </button>
         {!ai.available && (
-          <p className="mt-2 text-[11px] text-amber-600">
+          <p className="mt-2 text-[11px] text-neutral-600">
             Gemini is not configured on the API yet (set GEMINI_API_KEY) — extraction will be
             refused; use the form below.
           </p>
@@ -833,21 +841,21 @@ function BillForm({
           </label>
         </div>
 
-        <label className="flex items-start gap-2.5 rounded-lg bg-slate-50 px-3 py-2.5">
+        <label className="flex items-start gap-2.5 rounded-md bg-neutral-50 px-3 py-2.5">
           <input
             type="checkbox"
             checked={form.businessContract}
             onChange={(e) => set('businessContract', e.target.checked)}
-            className="mt-0.5 h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+            className="mt-0.5 h-4 w-4 rounded border-neutral-300 text-neutral-600 focus:ring-neutral-500"
           />
-          <span className="text-xs leading-relaxed text-slate-600">
+          <span className="text-xs leading-relaxed text-neutral-600">
             This site is on an unregulated <strong>business contract</strong>. Business rates are not
             capped, so cap findings become advisory and the VAT check is skipped.
           </span>
         </label>
 
         {error && (
-          <p className="rounded-lg bg-rose-50 px-3 py-2 text-xs font-medium text-rose-700">
+          <p className="rounded-md bg-neutral-50 px-3 py-2 text-xs font-medium text-neutral-700">
             {error}
           </p>
         )}
@@ -856,7 +864,7 @@ function BillForm({
           <button
             type="submit"
             disabled={busy}
-            className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-slate-800 disabled:opacity-60"
+            className="flex flex-1 items-center justify-center gap-2 rounded-md bg-neutral-900 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-neutral-800 disabled:opacity-60"
           >
             {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <FlaskConical className="h-4 w-4" />}
             {busy ? 'Analysing…' : 'Run analysis'}
@@ -864,7 +872,7 @@ function BillForm({
           <button
             type="button"
             onClick={onReset}
-            className="rounded-lg border border-slate-200 px-3 py-2.5 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50"
+            className="rounded-md border border-neutral-200 px-3 py-2.5 text-sm font-medium text-neutral-600 transition-colors hover:bg-neutral-50"
           >
             Reset
           </button>
@@ -884,7 +892,7 @@ function FindingsCard({ analysis }: { analysis: BillAnalysis }) {
         )} recoverable`}
         action={
           count === 0 ? (
-            <Badge tone="emerald">
+            <Badge tone="solid">
               <CheckCircle2 className="h-3 w-3" /> Clean
             </Badge>
           ) : (
@@ -894,7 +902,7 @@ function FindingsCard({ analysis }: { analysis: BillAnalysis }) {
       />
 
       {count === 0 ? (
-        <div className="flex items-center gap-2 rounded-xl bg-emerald-50 px-3 py-3 text-sm text-emerald-700">
+        <div className="flex items-center gap-2 rounded-lg bg-neutral-50 px-3 py-3 text-sm text-neutral-700">
           <CheckCircle2 className="h-4 w-4" />
           Nothing found. Every check the available data supports passed.
         </div>
@@ -906,7 +914,7 @@ function FindingsCard({ analysis }: { analysis: BillAnalysis }) {
         </ul>
       )}
 
-      <dl className="mt-5 grid gap-3 border-t border-slate-100 pt-4 sm:grid-cols-4">
+      <dl className="mt-5 grid gap-3 border-t border-neutral-100 pt-4 sm:grid-cols-4">
         <Fact label="Period" value={analysis.periodDays ? `${analysis.periodDays} days` : '—'} />
         <Fact
           label="Expected total"
@@ -924,19 +932,13 @@ function FindingsCard({ analysis }: { analysis: BillAnalysis }) {
 
 function FindingRow({ finding }: { finding: AnalysisFinding }) {
   return (
-    <li className="rounded-xl border border-slate-200 p-4">
+    <li className="rounded-lg border border-neutral-200 p-4">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="flex min-w-0 items-center gap-2">
           <span
             className={cx(
-              'grid h-7 w-7 shrink-0 place-items-center rounded-lg',
-              finding.severity === 'high'
-                ? 'bg-rose-500/10 text-rose-600'
-                : finding.severity === 'medium'
-                  ? 'bg-amber-500/10 text-amber-600'
-                  : finding.severity === 'low'
-                    ? 'bg-sky-500/10 text-sky-600'
-                    : 'bg-slate-500/10 text-slate-600',
+              'grid h-7 w-7 shrink-0 place-items-center rounded-md',
+              severityChip[finding.severity],
             )}
           >
             {finding.severity === 'info' ? (
@@ -945,14 +947,14 @@ function FindingRow({ finding }: { finding: AnalysisFinding }) {
               <AlertTriangle className="h-4 w-4" />
             )}
           </span>
-          <p className="text-sm font-semibold text-slate-900">{finding.title}</p>
+          <p className="text-sm font-semibold text-neutral-900">{finding.title}</p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
           {finding.impactGbp !== 0 && (
             <span
               className={cx(
-                'text-sm font-bold',
-                finding.impactGbp > 0 ? 'text-rose-600' : 'text-emerald-600',
+                'text-sm font-semibold',
+                finding.impactGbp > 0 ? 'text-ink-900' : 'text-neutral-500',
               )}
             >
               {signedGbp(finding.impactGbp)}
@@ -962,24 +964,24 @@ function FindingRow({ finding }: { finding: AnalysisFinding }) {
         </div>
       </div>
 
-      <p className="mt-2 pl-9 text-xs leading-relaxed text-slate-600">{finding.detail}</p>
+      <p className="mt-2 pl-9 text-xs leading-relaxed text-neutral-600">{finding.detail}</p>
 
       <div className="mt-3 pl-9">
         <dl className="grid gap-x-6 gap-y-1 sm:grid-cols-2">
           {finding.evidence.map((item) => (
             <div key={item.label} className="flex justify-between gap-3 text-xs">
-              <dt className="text-slate-500">{item.label}</dt>
-              <dd className="text-right font-medium text-slate-800">{item.value}</dd>
+              <dt className="text-neutral-500">{item.label}</dt>
+              <dd className="text-right font-medium text-neutral-800">{item.value}</dd>
             </div>
           ))}
         </dl>
 
-        <div className="mt-3 rounded-lg bg-slate-50 px-3 py-2.5">
-          <p className="flex items-start gap-2 text-xs leading-relaxed text-slate-700">
-            <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-600" />
+        <div className="mt-3 rounded-md bg-neutral-50 px-3 py-2.5">
+          <p className="flex items-start gap-2 text-xs leading-relaxed text-neutral-700">
+            <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-neutral-600" />
             {finding.recommendation}
           </p>
-          <p className="mt-1.5 flex flex-wrap gap-2 text-[11px] text-slate-400">
+          <p className="mt-1.5 flex flex-wrap gap-2 text-[11px] text-neutral-400">
             <span>Source: {finding.source.replace(/-/g, ' ')}</span>
             <span>·</span>
             <span>Confidence {pct(finding.confidence * 100, 0)}</span>
@@ -998,9 +1000,9 @@ function WeatherCard({ weather }: { weather: WeatherSummary }) {
         subtitle="Half-hourly air temperature from Elexon, used to separate seasonal effects from real anomalies."
         action={
           weather.normalised ? (
-            <Badge tone="emerald">Adjusted</Badge>
+            <Badge tone="solid">Adjusted</Badge>
           ) : (
-            <Badge tone="slate">Unavailable</Badge>
+            <Badge tone="muted">Unavailable</Badge>
           )
         }
       />
@@ -1011,7 +1013,7 @@ function WeatherCard({ weather }: { weather: WeatherSummary }) {
           <Fact label="Balance point" value="15.5°C" />
         </div>
       ) : (
-        <p className="flex items-start gap-2 text-xs leading-relaxed text-slate-500">
+        <p className="flex items-start gap-2 text-xs leading-relaxed text-neutral-500">
           <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
           {weather.note ?? 'No temperature data was returned.'} Findings above were still produced
           — they are simply not weather-adjusted.
@@ -1040,26 +1042,26 @@ function BenchmarkCard({
       <SectionHeading
         title="Ofgem price cap benchmark"
         subtitle={cap?.period.source ?? 'Energy price cap unit rates and standing charges'}
-        action={cap ? <Badge tone="sky">{cap.period.label}</Badge> : null}
+        action={cap ? <Badge tone="muted">{cap.period.label}</Badge> : null}
       />
 
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <label className="flex items-center gap-2">
-          <MapPin className="h-4 w-4 text-slate-400" />
+          <MapPin className="h-4 w-4 text-neutral-400" />
           <span className="sr-only">Postcode</span>
           <input
             value={postcode}
             onChange={(e) => onPostcode(e.target.value.toUpperCase())}
             placeholder="Postcode"
-            className="w-36 rounded-lg border border-slate-200 px-3 py-1.5 text-xs focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+            className="w-36 rounded-md border border-neutral-200 px-3 py-1.5 text-xs focus:border-neutral-900 focus:outline-none focus:ring-2 focus:ring-neutral-900/12"
           />
         </label>
         {region ? (
-          <span className="text-xs text-slate-500">
-            Benchmarking against <strong className="text-slate-800">{region.name}</strong>
+          <span className="text-xs text-neutral-500">
+            Benchmarking against <strong className="text-neutral-800">{region.name}</strong>
           </span>
         ) : (
-          <span className="text-xs text-slate-400">
+          <span className="text-xs text-neutral-400">
             Add a postcode to benchmark against your own region rather than the GB average.
           </span>
         )}
@@ -1068,31 +1070,31 @@ function BenchmarkCard({
       <div className="overflow-x-auto">
         <table className="w-full min-w-[26rem] text-left text-sm">
           <thead>
-            <tr className="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-400">
+            <tr className="border-b border-neutral-200 text-xs uppercase tracking-wide text-neutral-400">
               <th className="pb-2 font-semibold">Region</th>
               <th className="pb-2 text-right font-semibold">Unit rate</th>
               <th className="pb-2 text-right font-semibold">Standing charge</th>
               <th className="pb-2 text-right font-semibold">£/yr @ 20M kWh</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-neutral-100">
             {rows.map((r) => (
-              <tr key={r.id} className={r.id === region?.id ? 'bg-emerald-50/50' : undefined}>
-                <td className="py-2 font-medium text-slate-800">
+              <tr key={r.id} className={r.id === region?.id ? 'bg-neutral-50/50' : undefined}>
+                <td className="py-2 font-medium text-neutral-800">
                   {r.name}
                   {r.id === region?.id && (
-                    <Badge tone="emerald" className="ml-2">
+                    <Badge tone="solid" className="ml-2">
                       yours
                     </Badge>
                   )}
                 </td>
-                <td className="py-2 text-right font-mono text-xs text-slate-700">
+                <td className="py-2 text-right tabular-nums text-xs text-neutral-700">
                   {pence(r.unitRateP, 2)}
                 </td>
-                <td className="py-2 text-right font-mono text-xs text-slate-700">
+                <td className="py-2 text-right tabular-nums text-xs text-neutral-700">
                   {pence(r.standingChargeP, 2)}
                 </td>
-                <td className="py-2 text-right font-mono text-xs text-slate-700">
+                <td className="py-2 text-right tabular-nums text-xs text-neutral-700">
                   {annualCostAt(r, 20_000)}
                 </td>
               </tr>
@@ -1102,7 +1104,7 @@ function BenchmarkCard({
       </div>
 
       {cap && (
-        <p className="mt-3 text-[11px] leading-relaxed text-slate-400">
+        <p className="mt-3 text-[11px] leading-relaxed text-neutral-400">
           GB average {pence(cap.period.averageUnitRateP, 2)}/kWh and{' '}
           {pence(cap.period.averageStandingChargeP, 2)}/day standing charge,{' '}
           {cap.period.changePct >= 0 ? 'up ' : 'down '}

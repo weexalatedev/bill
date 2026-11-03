@@ -67,32 +67,32 @@ export default function PauseTab({ token, homeId, pause, onSaved }: Props) {
     <div className="space-y-5">
       <div>
         <SectionHeading title="Pause connections" />
-        <p className="mt-1 text-sm text-slate-500">
+        <p className="mt-1 text-sm text-neutral-500">
           Pausing is immediate and reversible: the switch is stored by the connector, so every
           caller sees the same state.
         </p>
       </div>
 
       {error && (
-        <p className="flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800">
+        <p className="flex items-start gap-2 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm text-neutral-800">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
           <span>{error}</span>
         </p>
       )}
       {notice && (
-        <p className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
+        <p className="rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm text-neutral-700">
           {notice}
         </p>
       )}
 
-      <Card className="divide-y divide-slate-100 p-0">
+      <Card className="divide-y divide-neutral-100 p-0">
         {ROWS.map((row) => {
           const on = state[row.key];
           return (
             <div key={row.key} className="flex items-start justify-between gap-4 px-5 py-4">
               <div>
-                <p className="text-sm font-semibold text-slate-900">{row.title}</p>
-                <p className="mt-0.5 text-xs text-slate-500">{row.hint}</p>
+                <p className="text-sm font-semibold text-neutral-900">{row.title}</p>
+                <p className="mt-0.5 text-xs text-neutral-500">{row.hint}</p>
               </div>
               <button
                 type="button"
@@ -103,7 +103,7 @@ export default function PauseTab({ token, homeId, pause, onSaved }: Props) {
                 disabled={busy !== null}
                 className={cx(
                   'relative mt-1 h-6 w-11 shrink-0 rounded-full transition-colors disabled:opacity-60',
-                  on ? 'bg-emerald-500' : 'bg-slate-300',
+                  on ? 'bg-neutral-900' : 'bg-neutral-300',
                 )}
               >
                 <span
@@ -124,27 +124,27 @@ export default function PauseTab({ token, homeId, pause, onSaved }: Props) {
       <div className="grid gap-4 sm:grid-cols-2">
         <Card className="p-5">
           <div className="flex items-center justify-between">
-            <p className="flex items-center gap-2 text-sm font-semibold text-slate-900">
-              <RefreshCw className="h-4 w-4 text-slate-400" /> Device sync
+            <p className="flex items-center gap-2 text-sm font-semibold text-neutral-900">
+              <RefreshCw className="h-4 w-4 text-neutral-400" /> Device sync
             </p>
-            <Badge tone={state.effective.sync_active ? 'emerald' : 'amber'}>
+            <Badge tone={state.effective.sync_active ? 'solid' : 'outline'}>
               {state.effective.sync_active ? 'Active' : 'Paused'}
             </Badge>
           </div>
-          <p className="mt-2 text-xs text-slate-500">
+          <p className="mt-2 text-xs text-neutral-500">
             Taken from the server&apos;s <code>effective.sync_active</code>, not the raw toggles.
           </p>
         </Card>
         <Card className="p-5">
           <div className="flex items-center justify-between">
-            <p className="flex items-center gap-2 text-sm font-semibold text-slate-900">
-              <Bell className="h-4 w-4 text-slate-400" /> Alerts and controls
+            <p className="flex items-center gap-2 text-sm font-semibold text-neutral-900">
+              <Bell className="h-4 w-4 text-neutral-400" /> Alerts and controls
             </p>
-            <Badge tone={state.effective.alerts_controls_active ? 'emerald' : 'amber'}>
+            <Badge tone={state.effective.alerts_controls_active ? 'solid' : 'outline'}>
               {state.effective.alerts_controls_active ? 'Active' : 'Paused'}
             </Badge>
           </div>
-          <p className="mt-2 text-xs text-slate-500">
+          <p className="mt-2 text-xs text-neutral-500">
             Taken from <code>effective.alerts_controls_active</code>. Turning home connections off
             pauses both cards.
           </p>
@@ -152,7 +152,7 @@ export default function PauseTab({ token, homeId, pause, onSaved }: Props) {
       </div>
 
       {!state.effective.sync_active && (
-        <p className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+        <p className="flex items-start gap-2 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm text-neutral-800">
           <PauseCircle className="mt-0.5 h-4 w-4 shrink-0" />
           <span>
             Device sync is paused, so dashboards, the Optimiser and the Copilot show “Paused” until

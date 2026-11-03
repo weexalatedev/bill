@@ -77,7 +77,7 @@ export function OctopusConnectModal({
         <button
           type="button"
           onClick={onClose}
-          className="rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+          className="rounded-md border border-neutral-200 bg-white px-3.5 py-2 text-sm font-semibold text-neutral-700 hover:bg-neutral-50"
         >
           Close
         </button>
@@ -106,9 +106,9 @@ export function OctopusConnectModal({
           />
         </Field>
 
-        {error && <p className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</p>}
+        {error && <p className="rounded-md bg-neutral-50 px-3 py-2 text-sm text-neutral-700">{error}</p>}
         {ratePlanNote && (
-          <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">
+          <p className="rounded-md bg-neutral-50 px-3 py-2 text-sm text-neutral-800">
             Rate plan: {ratePlanNote}{' '}
             {onOpenRatePlan && (
               <button
@@ -125,7 +125,7 @@ export function OctopusConnectModal({
         <button
           type="submit"
           disabled={busy}
-          className="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-slate-800 disabled:opacity-60"
+          className="inline-flex items-center gap-2 rounded-md bg-neutral-900 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-neutral-800 disabled:opacity-60"
         >
           {busy && <Loader2 className="h-4 w-4 animate-spin" />}
           Connect Device
@@ -179,7 +179,7 @@ export function SolisConnectModal({
         <button
           type="button"
           onClick={onClose}
-          className="rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+          className="rounded-md border border-neutral-200 bg-white px-3.5 py-2 text-sm font-semibold text-neutral-700 hover:bg-neutral-50"
         >
           Close
         </button>
@@ -206,12 +206,12 @@ export function SolisConnectModal({
           />
         </Field>
 
-        {error && <p className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</p>}
+        {error && <p className="rounded-md bg-neutral-50 px-3 py-2 text-sm text-neutral-700">{error}</p>}
 
         <button
           type="submit"
           disabled={busy}
-          className="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-slate-800 disabled:opacity-60"
+          className="inline-flex items-center gap-2 rounded-md bg-neutral-900 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-neutral-800 disabled:opacity-60"
         >
           {busy && <Loader2 className="h-4 w-4 animate-spin" />}
           Connect Device

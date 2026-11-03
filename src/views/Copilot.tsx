@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import { ArrowUp, Bot, Loader2, Sparkles, User } from 'lucide-react';
+import { ArrowUp, Bot, Loader2, User } from 'lucide-react';
 import { useApp } from '../store';
 import { useAuth } from '../lib/auth';
 import { api } from '../lib/api';
@@ -100,7 +100,7 @@ export default function Copilot() {
   const [thinking, setThinking] = useState(false);
   /** Which answer path the API reports — drives the header and notice honestly. */
   const [source, setSource] = useState<'gemini' | 'rules' | 'unavailable' | null>(null);
-  /** Exact reason the model did not answer, shown in an amber notice. */
+  /** Exact reason the model did not answer, shown in a notice beside the reply. */
   const [notice, setNotice] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
@@ -172,26 +172,26 @@ export default function Copilot() {
   };
 
   return (
-    <div className="flex min-h-0 w-full flex-1 flex-col overflow-hidden bg-slate-100 xl:flex-row">
+    <div className="flex min-h-0 w-full flex-1 flex-col overflow-hidden bg-neutral-100 xl:flex-row">
       {/* Conversation */}
       <section className="flex min-h-0 min-w-0 flex-1 flex-col xl:p-4">
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-white xl:rounded-2xl xl:border xl:border-slate-200 xl:shadow-sm">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-white xl:rounded-xl xl:border xl:border-neutral-200 xl:shadow-sm">
           {/* Header */}
-          <header className="flex shrink-0 items-center gap-3 border-b border-slate-100 px-4 py-3 sm:px-6">
+          <header className="flex shrink-0 items-center gap-3 border-b border-neutral-100 px-4 py-3 sm:px-6">
             <div className="relative">
-              <div className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600 shadow-sm">
+              <div className="grid h-10 w-10 place-items-center rounded-lg bg-ink-900">
                 <Bot className="h-5 w-5 text-white" />
               </div>
               <span
                 className={cx(
                   'absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full ring-2 ring-white',
-                  online ? 'bg-emerald-500' : source === null ? 'bg-slate-400' : 'bg-amber-500',
+                  online ? 'bg-neutral-900' : source === null ? 'bg-neutral-400' : 'bg-neutral-500',
                 )}
               />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-slate-900">Copilot</p>
-              <p className="truncate text-xs text-slate-500">
+              <p className="truncate text-sm font-semibold text-neutral-900">Copilot</p>
+              <p className="truncate text-xs text-neutral-500">
                 {online
                   ? 'Online · grounded in your live energy data'
                   : source === null
@@ -203,8 +203,8 @@ export default function Copilot() {
               className={cx(
                 'hidden shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold ring-1 ring-inset sm:inline-flex',
                 online
-                  ? 'bg-emerald-50 text-emerald-700 ring-emerald-600/20'
-                  : 'bg-amber-50 text-amber-700 ring-amber-600/20',
+                  ? 'bg-ink-900 text-white ring-ink-900'
+                  : 'bg-neutral-50 text-neutral-500 ring-neutral-300',
               )}
             >
               {online ? 'Live' : 'Offline'}
@@ -227,17 +227,17 @@ export default function Copilot() {
                     <div
                       className={cx(
                         'grid h-8 w-8 shrink-0 place-items-center rounded-full',
-                        isUser ? 'bg-slate-900 text-white' : 'bg-emerald-500/10 text-emerald-600',
+                        isUser ? 'bg-neutral-900 text-white' : 'bg-neutral-100 text-neutral-600',
                       )}
                     >
-                      {isUser ? <User className="h-4 w-4" /> : <Sparkles className="h-4 w-4" />}
+                      {isUser ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
                     </div>
                     <div
                       className={cx(
-                        'max-w-[82%] whitespace-pre-wrap rounded-2xl px-4 py-2.5 text-sm leading-relaxed shadow-sm sm:max-w-[75%]',
+                        'max-w-[82%] whitespace-pre-wrap rounded-xl px-4 py-2.5 text-sm leading-relaxed shadow-sm sm:max-w-[75%]',
                         isUser
-                          ? 'rounded-br-md bg-slate-900 text-white'
-                          : 'rounded-bl-md bg-slate-100 text-slate-700',
+                          ? 'rounded-br-md bg-neutral-900 text-white'
+                          : 'rounded-bl-md bg-neutral-100 text-neutral-700',
                       )}
                     >
                       {message.text}
@@ -248,14 +248,14 @@ export default function Copilot() {
 
               {thinking && (
                 <div className="flex items-end gap-2.5">
-                  <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-emerald-500/10 text-emerald-600">
-                    <Sparkles className="h-4 w-4" />
+                  <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-neutral-100 text-neutral-600">
+                    <Bot className="h-4 w-4" />
                   </div>
-                  <div className="flex items-center gap-2 rounded-2xl rounded-bl-md bg-slate-100 px-4 py-3 text-sm text-slate-500">
+                  <div className="flex items-center gap-2 rounded-xl rounded-bl-md bg-neutral-100 px-4 py-3 text-sm text-neutral-500">
                     <span className="flex gap-1">
-                      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-slate-400 [animation-delay:-0.2s]" />
-                      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-slate-400 [animation-delay:-0.1s]" />
-                      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-slate-400" />
+                      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-neutral-400 [animation-delay:-0.2s]" />
+                      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-neutral-400 [animation-delay:-0.1s]" />
+                      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-neutral-400" />
                     </span>
                     Reading your energy data…
                   </div>
@@ -264,14 +264,14 @@ export default function Copilot() {
 
               {messages.length <= 1 && !thinking && (
                 <div className="pt-1">
-                  <p className="mb-2 text-xs font-medium text-slate-400">Start with</p>
+                  <p className="mb-2 text-xs font-medium text-neutral-400">Start with</p>
                   <div className="grid gap-2 sm:grid-cols-2">
                     {STARTERS.map((starter) => (
                       <button
                         key={starter}
                         type="button"
                         onClick={() => send(starter)}
-                        className="rounded-xl border border-slate-200 px-3.5 py-2.5 text-left text-sm text-slate-700 transition-colors hover:border-emerald-300 hover:bg-emerald-50/50"
+                        className="rounded-lg border border-neutral-200 px-3.5 py-2.5 text-left text-sm text-neutral-700 transition-colors hover:border-neutral-300 hover:bg-neutral-50/50"
                       >
                         {starter}
                       </button>
@@ -284,10 +284,10 @@ export default function Copilot() {
 
 
           {/* Composer */}
-          <div className="shrink-0 border-t border-slate-100 bg-white px-3 py-3 sm:px-6">
+          <div className="shrink-0 border-t border-neutral-100 bg-white px-3 py-3 sm:px-6">
             <div className="mx-auto w-full max-w-3xl">
               {notice && (
-                <p className="mb-2 rounded-lg bg-amber-50 px-3 py-2 text-[11px] leading-relaxed text-amber-800">
+                <p className="mb-2 rounded-md bg-neutral-50 px-3 py-2 text-[11px] leading-relaxed text-neutral-800">
                   {notice}
                 </p>
               )}
@@ -298,7 +298,7 @@ export default function Copilot() {
                       key={suggestion}
                       type="button"
                       onClick={() => send(suggestion)}
-                      className="rounded-full border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:border-emerald-300 hover:bg-emerald-50/60 hover:text-emerald-700"
+                      className="rounded-full border border-neutral-200 px-3 py-1.5 text-xs font-medium text-neutral-600 transition-colors hover:border-neutral-300 hover:bg-neutral-50/60 hover:text-neutral-700"
                     >
                       {suggestion}
                     </button>
@@ -310,7 +310,7 @@ export default function Copilot() {
                   e.preventDefault();
                   send(input);
                 }}
-                className="flex items-end gap-2 rounded-2xl border border-slate-200 bg-white p-1.5 transition-colors focus-within:border-emerald-400 focus-within:ring-2 focus-within:ring-emerald-500/15"
+                className="flex items-end gap-2 rounded-xl border border-neutral-200 bg-white p-1.5 transition-colors focus-within:border-neutral-400 focus-within:ring-2 focus-within:ring-neutral-500/15"
               >
                 <textarea
                   value={input}
@@ -323,12 +323,12 @@ export default function Copilot() {
                   }}
                   rows={Math.min(5, Math.max(1, input.split('\n').length))}
                   placeholder="Message Copilot…"
-                  className="max-h-40 flex-1 resize-none bg-transparent px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none"
+                  className="max-h-40 flex-1 resize-none bg-transparent px-3 py-2 text-sm text-neutral-800 placeholder:text-neutral-400 focus:outline-none"
                 />
                 <button
                   type="submit"
                   disabled={thinking || input.trim().length === 0}
-                  className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-emerald-600 text-white transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-40"
+                  className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-neutral-900 text-white transition-colors hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-40"
                   aria-label="Send message"
                 >
                   {thinking ? (
@@ -338,7 +338,7 @@ export default function Copilot() {
                   )}
                 </button>
               </form>
-              <p className="mt-2 text-center text-[10px] text-slate-400">
+              <p className="mt-2 text-center text-[10px] text-neutral-400">
                 Copilot can make mistakes. Check important figures before acting.
               </p>
             </div>
@@ -347,10 +347,10 @@ export default function Copilot() {
       </section>
 
       {/* Context rail — desktop only */}
-      <aside className="hidden w-[21rem] shrink-0 flex-col gap-4 overflow-y-auto border-l border-slate-200 bg-slate-50 p-4 xl:flex">
-        <div className="rounded-2xl border border-slate-200 bg-white p-4">
-          <p className="text-sm font-semibold text-slate-900">What I can help with</p>
-          <ul className="mt-3 space-y-2 text-xs text-slate-600">
+      <aside className="hidden w-[21rem] shrink-0 flex-col gap-4 overflow-y-auto border-l border-neutral-200 bg-neutral-50 p-4 xl:flex">
+        <div className="rounded-xl border border-neutral-200 bg-white p-4">
+          <p className="text-sm font-semibold text-neutral-900">What I can help with</p>
+          <ul className="mt-3 space-y-2 text-xs text-neutral-600">
             <li>· Where your energy spend is going</li>
             <li>· Billing issues and what to challenge</li>
             <li>· Which optimisations to approve first</li>
@@ -358,17 +358,17 @@ export default function Copilot() {
             <li>· How savings are measured and verified</li>
           </ul>
         </div>
-        <div className="rounded-2xl bg-ink-900 p-4 text-white">
+        <div className="rounded-xl bg-ink-900 p-4 text-white">
           <p className="text-sm font-semibold">How answers work</p>
-          <p className="mt-1.5 text-xs leading-relaxed text-slate-300">
+          <p className="mt-1.5 text-xs leading-relaxed text-neutral-300">
             Every figure comes from your own data and the live market. The engine makes the
             decisions; the assistant explains them — it never invents a number.
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
-            <span className="rounded-full bg-emerald-500/15 px-2.5 py-1 text-[11px] font-semibold text-emerald-300">
+            <span className="rounded-full bg-neutral-100 px-2.5 py-1 text-[11px] font-semibold text-neutral-300">
               Grounded in your data
             </span>
-            <span className="rounded-full bg-sky-500/15 px-2.5 py-1 text-[11px] font-semibold text-sky-300">
+            <span className="rounded-full bg-neutral-100 px-2.5 py-1 text-[11px] font-semibold text-neutral-300">
               Engine decides
             </span>
           </div>

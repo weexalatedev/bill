@@ -59,25 +59,25 @@ export default function UploadBill({
             pick(event.dataTransfer.files?.[0]);
           }}
           className={cx(
-            'mt-5 flex w-full flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed px-6 py-12 text-center transition-colors',
+            'mt-5 flex w-full flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed px-6 py-12 text-center transition-colors',
             dragging
-              ? 'border-emerald-400 bg-emerald-50/60'
-              : 'border-slate-200 bg-slate-50/60 hover:border-emerald-300 hover:bg-emerald-50/40',
+              ? 'border-neutral-400 bg-neutral-50/60'
+              : 'border-neutral-200 bg-neutral-50/60 hover:border-neutral-300 hover:bg-neutral-50/40',
             busy && 'cursor-progress opacity-70',
           )}
         >
-          <span className="grid h-12 w-12 place-items-center rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
+          <span className="grid h-12 w-12 place-items-center rounded-xl bg-white shadow-sm ring-1 ring-neutral-200">
             {busy ? (
-              <Loader2 className="h-5 w-5 animate-spin text-emerald-600" />
+              <Loader2 className="h-5 w-5 animate-spin text-neutral-600" />
             ) : (
-              <Upload className="h-5 w-5 text-emerald-600" />
+              <Upload className="h-5 w-5 text-neutral-600" />
             )}
           </span>
           <span>
-            <span className="block text-sm font-semibold text-slate-900">
+            <span className="block text-sm font-semibold text-neutral-900">
               {busy ? 'Reading your bill…' : 'Drop your bill here, or click to choose a file'}
             </span>
-            <span className="mt-1 block text-xs text-slate-500">
+            <span className="mt-1 block text-xs text-neutral-500">
               PDF, JPG, PNG or HEIC — up to 12 MB. Scans and photos are read with OCR.
             </span>
           </span>
@@ -94,28 +94,28 @@ export default function UploadBill({
         </button>
 
         {error && (
-          <p className="mt-4 rounded-lg bg-rose-50 px-3 py-2 text-xs font-medium text-rose-700">
+          <p className="mt-4 rounded-md bg-neutral-50 px-3 py-2 text-xs font-medium text-neutral-700">
             {error}
           </p>
         )}
 
-        <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-5">
+        <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-neutral-100 pt-5">
           <button
             type="button"
             onClick={onSwitchToManual}
-            className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50"
+            className="inline-flex items-center gap-2 rounded-md border border-neutral-200 bg-white px-4 py-2.5 text-sm font-semibold text-neutral-700 transition-colors hover:bg-neutral-50"
           >
             <Keyboard className="h-4 w-4" /> Type the figures instead
           </button>
-          <p className="flex items-center gap-1.5 text-[11px] text-slate-400">
+          <p className="flex items-center gap-1.5 text-[11px] text-neutral-400">
             <ShieldCheck className="h-3.5 w-3.5" /> Nothing is stored — the check is read-only.
           </p>
         </div>
       </Card>
 
-      <Card className="flex items-start gap-3 bg-slate-50/70">
-        <FileText className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
-        <p className="text-xs leading-relaxed text-slate-500">
+      <Card className="flex items-start gap-3 bg-neutral-50/70">
+        <FileText className="mt-0.5 h-4 w-4 shrink-0 text-neutral-400" />
+        <p className="text-xs leading-relaxed text-neutral-500">
           We never keep the file. It is read in memory to extract the figures, audited against the
           Ofgem price cap, and then discarded.
         </p>

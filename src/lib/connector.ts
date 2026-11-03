@@ -533,19 +533,20 @@ export const ConnectorApi = {
  */
 export function devicePill(status: DeviceStatus | 'absent'): {
   label: string;
-  tone: 'emerald' | 'amber' | 'rose' | 'slate';
+  /** Monochrome emphasis level: connected is solid, problems are outlined. */
+  tone: 'solid' | 'outline' | 'muted' | 'ghost';
 } {
   switch (status) {
     case 'connected':
-      return { label: 'Connected · live', tone: 'emerald' };
+      return { label: 'Connected · live', tone: 'solid' };
     case 'reconnect_required':
-      return { label: 'Disconnected · reconnect required', tone: 'rose' };
+      return { label: 'Disconnected · reconnect required', tone: 'outline' };
     case 'paused':
-      return { label: 'Paused', tone: 'amber' };
+      return { label: 'Paused', tone: 'muted' };
     case 'error':
-      return { label: 'Error', tone: 'rose' };
+      return { label: 'Error', tone: 'outline' };
     default:
-      return { label: 'Not connected · connect when ready', tone: 'slate' };
+      return { label: 'Not connected · connect when ready', tone: 'ghost' };
   }
 }
 

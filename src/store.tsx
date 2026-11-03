@@ -220,8 +220,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setWorkspace((prev) => ({ ...prev, invoices: [invoice, ...prev.invoices] }));
       pushToast(
         invoice.issues.length > 0
-          ? `AI audit complete — ${invoice.issues.length} issue${invoice.issues.length > 1 ? 's' : ''} found on ${invoice.id}.`
-          : `AI audit complete — ${invoice.id} is clean.`,
+          ? `Audit complete — ${invoice.issues.length} issue${invoice.issues.length > 1 ? 's' : ''} found on ${invoice.id}.`
+          : `Audit complete — ${invoice.id} is clean.`,
       );
       return invoice;
     },

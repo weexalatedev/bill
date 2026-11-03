@@ -16,7 +16,8 @@
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "lint": "next lint",
-    "verify:connector": "tsx scripts/verify-connector.ts"
+    "verify:connector": "tsx scripts/verify-connector.ts",
+    "verify:theme": "tsx scripts/theme-check.tsx"
   },
   "dependencies": {
     "@clerk/clerk-react": "^5.61.3",

@@ -218,7 +218,7 @@ export default function BillForm({
                 setValues(EXAMPLE_BILL);
                 setTouched(false);
               }}
-              className="text-sm font-semibold text-emerald-700 underline underline-offset-2 hover:text-emerald-800"
+              className="text-sm font-semibold text-neutral-700 underline underline-offset-2 hover:text-neutral-800"
             >
               Use an example bill
             </button>
@@ -226,20 +226,20 @@ export default function BillForm({
         </div>
 
         {incomplete && (
-          <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs font-medium text-amber-800">
+          <p className="rounded-md bg-neutral-50 px-3 py-2 text-xs font-medium text-neutral-800">
             Enter at least your total, your unit rate or your consumption so we have something to
             check.
           </p>
         )}
         {error && (
-          <p className="rounded-lg bg-rose-50 px-3 py-2 text-xs font-medium text-rose-700">{error}</p>
+          <p className="rounded-md bg-neutral-50 px-3 py-2 text-xs font-medium text-neutral-700">{error}</p>
         )}
 
-        <div className="flex flex-wrap items-center gap-3 border-t border-slate-100 pt-5">
+        <div className="flex flex-wrap items-center gap-3 border-t border-neutral-100 pt-5">
           <button
             type="submit"
             disabled={busy}
-            className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-emerald-700 disabled:opacity-60"
+            className="inline-flex items-center gap-2 rounded-md bg-neutral-900 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-neutral-800 disabled:opacity-60"
           >
             {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <ScanSearch className="h-4 w-4" />}
             {busy ? 'Checking your bill…' : 'Check my bill'}
@@ -247,7 +247,7 @@ export default function BillForm({
           <button
             type="button"
             onClick={onSwitchToUpload}
-            className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50"
+            className="inline-flex items-center gap-2 rounded-md border border-neutral-200 bg-white px-4 py-2.5 text-sm font-semibold text-neutral-700 transition-colors hover:bg-neutral-50"
           >
             <Upload className="h-4 w-4" /> Upload the bill instead
           </button>

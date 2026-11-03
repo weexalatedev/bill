@@ -71,10 +71,10 @@ export default function HardwareTab({ token, homeId, hardware, onSaved }: Props)
       type="button"
       onClick={() => setSubTab(id)}
       className={cx(
-        'inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors',
+        'inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-semibold transition-colors',
         subTab === id
-          ? 'bg-slate-900 text-white'
-          : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-50',
+          ? 'bg-neutral-900 text-white'
+          : 'border border-neutral-200 bg-white text-neutral-600 hover:bg-neutral-50',
       )}
     >
       <Icon className="h-4 w-4" />
@@ -86,7 +86,7 @@ export default function HardwareTab({ token, homeId, hardware, onSaved }: Props)
     <div className="space-y-5">
       <div>
         <SectionHeading title="Hardware" />
-        <p className="mt-1 text-sm text-slate-500">
+        <p className="mt-1 text-sm text-neutral-500">
           The site location is what the weather lookup and the Ofgem cap region use. Battery totals
           are computed by the connector service.
         </p>
@@ -98,13 +98,13 @@ export default function HardwareTab({ token, homeId, hardware, onSaved }: Props)
       </div>
 
       {error && (
-        <p className="flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800">
+        <p className="flex items-start gap-2 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm text-neutral-800">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
           <span>{error}</span>
         </p>
       )}
       {notice && (
-        <p className="flex items-start gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+        <p className="flex items-start gap-2 rounded-lg border border-neutral-300 bg-neutral-50 px-3 py-2 text-sm text-neutral-800">
           <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
           <span>{notice}</span>
         </p>
@@ -157,8 +157,8 @@ export default function HardwareTab({ token, homeId, hardware, onSaved }: Props)
       ) : (
         <Card className="space-y-4 p-5">
           <div className="flex items-center justify-between">
-            <p className="text-sm font-semibold text-slate-800">Battery</p>
-            <Badge tone="slate">Manual details</Badge>
+            <p className="text-sm font-semibold text-neutral-800">Battery</p>
+            <Badge tone="muted">Manual details</Badge>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Battery units">
@@ -184,12 +184,12 @@ export default function HardwareTab({ token, homeId, hardware, onSaved }: Props)
               />
             </Field>
           </div>
-          <div className="rounded-xl bg-slate-50 px-4 py-3">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+          <div className="rounded-lg bg-neutral-50 px-4 py-3">
+            <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
               Total capacity (from the connector)
             </p>
-            <p className="mt-1 text-2xl font-bold text-slate-900">{batteryTotal} kWh</p>
-            <p className="mt-1 text-xs text-slate-500">
+            <p className="mt-1 text-2xl font-semibold text-neutral-900">{batteryTotal} kWh</p>
+            <p className="mt-1 text-xs text-neutral-500">
               Reading pack size from the Solis inverter is not supported yet, so these details are
               what the app uses.
             </p>
@@ -201,7 +201,7 @@ export default function HardwareTab({ token, homeId, hardware, onSaved }: Props)
         type="button"
         onClick={() => void save()}
         disabled={saving}
-        className="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-slate-800 disabled:opacity-60"
+        className="inline-flex items-center gap-2 rounded-md bg-neutral-900 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-neutral-800 disabled:opacity-60"
       >
         {saving && <Loader2 className="h-4 w-4 animate-spin" />}
         Save hardware

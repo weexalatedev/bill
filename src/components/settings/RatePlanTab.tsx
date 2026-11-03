@@ -95,13 +95,13 @@ export default function RatePlanTab({ token, homeId, plan, octopusConnectionId, 
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <SectionHeading title="Rate plan" />
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-neutral-500">
             Prices drive every £ figure in Smart Analysis, the Optimiser and the Copilot. Times are
             in the home&apos;s own timezone.
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Badge tone={source === 'octopus' ? 'sky' : 'slate'}>
+          <Badge tone={source === 'octopus' ? 'solid' : 'muted'}>
             {source === 'octopus' ? 'From Octopus' : 'Manual'}
           </Badge>
           {octopusConnectionId && (
@@ -109,7 +109,7 @@ export default function RatePlanTab({ token, homeId, plan, octopusConnectionId, 
               type="button"
               onClick={() => void fillFromOctopus()}
               disabled={syncing}
-              className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-60"
+              className="inline-flex items-center gap-2 rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm font-semibold text-neutral-700 transition-colors hover:bg-neutral-50 disabled:opacity-60"
             >
               {syncing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
               Fill from Octopus
@@ -119,13 +119,13 @@ export default function RatePlanTab({ token, homeId, plan, octopusConnectionId, 
       </div>
 
       {error && (
-        <p className="flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800">
+        <p className="flex items-start gap-2 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm text-neutral-800">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
           <span>{error}</span>
         </p>
       )}
       {notice && (
-        <p className="flex items-start gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+        <p className="flex items-start gap-2 rounded-lg border border-neutral-300 bg-neutral-50 px-3 py-2 text-sm text-neutral-800">
           <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
           <span>{notice}</span>
         </p>
@@ -165,16 +165,16 @@ export default function RatePlanTab({ token, homeId, plan, octopusConnectionId, 
 
         <div>
           <div className="flex items-center justify-between">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
               Import periods
             </p>
-            <span className="text-xs text-slate-500">
+            <span className="text-xs text-neutral-500">
               {coverage.toFixed(1)}% of the day priced
             </span>
           </div>
-          <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-100">
+          <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-neutral-100">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-teal-500"
+              className="h-full rounded-full bg-ink-900"
               style={{ width: `${Math.min(100, Math.max(0, coverage))}%` }}
             />
           </div>
@@ -182,7 +182,7 @@ export default function RatePlanTab({ token, homeId, plan, octopusConnectionId, 
 
         <div className="space-y-2">
           {periods.length === 0 && (
-            <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">
+            <p className="rounded-md bg-neutral-50 px-3 py-2 text-sm text-neutral-800">
               No import periods yet — add one so consumption can be priced.
             </p>
           )}
@@ -225,7 +225,7 @@ export default function RatePlanTab({ token, homeId, plan, octopusConnectionId, 
               <button
                 type="button"
                 onClick={() => setPeriods((rows) => rows.filter((_, i) => i !== index))}
-                className="grid h-9 w-9 place-items-center rounded-lg text-slate-400 transition-colors hover:bg-rose-50 hover:text-rose-600"
+                className="grid h-9 w-9 place-items-center rounded-md text-neutral-400 transition-colors hover:bg-neutral-50 hover:text-neutral-600"
                 aria-label={`Remove period ${index + 1}`}
               >
                 <Trash2 className="h-4 w-4" />
@@ -235,7 +235,7 @@ export default function RatePlanTab({ token, homeId, plan, octopusConnectionId, 
           <button
             type="button"
             onClick={() => setPeriods((rows) => [...rows, { ...blankPeriod }])}
-            className="inline-flex items-center gap-2 rounded-lg border border-dashed border-slate-300 px-3 py-2 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-50"
+            className="inline-flex items-center gap-2 rounded-md border border-dashed border-neutral-300 px-3 py-2 text-sm font-semibold text-neutral-600 transition-colors hover:bg-neutral-50"
           >
             <Plus className="h-4 w-4" /> Add period
           </button>
@@ -245,7 +245,7 @@ export default function RatePlanTab({ token, homeId, plan, octopusConnectionId, 
           type="button"
           onClick={() => void save()}
           disabled={saving}
-          className="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-slate-800 disabled:opacity-60"
+          className="inline-flex items-center gap-2 rounded-md bg-neutral-900 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-neutral-800 disabled:opacity-60"
         >
           {saving && <Loader2 className="h-4 w-4 animate-spin" />}
           Save rate plan

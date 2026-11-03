@@ -16,10 +16,10 @@ import { useAuth } from '../lib/auth';
 /** Full-screen splash shown while auth + config resolve. */
 function Splash() {
   return (
-    <div className="grid min-h-screen place-items-center bg-slate-50">
-      <div className="flex flex-col items-center gap-3 text-slate-500">
-        <div className="grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600 shadow-lg shadow-emerald-500/20">
-          <Zap className="h-5 w-5 text-ink-900" strokeWidth={2.5} />
+    <div className="grid min-h-screen place-items-center bg-neutral-50">
+      <div className="flex flex-col items-center gap-3 text-neutral-500">
+        <div className="grid h-11 w-11 place-items-center rounded-lg bg-ink-900">
+          <Zap className="h-5 w-5 text-white" strokeWidth={2.5} />
         </div>
         <p className="flex items-center gap-2 text-sm">
           <Loader2 className="h-4 w-4 animate-spin" /> Connecting to EnerOS…
