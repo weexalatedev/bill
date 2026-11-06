@@ -1,1 +1,590 @@
-And this Python code should be present in our local VS Code files where we have all this setup, or it is somewhere else, because I don't see it in one of the things I tried to connect, or I don't know. It may lose. Tell me in one line answer.
+1. The company
+Working name: EnerOS
+Positioning:
+The AI energy manager for SMEs.
+Not an energy broker.
+Not a monitoring dashboard.
+Not an installer.
+EnerOS continuously finds, executes and verifies energy savings for
+businesses.
+The customer connects their energy data and assets. EnerOS learns how the site
+operates and recommends—or automatically executes—lower-cost operating
+schedules.
+2. The wedge
+Don't initially target "SMEs".
+Target:
+Multi-site hospitality and food businesses
+Think:
+ restaurants
+ cafés
+ bakeries
+ pubs
+ hotels
+ food production
+ convenience/retail chains
+Why?
+They have relatively predictable operating patterns and lots of energy-consuming
+equipment:
+HVAC + refrigeration + hot water + ovens + lighting + EVs + solar + batteries.
+And a 20-site customer can be worth as much as dozens of individual SMEs.
+Ideal initial customer
+10–100 locations
+with:
+ £250k–£5m annual energy spend
+ smart/advanced meters
+ meaningful electricity consumption
+ central operations team
+ multiple sites
+ some controllable loads.
+This is where your economics become much more attractive.
+3. The product
+Build five layers.
+Layer 1 — Energy Data OS
+Connect:
+ smart/advanced meters
+ supplier bills
+ half-hourly consumption
+ tariffs
+ weather
+ site opening hours
+ BMS
+ HVAC
+ refrigeration
+ EV chargers
+ solar
+ batteries.
+The UK already has extensive smart/advanced-meter infrastructure; by June 2026
+there were 42m smart and advanced meters across homes and small businesses,
+although the non-domestic market has its own metering characteristics.
+Layer 2 — AI Energy Brain
+Every site gets a continuously updated model:
+ BUSINESS
+ │
+ ┌─────────┴─────────┐
+
+ Consumption Operations
+
+ └─────────┬─────────┘
+ ↓
+ DIGITAL ENERGY
+ MODEL
+ ↓
+ ┌───────────────────┐
+ AI BRAIN
+ │ Forecast
+ │ Optimise
+ │ Detect anomalies
+ │ Simulate
+ │ Learn
+It learns:
+“This restaurant normally ramps refrigeration at 05:30.”
+“This site is using 18% more electricity than comparable locations.”
+“Tomorrow's forecast suggests shifting EV charging by three hours.”
+4. The three things customer actually buy
+Don't sell AI.
+Sell:
+1. Lower bills
+2. Less management time
+3. New energy revenue
+Everything else supports those three outcomes.
+5. Product modules
+Module A — Energy Intelligence
+Dashboard:
+This month
+Energy spends: £81,420
+Expected spend: £91,600
+Savings: £10,180
+Then explain why.
+Module B — AI Bill Auditor
+Upload invoices.
+AI checks:
+ incorrect charges
+ abnormal consumption
+ tariff discrepancies
+ standing charges
+ meter issues
+ unexpected changes.
+This is a good entry point because it requires almost no hardware.
+Module C — Energy Optimiser
+The system produces actions:
+Move refrigeration defrost cycle from 17:00 → 22:00.
+Pre-heat building at 15:30 rather than 17:00.
+Charge EV fleet between 01:00–04:00.
+Reduce HVAC setpoint by 1°C during low-occupancy period.
+Module D — Autonomous Control
+This is where the product becomes an Operating System rather than analytics.
+With permission:
+AI → API → asset → action
+For example:
+Electricity price forecast
+ ↓
+AI optimisation
+ ↓
+EV fleet
+ ↓
+Charge 23:00–04:00
+ ↓
+£420 estimated monthly saving
+Module E — Flexibility
+Aggregate participating customers' flexible assets.
+Potential assets:
+ batteries
+ EV fleets
+ HVAC
+ refrigeration
+ heat pumps
+ hot water
+ industrial equipment.
+Ofgem has already approved changes intended to reduce barriers to trading
+flexibility from small-business customers; P483 specifically addressed the previous
+half-hourly-settlement barrier for some flexibility arrangements.
+That creates an interesting second revenue stream.
+6. Pricing
+I'd deliberately avoid a complicated energy-industry pricing structure initially.
+Starter
+£99/site/month
+ monitoring
+ AI assistant
+ bill analysis
+ anomaly detection
+ monthly recommendations.
+Optimise
+£199/site/month
+ forecasting
+ tariff optimisation
+ automated recommendations
+ savings measurement
+ integrations.
+Autonomous
+£349/site/month
+ automated controls
+ EV optimisation
+ battery optimisation
+ flexibility participation
+ advanced integrations.
+Plus:
+Performance fee
+15% of verified savings
+And eventually:
+Flexibility revenue
+20–30% platform share
+The exact percentages should be tested rather than treated as fixed assumptions.
+7. The crucial commercial proposition
+Don't say:
+“Our AI can optimise your energy.”
+Say:
+“Give us your energy data. We'll identify what you're wasting, show you the
+financial impact, and automatically fix the problems you approve.”
+Then give the customer a quantified business case.
+Example:
+35-site restaurant group
+Annual energy spent:
+£1.8m
+Potential optimisation:
+8%
+Potential annual saving:
+£144k
+EnerOS fee:
+£25k–£40k
+Customer retains most of the economic benefit.
+That's much easier to sell than "AI software".
+8. £0 → £1m
+Don't start by building the entire OS.
+Phase 1: £0–£100k
+Build:
+AI Energy Audit
+Customer uploads:
+ 12 months of bills
+ meter data
+ opening hours
+ site information.
+You return:
+Energy Savings Report
+ top 10 opportunities
+ abnormal sites
+ tariff issues
+ consumption anomalies
+ estimated savings.
+Charge:
+£500–£2,000 per customer
+or make it free as a sales tool.
+Goal
+20 pilot businesses
+Not 1,000.
+You need the data.
+9. £100k → £1m ARR
+Turn the audit into SaaS.
+Target:
+100 customers × £500 average monthly revenue
+= £50k MRR
+= £600k ARR
+Add performance fees and implementation revenue and you can approach/ surpass
+£1m annual revenue.
+At this stage the key KPI isn't customer count.
+It's:
+Verified annual savings per customer.
+10. £1m → £3m
+Now go after multi-site groups.
+Example:
+Customer Sites
+Customer A 18
+Customer B 42
+Customer C 65
+Customer D 27
+Customer E 100
+Instead of acquiring 252 independent SMEs, you've acquired five enterprise
+relationships.
+This dramatically changes CAC economics.
+Sales team
+At £1m–£3m:
+ 1 founder/CEO
+ 1 enterprise salesperson
+ 2 SDRs
+ 1 energy consultant
+ 3–5 engineers
+ 1 customer success manager.
+11. £3m → £10m
+Now move beyond restaurants.
+Vertical 2
+Retail
+Vertical 3
+Warehousing/logistics
+Vertical 4
+Manufacturing
+Vertical 5
+Care homes / education / commercial property
+You reuse the same underlying platform.
+Only the asset integrations and optimisation models change.
+12. The £10m model
+Here's a plausible illustrative end-state rather than a forecast.
+Customer base
+1,500 business customers
+Average:
+6 sites/customer
+= 9,000 sites
+Average software revenue:
+£350/site/month
+9,000 × £350 × 12
+= £37.8m gross annualised software revenue
+That's already beyond £10m.
+So you don't need 1,500 customers.
+A more conservative £10m target could look like:
+600 customers
+Average:
+5 sites
+= 3,000 sites
+Average:
+£200/site/month
+= £7.2m ARR
+Then:
+£1.5m performance fees
+£1m flexibility/integration revenue
+£0.5m other
+= £10.2m
+That's the model I'd work backwards from.
+13. Target economics
+A good eventual customer could look like:
+20-site customer
+Subscription:
+20 × £200 × 12
+= £48,000/year
+Performance revenue:
+£15,000
+Flexibility:
+£5,000
+Total:
+£68,000 annual revenue/customer
+If CAC is:
+£15k
+then the theoretical revenue payback is attractive.
+But this is precisely where your early pilots need to establish the real numbers.
+14. Your moat
+This is the most important strategic point.
+Don't build a moat around the LLM.
+Someone can copy:
+“Ask our AI why your electricity bill increased.”
+Instead build a moat around the energy operating model.
+After five years you could have:
+3,000 businesses
+15,000 sites
+Billions of energy-data points
+Thousands of equipment configurations
+Millions of optimisation decisions
+That gives you:
+Benchmarking data
+“Your refrigeration load is 24% above comparable sites.”
+Operational intelligence
+“These five conditions predict tomorrow's energy spike.”
+Optimisation models
+“This equipment responds best to this control strategy.”
+Integration moat
+100+ connections to BMS, meters, EV, solar, battery and equipment platforms.
+That is considerably harder to replicate.
+15. The data flywheel
+This is the long-term engine:
+More customers
+ ↓
+More energy data
+ ↓
+Better forecasting
+ ↓
+Better optimisation
+ ↓
+Greater customer savings
+ ↓
+Better retention
+ ↓
+More customers
+ ↓
+More data
+Then add:
+More controllable assets
+ ↓
+More flexibility
+ ↓
+More market revenue
+ ↓
+More customers value
+That's the real business.
+16. Distribution strategy
+I would not start with £1m of paid advertising.
+Use channel partners.
+Energy brokers
+They already have SME relationships.
+Give them:
+“Your customer gets energy procurement + continuous optimisation.”
+You become their technology layer.
+Accountants
+Excellent SME distribution channel.
+Pitch:
+“Help your clients reduce one of their largest controllable operating costs.”
+Facilities-management companies
+Very attractive for multi-site customers.
+HVAC/solar/battery installers
+They install assets.
+You optimise them after installation.
+Energy suppliers
+Potentially later.
+Don't depend on them initially.
+17. The sales funnel
+I'd make the first step almost frictionless.
+Step 1
+Free Energy Health Check
+Customer uploads a bill.
+Step 2
+Connect meter data.
+Step 3
+AI produces:
+Your business appears to have £37,400/year of optimisation opportunity.
+Step 4
+Offer:
+30-day optimisation pilot
+Step 5
+Measure actual savings.
+Step 6
+Convert to annual contract.
+This turns the sales process from:
+“Trust us.”
+into:
+“Here is what we found in your data.”
+18. MVP
+Do not initially build:
+ autonomous HVAC
+ battery trading
+ EV control
+ sophisticated flexibility aggregation
+ giant energy marketplace.
+Build this:
+V1
+Energy Data + AI Auditor + Savings Engine
+Features:
+1. Bill upload
+2. Meter-data ingestion
+3. Consumption visualisation
+4. Tariff analysis
+5. Benchmarking
+6. Anomaly detection
+7. AI recommendations
+8. Savings calculator
+9. Monthly report.
+That's enough to sell.
+19. V2
+Then add:
+Forecasting + optimisation
+Tomorrow:
+Expected consumption: 4,820 kWh
+Expected cost: £1,090
+AI recommendation:
+Shift 640 kWh
+Expected saving:
+£118
+20. V3
+Then:
+Control.
+This is the transition:
+Analytics company
+→
+Energy SaaS
+→
+Energy Operating System
+Once you can automatically control assets, the strategic value of the company
+changes significantly.
+21. Technology stack
+A pragmatic architecture:
+Frontend
+React / Next.js
+Backend
+Python
+Data
+PostgreSQL + time-series database
+AI
+LLM for:
+ explanations
+ natural-language interface
+ document/bill processing
+ workflow generation.
+Traditional ML/optimisation for:
+ load forecasting
+ anomaly detection
+ price forecasting
+ asset optimisation.
+Don't use an LLM to decide whether a battery should charge.
+Use deterministic optimisation/constraint models for that.
+LLM:
+“Explain the decision.”
+Optimisation engine:
+“Make the decision.”
+That's an important architectural distinction.
+22. AI architecture
+ USER
+ │
+ ↓
+ AI COPILOT
+ │
+ ┌──────────┴──────────┐
+ ↓ ↓
+Knowledge layer Optimisation API
+ │ │
+ ↓ ↓
+Energy database Optimisation engine
+ │
+ ↓
+ Control interfaces
+ │
+ ┌────────────┼───────────┐
+ ↓ ↓ ↓
+ HVAC EV Battery
+23. Team required
+£0–£1m
+4–6 people
+Founder/CEO
+Energy/product lead
+2 full stack/data engineers
+ML/optimisation engineer
+Customer success/energy analyst
+£1m–£3m
+10–15
+Add:
+ sales
+ partnerships
+ implementation
+ customer success
+ integrations.
+£3m–£10m
+30–50
+Then build specialised:
+ energy optimisation
+ integrations
+ enterprise sales
+ flexibility
+ customer success
+ finance/operations.
+24. Biggest risks
+Risk 1 — Savings aren't measurable
+Solve with a rigorous baseline.
+Every customer gets:
+Baseline → intervention → measured outcome
+Don't claim savings without methodology.
+Risk 2 — Hardware integration becomes a nightmare
+Don't own hardware initially.
+Build an abstraction layer.
+EnerOS
+ ↓
+Asset API
+ ↓
+Vendor
+A / B / C / D
+Risk 3 — Customers don't want autonomous control
+Start with:
+Recommend
+then:
+Approve
+then:
+Automate
+This creates trust progressively.
+Risk 4 — Energy markets are complicated
+Don't initially become an energy supplier.
+Partner with licensed market participants where necessary.
+Risk 5 — Customers don't care about carbon
+Don't make carbon the primary proposition.
+Lead with:
+Money
+Then:
+carbon + resilience + flexibility
+become additional benefits.
+25. The £10m strategy in one picture
+ £0
+ │
+ ▼
+ AI ENERGY AUDIT
+ │
+ ▼
+ 20 PILOT SITES
+ │
+ ▼
+ ENERGY SaaS
+ │
+ ▼
+ £1m ARR
+ │
+ ▼
+ MULTI-SITE SMEs
+ │
+ ▼
+ £3m ARR
+ │
+ ▼
+ AUTOMATED CONTROL
+ │
+ ▼
+ FLEXIBILITY REVENUE
+ │
+ ▼
+ MULTI-VERTICAL
+ │
+ ▼
+ 3,000 SITES
+ │
+ ▼
+ £10m+
+The strategic thesis
+The strongest version of this company isn't:
+“AI helps SMEs understand their energy.”
+It's:
+“EnerOS is the autonomous energy manager for Britain's small and medium
+businesses.”
+The customer gives it energy data, operating constraints and permission to
+control assets.
+EnerOS then continuously answers four questions:
+What will we consume?
+What will it cost?
+What should we change?
+Can we automatically do it?
+The UK has a particularly useful infrastructure tailwind for this thesis: around 3
+million smaller non-domestic sites are in the smart-meter rollout, while
+government policy is moving toward smart/advanced-meter requirements for new
+fixed-term contracts from September 2027. Ofgem is also building toward marketwide half-hourly settlement, which makes granular consumption data increasingly
+important to the electricity market.
+If I were actually launching this, the next step would be to turn this into a 12-
+month execution plan with the exact MVP, £250k startup budget, first 100
+customers, pricing page, sales funnel, technical architecture and month-bymonth P&L.
