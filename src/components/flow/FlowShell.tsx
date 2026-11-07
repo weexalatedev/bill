@@ -55,7 +55,7 @@ export default function FlowShell({
               </button>
             )}
             <Link href="/" className="flex items-center gap-2.5">
-              <span className="grid h-9 w-9 place-items-center rounded-md bg-gradient-to-b from-ink-800 to-ink-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.18)]">
+              <span className="grid h-9 w-9 place-items-center rounded-md bg-ink-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.18)]">
                 <Zap className="h-[18px] w-[18px] text-white" strokeWidth={2.5} />
               </span>
               <span className="text-sm font-semibold tracking-tight text-ink-900">EnerOS</span>
@@ -77,7 +77,7 @@ export default function FlowShell({
                       done
                         ? 'border-ink-900 bg-white text-ink-900'
                         : active
-                          ? 'border-ink-900 bg-gradient-to-b from-ink-800 to-ink-900 text-white shadow-[0_6px_18px_-10px_rgba(0,0,0,0.8)]'
+                          ? 'border-ink-900 bg-ink-900 text-white shadow-[0_6px_18px_-10px_rgba(0,0,0,0.8)]'
                           : 'border-transparent bg-neutral-100 text-neutral-600',
                     )}
                   >
@@ -111,11 +111,11 @@ export default function FlowShell({
       <main className={cx('mx-auto w-full px-4 py-8 sm:px-6 lg:px-8', wide ? 'max-w-content' : 'max-w-funnel')}>
         <div className="animate-fade-in">
           {eyebrow && (
-            <p className="text-xs font-semibold uppercase tracking-wide text-neutral-600">
+            <p className="text-xs font-semibold tracking-wide text-neutral-600">
               {eyebrow}
             </p>
           )}
-          <h1 className="eos-text-gradient-ink mt-1 text-2xl font-semibold tracking-tight sm:text-[32px]">
+          <h1 className="text-text-1 mt-1 text-2xl font-semibold tracking-tight sm:text-[32px]">
             {title}
           </h1>
           {subtitle && <p className="mt-1.5 max-w-2xl text-sm text-neutral-600">{subtitle}</p>}

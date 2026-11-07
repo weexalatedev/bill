@@ -1,221 +1,62 @@
-/* ------------------------------------------------------------------ *
- * EnerOS — design tokens v2 (Phase 2 input).
- *
- * Direction: exact, calm, quietly alive. The world is meters, switchgear
- * and copper conductor: graphite surfaces, ONE warm metal, a green status
- * lamp. Neutral chrome stays quiet; richness lives in one or two moments
- * per screen.
- *
- * Rules encoded here:
- *   • one accent (copper) — never used for body text on paper
- *   • colour means something: verified / estimated / issue, nothing else
- *   • gradients only on `.eos-moment` surfaces and chart fills
- *   • every text pair meets 4.5:1 on its own surface
- *   • motion is functional and off under prefers-reduced-motion
- * ------------------------------------------------------------------ */
+/* EnerOS design tokens v2 — canonical. Mirrored into src/index.css.
+ * Direction: exact, calm, quietly alive. World: meters, switchgear, copper.
+ * Rule: chrome stays neutral; colour and gradient live in "moments"
+ * (savings hero, main chart, landing scene) and in meaning (verified/estimated/issue).
+ * All text pairs were contrast-checked >= 4.5:1 — scripts/theme-check.tsx recomputes them.
+ */
+@theme {
+  /* Type: one family + mono for figures. Geist arrives via next/font. */
+  --font-sans: var(--font-geist-sans), "Geist", ui-sans-serif, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: var(--font-geist-mono), "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Neutral ramp (graphite, slightly cool). Surfaces, borders, text. */
+  --color-ink-950: #0b0c0d;
+  --color-ink-900: #121314;
+  --color-ink-800: #1b1d1f;
+  --color-ink-700: #2a2d30;
+  --color-paper: #ffffff;
+  --color-surface: #f7f7f6;
+  --color-raised: #ffffff;
+  --color-hairline: rgb(18 19 20 / 0.08);
+  --color-text-1: #121314;
+  --color-text-2: #454545; /* 9.6:1 on white */
+  --color-text-3: #6b6b6b; /* 5.3:1 on white */
+
+  /* One accent: copper. Primary action, selection, the one number that matters. */
+  --color-accent: #b4501f; /* white text on it 5.1:1 */
+  --color-accent-ink: #a8481a; /* accent as text on white 5.8:1 */
+  --color-accent-tint: #fbefe7;
+
+  /* Meaning. Never decoration. */
+  --color-verified: #17663f; /* 7.0:1 on white */
+  --color-verified-tint: #e6f4ec;
+  --color-estimated: #8a5a00; /* 5.9:1 on white */
+  --color-estimated-tint: #fbf1dc;
+  --color-issue: #a3302a; /* 7.0:1 on white */
+  --color-issue-tint: #fbe9e7;
+
+  /* Moment surface (savings hero, landing scene). */
+  --color-moment: #0f1f1a;
+
+  /* Radii: controls 10, cards 16, panels 20. Inner = outer - padding. */
+  --radius-control: 0.625rem;
+  --radius-card: 1rem;
+  --radius-panel: 1.25rem;
+
+  /* Motion: one curve, three durations. */
+  --ease-eos: cubic-bezier(0.22, 1, 0.36, 1);
+  --duration-fast: 120ms;
+  --duration-base: 220ms;
+  --duration-enter: 420ms;
+}
 
 :root {
-  /* Neutrals — unchanged ramp, still the whole chrome. */
-  --ink-950: #0a0a0a;
-  --ink-900: #111111;
-  --ink-800: #1c1c1c;
-  --ink-700: #2a2a2a;
-  --paper: #ffffff;
-  --paper-warm: #faf9f7;
-  --line: #e5e5e5;
-  --line-strong: #d4d4d4;
-
-  /* One warm metal. 600/700 are text-safe on paper; 400/500 are fills only. */
-  --copper-400: #c98a55;
-  --copper-500: #b87333;
-  --copper-600: #9a5a22; /* 4.8:1 on white */
-  --copper-700: #7c4519; /* 6.6:1 on white */
-
-  /* Meaning colours — text-safe on paper, lighter twins for ink surfaces. */
-  --verified-on-paper: #15803d; /* 5.1:1 */
-  --verified-on-ink: #4ade80;
-  --estimated-on-paper: #a34e0a; /* 5.0:1 */
-  --estimated-on-ink: #fbbf24;
-  --issue-on-paper: #b91c1c; /* 5.9:1 */
-  --issue-on-ink: #f87171;
-
-  /* Type. Geist via next/font; the stack degrades without a webfont flash. */
-  --font-sans: var(--font-geist-sans), ui-sans-serif, -apple-system, BlinkMacSystemFont,
-    'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, 'SF Mono', Menlo,
-    Consolas, monospace;
-
-  /* Spacing: 4px grid. Radii: nested radii subtract padding, never add. */
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-6: 24px;
-  --space-8: 32px;
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
-
-  /* Motion. */
-  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-  --dur-fast: 140ms;
-  --dur-base: 240ms;
-  --dur-slow: 520ms;
+  /* Gradients: allowed ONLY on moment surfaces and chart fills. */
+  --eos-moment-gradient:
+    radial-gradient(120% 140% at 0% 0%, #1d4a3a 0%, rgb(29 74 58 / 0) 55%),
+    radial-gradient(90% 120% at 100% 100%, rgb(180 80 31 / 0.38) 0%, rgb(180 80 31 / 0) 60%),
+    linear-gradient(160deg, #0f1f1a 0%, #0b1512 100%);
+  --eos-chart-fill: linear-gradient(180deg, rgb(180 80 31 / 0.28) 0%, rgb(180 80 31 / 0) 100%);
+  --eos-verified-fill: linear-gradient(180deg, rgb(23 102 63 / 0.22) 0%, rgb(23 102 63 / 0) 100%);
+  --eos-card-shadow: 0 1px 0 rgb(255 255 255 / 0.9) inset, 0 8px 24px -16px rgb(18 19 20 / 0.28);
 }
-
-/* ── Moments: the only surfaces allowed a gradient ──────────────────── */
-
-/* Verified savings hero — deep bottle green with copper light from top-left. */
-.eos-moment {
-  position: relative;
-  isolation: isolate;
-  color: #f5f2ee;
-  background:
-    radial-gradient(120% 140% at 0% 0%, rgba(201, 138, 85, 0.35) 0%, rgba(201, 138, 85, 0) 55%),
-    radial-gradient(90% 120% at 100% 100%, rgba(21, 128, 61, 0.28) 0%, rgba(21, 128, 61, 0) 60%),
-    linear-gradient(155deg, #0d1f17 0%, #10281c 52%, #143023 100%);
-  border: 1px solid rgba(201, 138, 85, 0.25);
-}
-
-/* A quieter moment for secondary highlights (never two per screen). */
-.eos-moment-soft {
-  position: relative;
-  isolation: isolate;
-  color: #14110e;
-  background:
-    radial-gradient(110% 130% at 0% 0%, rgba(201, 138, 85, 0.16) 0%, rgba(201, 138, 85, 0) 60%),
-    linear-gradient(160deg, #fbf8f4 0%, #f6f1ea 100%);
-  border: 1px solid rgba(154, 90, 34, 0.2);
-}
-
-/* Hairline sheen along the top edge of a moment. */
-.eos-moment::after {
-  content: '';
-  position: absolute;
-  inset: 0 0 auto 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
-  pointer-events: none;
-}
-
-/* Chart fills — the only other place a gradient may appear. */
-.eos-chart-fill-accent {
-  background: linear-gradient(180deg, rgba(201, 138, 85, 0.35) 0%, rgba(201, 138, 85, 0) 100%);
-}
-
-.eos-chart-fill-neutral {
-  background: linear-gradient(180deg, rgba(17, 17, 17, 0.14) 0%, rgba(17, 17, 17, 0) 100%);
-}
-
-/* ── Evidence mark ───────────────────────────────────────────────────────
- * The product's signature: a dot beside every £ figure.
- *   filled green  → verified (the calculation can be shown from their data)
- *   hollow amber  → estimated (a model or a reference rate is doing the work)
- *   hollow red    → issue (a finding or an unreconciled figure)
- * 8px dot, 2px gap, always with a text label in the tooltip/aria-label.
- * -------------------------------------------------------------------- */
-.eos-evidence {
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 9999px;
-  flex: none;
-  vertical-align: middle;
-}
-
-.eos-evidence--verified {
-  background: var(--verified-on-paper);
-  box-shadow: 0 0 0 2px rgba(21, 128, 61, 0.15);
-}
-
-.eos-evidence--estimated {
-  border: 2px solid var(--estimated-on-paper);
-  background: transparent;
-}
-
-.eos-evidence--issue {
-  border: 2px solid var(--issue-on-paper);
-  background: transparent;
-}
-
-/* On ink/moment surfaces the twin tokens take over. */
-.eos-moment .eos-evidence--verified { background: var(--verified-on-ink); }
-.eos-moment .eos-evidence--estimated { border-color: var(--estimated-on-ink); }
-.eos-moment .eos-evidence--issue { border-color: var(--issue-on-ink); }
-
-/* ── Liveliness: functional only ─────────────────────────────────────── */
-
-/* One entrance per page, staggered by --i (0,1,2…). */
-@keyframes eos-rise {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.eos-rise {
-  animation: eos-rise var(--dur-slow) var(--ease-out) both;
-  animation-delay: calc(var(--i, 0) * 60ms);
-}
-
-/* A breathing dot — ONLY where data is genuinely live. */
-@keyframes eos-live {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.45; transform: scale(0.86); }
-}
-
-.eos-live-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 9999px;
-  background: var(--verified-on-paper);
-  animation: eos-live 2.4s ease-in-out infinite;
-}
-
-.eos-moment .eos-live-dot { background: var(--verified-on-ink); }
-
-/* Chart draw-in and number tweens are driven by the chart lib / JS; the CSS
- * contract is only that both honour prefers-reduced-motion. */
-
-/* Hover lift: 2px maximum, no shadow bloom. */
-.eos-hover-lift {
-  transition: transform var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out);
-}
-
-.eos-hover-lift:hover {
-  transform: translateY(-2px);
-}
-
-/* Skeletons. */
-@keyframes eos-shimmer {
-  from { background-position: -200% 0; }
-  to { background-position: 200% 0; }
-}
-
-.eos-skeleton {
-  background: linear-gradient(90deg, #f2f2f2 0%, #e8e8e8 40%, #f2f2f2 80%);
-  background-size: 200% 100%;
-  animation: eos-shimmer 1.4s linear infinite;
-  border-radius: var(--radius-sm);
-}
-
-/* ── Accessibility: everything above off when asked ──────────────────── */
-@media (prefers-reduced-motion: reduce) {
-  .eos-rise,
-  .eos-live-dot,
-  .eos-skeleton {
-    animation: none;
-  }
-
-  .eos-hover-lift:hover {
-    transform: none;
-  }
-}
-
-/* ── Rules the theme check must enforce (Phase 2) ─────────────────────
- *  1. no `bg-gradient-*` / `from-*` / `via-*` / `to-*` outside .eos-moment*
- *     and the two .eos-chart-fill-* helpers
- *  2. every text/background pair >= 4.5:1 (3:1 for >= 24px or >= 18.66px bold)
- *  3. no emoji, no exclamation marks in UI copy
- *  4. no `uppercase tracking-*` labels
- *  5. no `transition-all`
- *  6. `prefers-reduced-motion` block present and covering every animation
- * -------------------------------------------------------------------- */

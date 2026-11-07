@@ -30,7 +30,7 @@ export default function BrandPanel({ cap }: { cap: CapSummary | null }) {
       </Link>
 
       <div className="mt-10 max-w-lg lg:mt-0">
-        <h2 className="eos-text-gradient-light text-[28px] font-semibold leading-[1.15] tracking-tight sm:text-[34px]">
+        <h2 className="text-[#f5f5f4] text-[28px] font-semibold leading-[1.15] tracking-tight sm:text-[34px]">
           Every invoice checked.
           <br />
           Every tariff questioned.
@@ -64,7 +64,7 @@ export default function BrandPanel({ cap }: { cap: CapSummary | null }) {
       <div className="mt-10 space-y-5 lg:mt-0">
         {cap && (
           <div className="border-t border-white/15 pt-5">
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">
+            <p className="text-[11px] font-semibold tracking-wide text-neutral-500">
               Domestic reference · {cap.label}
             </p>
             <p className="mt-2 text-3xl font-semibold tracking-tight tabular-nums">

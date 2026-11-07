@@ -131,7 +131,7 @@ export default function Settings() {
         </div>
         <div className="flex items-end gap-2">
           <label className="block">
-            <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-neutral-600">
+            <span className="mb-1.5 block text-xs font-semibold tracking-wide text-neutral-600">
               Site
             </span>
             <select

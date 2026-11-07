@@ -39,17 +39,47 @@ interface NavItem {
  * (invoices), understand (analysis), organise (sites), measure (data), price
  * (live market), ask (copilot), and administer.
  */
-const NAV: NavItem[] = [
-  { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { to: '/optimiser', label: 'Savings', icon: TrendingDown },
-  { to: '/bills', label: 'Invoices', icon: Receipt, badge: 'issues' },
-  { to: '/analysis', label: 'Smart Analysis', icon: ScanSearch },
-  { to: '/sites', label: 'Sites', icon: Building2 },
-  { to: '/data', label: 'Meter data', icon: Database },
-  { to: '/live', label: 'Live market', icon: Activity },
-  { to: '/copilot', label: 'Copilot', icon: MessageSquare },
-  { to: '/subscription', label: 'Subscription', icon: CreditCard },
-  { to: '/settings', label: 'Settings', icon: SettingsIcon },
+interface NavGroup {
+  label: string;
+  items: NavItem[];
+}
+
+/**
+ * Grouped the way the product is used: the loop (overview, savings), the money
+ * (bills and their analysis), operations (sites, devices, data, market), then
+ * the assistant and the account. Four groups beat ten flat rows.
+ */
+const NAV_GROUPS: NavGroup[] = [
+  {
+    label: 'Overview',
+    items: [
+      { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+      { to: '/optimiser', label: 'Savings', icon: TrendingDown },
+    ],
+  },
+  {
+    label: 'Money',
+    items: [
+      { to: '/bills', label: 'Invoices', icon: Receipt, badge: 'issues' },
+      { to: '/analysis', label: 'Smart Analysis', icon: ScanSearch },
+    ],
+  },
+  {
+    label: 'Operations',
+    items: [
+      { to: '/sites', label: 'Sites', icon: Building2 },
+      { to: '/data', label: 'Meter data', icon: Database },
+      { to: '/live', label: 'Live market', icon: Activity },
+    ],
+  },
+  {
+    label: 'Account',
+    items: [
+      { to: '/copilot', label: 'Copilot', icon: MessageSquare },
+      { to: '/subscription', label: 'Subscription', icon: CreditCard },
+      { to: '/settings', label: 'Settings', icon: SettingsIcon },
+    ],
+  },
 ];
 
 const PAGE_META: Record<string, { title: string; subtitle: string }> = {
@@ -161,43 +191,49 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       </div>
 
       <nav className="flex-1 space-y-0.5 px-3">
-        {NAV.map((item) => {
-          const Icon = item.icon;
-          const count = item.badge ? badgeCount[item.badge] : undefined;
-          const isActive =
-            item.to === '/' ? pathname === '/' : pathname.startsWith(item.to);
-          return (
-            <Link
-              key={item.to}
-              href={item.to}
-              onClick={() => setMobileOpen(false)}
-              className={cx(
-                'group flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
-                isActive
-                  ? 'bg-white font-semibold text-ink-900'
-                  : 'font-medium text-neutral-400 hover:bg-white/10 hover:text-white',
-              )}
-            >
-              <Icon
-                className={cx(
-                  'h-[18px] w-[18px]',
-                  isActive ? 'text-ink-900' : 'text-neutral-500 group-hover:text-white',
-                )}
-              />
-              <span className="flex-1">{item.label}</span>
-              {count !== undefined && count > 0 && (
-                <span
+        {NAV_GROUPS.map((group) => (
+          <div key={group.label} className="mb-1">
+            <p className="px-3 pb-1 pt-2 text-[11px] font-medium text-neutral-500">
+              {group.label}
+            </p>
+            {group.items.map((item) => {
+              const Icon = item.icon;
+              const count = item.badge ? badgeCount[item.badge] : undefined;
+              const isActive = pathname === item.to || pathname.startsWith(`${item.to}/`);
+              return (
+                <Link
+                  key={item.to}
+                  href={item.to}
+                  onClick={() => setMobileOpen(false)}
                   className={cx(
-                    'rounded px-1.5 py-0.5 text-[11px] font-semibold tabular-nums',
-                    isActive ? 'bg-ink-900 text-white' : 'bg-white/10 text-neutral-300',
+                    'group flex items-center gap-3 rounded-[var(--radius-control)] px-3 py-2 text-sm transition-colors',
+                    isActive
+                      ? 'bg-white font-semibold text-ink-900'
+                      : 'font-medium text-neutral-400 hover:bg-white/10 hover:text-white',
                   )}
                 >
-                  {count}
-                </span>
-              )}
-            </Link>
-          );
-        })}
+                  <Icon
+                    className={cx(
+                      'h-[18px] w-[18px]',
+                      isActive ? 'text-ink-900' : 'text-neutral-500 group-hover:text-white',
+                    )}
+                  />
+                  <span className="flex-1">{item.label}</span>
+                  {count !== undefined && count > 0 && (
+                    <span
+                      className={cx(
+                        'rounded px-1.5 py-0.5 text-[11px] font-semibold tabular-nums',
+                        isActive ? 'bg-accent text-white' : 'bg-white/10 text-neutral-300',
+                      )}
+                    >
+                      {count}
+                    </span>
+                  )}
+                </Link>
+              );
+            })}
+          </div>
+        ))}
       </nav>
     </div>
   );
@@ -354,7 +390,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
       {toast && (
         <div className="fixed bottom-5 left-1/2 z-50 w-[min(92vw,26rem)] -translate-x-1/2 animate-fade-in">
-          <div className="flex items-start gap-3 rounded-lg bg-ink-900 px-4 py-3 text-sm text-white shadow-xl shadow-neutral-900/20">
+          <div className="flex items-start gap-3 rounded-lg bg-accent px-4 py-3 text-sm text-white shadow-xl shadow-neutral-900/20">
             <Info className="mt-0.5 h-4 w-4 shrink-0 text-neutral-500" />
             <p className="flex-1">{toast}</p>
           </div>

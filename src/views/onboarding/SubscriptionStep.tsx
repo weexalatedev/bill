@@ -116,7 +116,7 @@ export default function SubscriptionStep() {
           <Card>
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-neutral-600">Plan</p>
+                <p className="text-xs font-semibold tracking-wide text-neutral-600">Plan</p>
                 <p className="mt-1 text-lg font-semibold text-ink-900">{order.planName}</p>
                 <p className="text-xs text-neutral-600">
                   {order.sites} site{order.sites > 1 ? 's' : ''} × £{order.pricePerSite}/site/{order.billingPeriod === 'annual' ? 'year' : 'month'}
@@ -151,7 +151,7 @@ export default function SubscriptionStep() {
             type="button"
             onClick={goToPayment}
             disabled={paying}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-ink-900 px-4 py-3 text-sm font-semibold text-white hover:bg-ink-800 disabled:opacity-60"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-3 text-sm font-semibold text-white hover:bg-[#9c4419] disabled:opacity-60"
           >
             {paying ? <Loader2 className="h-4 w-4 animate-spin" /> : <Lock className="h-4 w-4" />}
             Continue to payment
@@ -217,7 +217,7 @@ export default function SubscriptionStep() {
                 onClick={() => setBillingPeriod(period)}
                 className={
                   billingPeriod === period
-                    ? 'rounded-md bg-ink-900 px-4 py-2 text-sm font-semibold text-white'
+                    ? 'rounded-md bg-accent px-4 py-2 text-sm font-semibold text-white'
                     : 'rounded-md border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700'
                 }
               >

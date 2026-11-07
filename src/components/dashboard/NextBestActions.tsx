@@ -74,7 +74,7 @@ export default function NextBestActions({ onOpenTab }: { onOpenTab: (tab: Dashbo
   return (
     <div className="eos-ink-panel flex h-full flex-col justify-between rounded-xl border border-ink-800 p-5 text-white">
       <div>
-        <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-neutral-300">
+        <p className="flex items-center gap-2 text-[11px] font-semibold tracking-wide text-neutral-300">
           <Sparkles className="h-3.5 w-3.5" /> Next best actions
         </p>
 

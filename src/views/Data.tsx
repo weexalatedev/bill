@@ -130,7 +130,7 @@ export default function Data() {
       {/* Site + data quality */}
       <Card className="flex flex-wrap items-end justify-between gap-4">
         <label className="block">
-          <span className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-neutral-600">
+          <span className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold tracking-wide text-neutral-600">
             <PlugZap className="h-3.5 w-3.5" /> Site with meter data
           </span>
           <select

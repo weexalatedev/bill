@@ -61,7 +61,7 @@ export default function SubscriptionSummary() {
       </div>
 
       {atCap && (
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-neutral-200 bg-gradient-to-b from-neutral-50 to-white px-3 py-2.5">
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-neutral-200 bg-surface px-3 py-2.5">
           <p className="text-xs text-neutral-700">
             You have reached the maximum number of sites allowed in your current subscription.
           </p>

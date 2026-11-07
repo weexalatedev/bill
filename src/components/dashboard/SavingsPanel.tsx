@@ -167,7 +167,7 @@ export default function SavingsPanel() {
                   <button
                     type="button"
                     onClick={() => void recoverInvoice(invoice.id)}
-                    className="inline-flex items-center gap-1 rounded-md bg-ink-900 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-ink-800"
+                    className="inline-flex items-center gap-1 rounded-md bg-accent px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-[#9c4419]"
                   >
                     Challenge
                   </button>
@@ -196,7 +196,7 @@ export default function SavingsPanel() {
                 onClick={() => void setControlMode(mode)}
                 className={
                   controlMode === mode
-                    ? 'w-full rounded-lg border border-ink-900 bg-ink-900 px-3 py-2 text-left text-white'
+                    ? 'w-full rounded-lg border border-ink-900 bg-accent px-3 py-2 text-left text-white'
                     : 'w-full rounded-lg border border-neutral-200 px-3 py-2 text-left hover:border-neutral-300 hover:bg-neutral-50'
                 }
               >
@@ -218,8 +218,8 @@ export default function SavingsPanel() {
           </p>
         </Card>
 
-        <Card className="bg-gradient-to-b from-neutral-50 to-white">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-600">Pipeline</p>
+        <Card className="bg-surface">
+          <p className="text-[11px] font-semibold tracking-wide text-neutral-600">Pipeline</p>
           <div className="mt-2 space-y-3 text-sm">
             {[
               ['Awaiting approval', awaiting, 'outline' as const],

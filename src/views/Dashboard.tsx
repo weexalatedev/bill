@@ -21,6 +21,7 @@ import SavingsPanel from '../components/dashboard/SavingsPanel';
 import DevicesPanel from '../components/dashboard/DevicesPanel';
 import DataPanel from '../components/dashboard/DataPanel';
 import NextBestActions from '../components/dashboard/NextBestActions';
+import EvidenceMark from '../components/EvidenceMark';
 import { compactGbp, gbp, pct, share, signedGbp } from '../lib/format';
 
 function SpendTooltip({
@@ -104,16 +105,10 @@ export default function Dashboard() {
           {account.name} · {account.sites} site{account.sites === 1 ? '' : 's'}
           {latestPeriod ? ` · latest bill ${latestPeriod}` : ' · no bills yet'}
         </p>
-        <p className="flex items-center gap-3 text-xs text-neutral-700">
-          <span className="flex items-center gap-1.5">
-            <span className="eos-evidence eos-evidence--verified" aria-hidden /> Verified
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="eos-evidence eos-evidence--estimated" aria-hidden /> Estimated
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="eos-evidence eos-evidence--issue" aria-hidden /> Issue
-          </span>
+        <p className="flex items-center gap-4 text-xs text-text-2">
+          <EvidenceMark state="verified" label />
+          <EvidenceMark state="estimated" label />
+          <EvidenceMark state="issue" label />
         </p>
       </div>
 
@@ -163,7 +158,7 @@ export default function Dashboard() {
                 <span className="h-2.5 w-2.5 rounded-full bg-neutral-300" /> Expected
               </span>
               <span className="flex items-center gap-1.5 text-neutral-600">
-                <span className="h-2.5 w-2.5 rounded-full bg-neutral-900" /> Actual
+                <span className="h-2.5 w-2.5 rounded-full bg-accent" /> Actual
               </span>
             </div>
           }
@@ -173,8 +168,8 @@ export default function Dashboard() {
             <AreaChart data={monthly} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
               <defs>
                 <linearGradient id="actualFill" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#0a0a0a" stopOpacity={0.35} />
-                  <stop offset="95%" stopColor="#0a0a0a" stopOpacity={0} />
+                  <stop offset="5%" stopColor="#b4501f" stopOpacity={0.28} />
+                  <stop offset="95%" stopColor="#b4501f" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e5e5" vertical={false} />
@@ -206,7 +201,7 @@ export default function Dashboard() {
                 type="monotone"
                 dataKey="actual"
                 name="Actual"
-                stroke="#0a0a0a"
+                stroke="#b4501f"
                 strokeWidth={2.5}
                 fill="url(#actualFill)"
               />

@@ -168,7 +168,7 @@ export default function PaymentStatus() {
           {outcome === 'success' && (
             <Link
               href="/dashboard"
-              className="inline-flex items-center gap-2 rounded-md bg-ink-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-ink-800"
+              className="inline-flex items-center gap-2 rounded-md bg-accent px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#9c4419]"
             >
               Open your dashboard <ArrowRight className="h-4 w-4" />
             </Link>
@@ -178,7 +178,7 @@ export default function PaymentStatus() {
               type="button"
               onClick={retry}
               disabled={retrying}
-              className="inline-flex items-center gap-2 rounded-md bg-ink-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-ink-800 disabled:opacity-60"
+              className="inline-flex items-center gap-2 rounded-md bg-accent px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#9c4419] disabled:opacity-60"
             >
               {retrying ? <Loader2 className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />}
               Retry payment

@@ -229,7 +229,7 @@ function DeviceCard({
             <PlugZap className="h-5 w-5" />
           </span>
           <div>
-            <p className="text-xs uppercase tracking-wide text-neutral-600">{title}</p>
+            <p className="text-xs tracking-wide text-neutral-600">{title}</p>
             <p className="text-sm font-semibold text-neutral-900">{product}</p>
           </div>
         </div>

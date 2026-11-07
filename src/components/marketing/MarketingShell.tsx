@@ -89,7 +89,7 @@ export default function MarketingShell({ children }: { children: React.ReactNode
                 </Link>
                 <Link
                   href="/start"
-                  className="flex-1 rounded-md bg-ink-900 px-3 py-2 text-center text-sm font-semibold text-white"
+                  className="flex-1 rounded-md bg-accent px-3 py-2 text-center text-sm font-semibold text-white"
                 >
                   Get started
                 </Link>
@@ -101,7 +101,7 @@ export default function MarketingShell({ children }: { children: React.ReactNode
 
       <main>{children}</main>
 
-      <footer id="contact" className="border-t border-neutral-200 bg-gradient-to-b from-neutral-50 to-white">
+      <footer id="contact" className="border-t border-neutral-200 bg-surface">
         <div className="mx-auto grid max-w-content gap-8 px-4 py-12 sm:px-6 lg:px-8 md:grid-cols-4">
           <div className="md:col-span-2">
             <div className="flex items-center gap-2">
@@ -125,7 +125,7 @@ export default function MarketingShell({ children }: { children: React.ReactNode
           </div>
 
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-neutral-600">Product</p>
+            <p className="text-xs font-semibold tracking-wide text-neutral-600">Product</p>
             <ul className="mt-3 space-y-2 text-sm text-neutral-600">
               <li><Link href="/features" className="hover:text-neutral-900">Features</Link></li>
               <li><Link href="/pricing" className="hover:text-neutral-900">Pricing</Link></li>
@@ -136,7 +136,7 @@ export default function MarketingShell({ children }: { children: React.ReactNode
           </div>
 
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-neutral-600">Account</p>
+            <p className="text-xs font-semibold tracking-wide text-neutral-600">Account</p>
             <ul className="mt-3 space-y-2 text-sm text-neutral-600">
               <li><Link href="/sign-in" className="hover:text-neutral-900">Login</Link></li>
               <li><Link href="/sign-up" className="hover:text-neutral-900">Create an account</Link></li>

@@ -174,7 +174,7 @@ export default function BillCheckFlow() {
         <AuditResult
           audit={audit}
           footer={
-            <Card tone="ink" className="eos-aura overflow-hidden">
+            <Card tone="ink" className="overflow-hidden">
               <p className="flex items-center gap-2 text-sm font-semibold">
                 <PiggyBank className="h-4 w-4 text-neutral-300" />
                 {canSave(audit)
@@ -363,7 +363,7 @@ function AccountStep({ audit, onBack }: { audit: AuditView; onBack: () => void }
   const canSaveMoney = saving !== null && saving > 0.5;
   return (
     <div className="space-y-4">
-      <Card tone="ink" className="eos-aura overflow-hidden">
+      <Card tone="ink" className="overflow-hidden">
         <span className="grid h-12 w-12 place-items-center rounded-xl bg-white/10 text-white">
           <PiggyBank className="h-6 w-6" />
         </span>

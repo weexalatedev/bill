@@ -75,7 +75,7 @@ export default function ManageSubscription() {
         <p className="mt-1 text-xs text-neutral-600">{error ?? 'Choose a plan to get started.'}</p>
         <Link
           href="/onboarding/subscription"
-          className="mt-4 inline-flex rounded-md bg-ink-900 px-4 py-2 text-sm font-semibold text-white"
+          className="mt-4 inline-flex rounded-md bg-accent px-4 py-2 text-sm font-semibold text-white"
         >
           Choose a plan
         </Link>
@@ -202,7 +202,7 @@ export default function ManageSubscription() {
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead>
-                <tr className="border-b border-neutral-200 text-xs uppercase tracking-wide text-neutral-600">
+                <tr className="border-b border-neutral-200 text-xs tracking-wide text-neutral-600">
                   <th className="py-2 pr-4 font-medium">Date</th>
                   <th className="py-2 pr-4 font-medium">Plan</th>
                   <th className="py-2 pr-4 font-medium">Description</th>

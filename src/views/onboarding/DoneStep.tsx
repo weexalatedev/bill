@@ -21,7 +21,7 @@ export default function DoneStep({
 }) {
   return (
     <div className="space-y-4">
-      <Card tone="ink" className="eos-aura overflow-hidden">
+      <Card tone="ink" className="overflow-hidden">
         <span className="grid h-12 w-12 place-items-center rounded-xl bg-white/10 text-white">
           <CheckCircle2 className="h-6 w-6" />
         </span>

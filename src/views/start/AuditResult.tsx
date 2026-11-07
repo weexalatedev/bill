@@ -64,16 +64,16 @@ export default function AuditResult({
 
   return (
     <div className="space-y-4">
-      <Card tone="ink" className="eos-aura overflow-hidden sm:p-7">
+      <Card tone="ink" className="overflow-hidden sm:p-7">
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_17rem] lg:items-start">
           <div className="min-w-0">
-            <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-neutral-300">
+            <p className="flex items-center gap-2 text-[11px] font-semibold tracking-wide text-neutral-300">
               <Receipt className="h-3.5 w-3.5" /> Your audit
             </p>
             {canSave ? (
               <>
                 <p className="mt-3 text-sm text-neutral-300">You could save</p>
-                <p className="eos-text-gradient-light mt-1 flex items-baseline gap-3 text-6xl font-semibold tracking-tight tabular-nums">
+                <p className="text-[#f5f5f4] mt-1 flex items-baseline gap-3 text-6xl font-semibold tracking-tight tabular-nums">
                   {gbp(saving)}
                   <EvidenceMark
                     state="estimated"
@@ -125,14 +125,14 @@ export default function AuditResult({
               <p className="text-2xl font-semibold tracking-tight text-white tabular-nums">
                 {audit.score}
               </p>
-              <p className="text-[10px] uppercase tracking-wider text-neutral-300">score</p>
+              <p className="text-[10px] tracking-wide text-neutral-300">score</p>
             </div>
 
             {actual !== null && expected !== null && (
               <div className="flex-1 rounded-xl border border-white/15 bg-white/5 px-4 py-3 backdrop-blur">
-                <p className="text-[10px] uppercase tracking-wider text-neutral-300">You paid</p>
+                <p className="text-[10px] tracking-wide text-neutral-300">You paid</p>
                 <p className="text-lg font-semibold tabular-nums text-white">{gbp(actual)}</p>
-                <p className="mt-2 text-[10px] uppercase tracking-wider text-neutral-300">
+                <p className="mt-2 text-[10px] tracking-wide text-neutral-300">
                   UK median
                 </p>
                 <p className="text-lg font-semibold tabular-nums text-neutral-200">

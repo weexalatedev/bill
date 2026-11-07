@@ -252,7 +252,7 @@ export default function Bills() {
           </div>
           <div className="overflow-x-auto mt-2">
             <table className="w-full border-collapse text-sm">
-              <thead><tr className="border-y border-neutral-100 bg-neutral-50/70 text-left text-xs uppercase tracking-wide text-neutral-600"><th className="px-4 py-2.5 font-semibold">Invoice</th><th className="px-4 py-2.5 font-semibold">Site</th><th className="px-4 py-2.5 font-semibold">Consumption</th><th className="px-4 py-2.5 font-semibold">Unit rate</th><th className="px-4 py-2.5 text-right font-semibold">Total</th><th className="px-4 py-2.5 font-semibold">Status</th></tr></thead>
+              <thead><tr className="border-y border-neutral-100 bg-neutral-50/70 text-left text-xs tracking-wide text-neutral-600"><th className="px-4 py-2.5 font-semibold">Invoice</th><th className="px-4 py-2.5 font-semibold">Site</th><th className="px-4 py-2.5 font-semibold">Consumption</th><th className="px-4 py-2.5 font-semibold">Unit rate</th><th className="px-4 py-2.5 text-right font-semibold">Total</th><th className="px-4 py-2.5 font-semibold">Status</th></tr></thead>
               <tbody>
                 {filtered.map((inv) => {
                   const site = getSiteById(inv.siteId);
@@ -277,7 +277,7 @@ export default function Bills() {
             <>
               <div className="flex items-start justify-between gap-3 px-4 pt-3 pb-1">
                 <div>
-                  <p className="text-xs uppercase tracking-wide text-neutral-600">Invoice detail</p>
+                  <p className="text-xs tracking-wide text-neutral-600">Invoice detail</p>
                   <p className="text-lg font-semibold text-neutral-900">{selected.id}</p>
                   <p className="text-xs text-neutral-600">{getSiteById(selected.siteId)?.name} · {selected.period}</p>
                 </div>

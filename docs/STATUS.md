@@ -207,3 +207,22 @@ so a client can never mislabel a figure.
 
 **Phase 1 check results:** `verify:theme` 20/20 · `smoke` 24/24 · `verify:billing` 19/19 ·
 `next build` clean · browser Phase 1 run **14/14**.
+
+---
+
+## 9. Phase 2 — design system v2 (landed)
+
+| Item | Change | Verified by |
+| --- | --- | --- |
+| Tokens | `design/eneros-tokens.css` is the canonical file; mirrored into `src/index.css` (graphite ramp, one copper accent, verified/estimated/issue, moment surface, radii 10/16/20, one easing curve) | theme check parses the tokens and recomputes 18 contrast pairs |
+| Type | Geist + Geist Mono via `next/font/google` (self-hosted at build; no runtime request) | browser reports `Geist` as the body family; `.next/static/media` holds the woff2 files |
+| Components | `ui.tsx`: tones gain `verified`, `estimated`, `issue`, `accent`; `Card` uses `.eos-card` (16px, soft token shadow); `StatCard` figures are mono/tabular with sentence-case labels; `ProgressBar` uses the accent and only animates width | rendered-primitive assertions in the theme check |
+| Evidence mark | `.eos-evidence[data-state]` dot: filled green = verified, hollow amber = estimated, ring red = issue; `EvidenceMark` + `Money` use it, with the drawer holding inputs, arithmetic and source | 7 marks on the dashboard; drawer opens with “Baseline £91,600 · Actual £81,420 · Source: your invoices” |
+| Moments | The savings hero is the one moment per screen: bottle-green gradient with copper light, translucent tiles; the audit hero uses the same surface; the spend chart carries the copper fill and line | `eos-moment` computed with a gradient; browser AA sweep passes on landing, dashboard and audit |
+| Rules enforced | No uppercase labels (96 removed), no utility gradients outside moments/chart fills, no `transition-all`, no retired helpers, no emoji; `prefers-reduced-motion` covers every animation | `npm run verify:theme` — **39/39** |
+| Shell | Sidebar regrouped into Overview / Money / Operations / Account; the four `/dashboard/*` alias routes deleted (D9) | build lists no alias routes; tsc clean after clearing stale `.next` types |
+
+**Still open in Phase 2 (not claimed):** Invoices and Smart Analysis are still two pages (the spec folds analysis into Invoices);
+`EmptyState`/`Skeleton`/`ErrorState` are not yet on every widget; number tweens and the chart draw-in class are not
+applied to live charts; row heights and icon sizing in the sidebar are approximate; the mobile app still uses its own
+`theme.ts`.

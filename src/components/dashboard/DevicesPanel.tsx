@@ -73,7 +73,7 @@ export default function DevicesPanel() {
 
   return (
     <div className="space-y-4">
-      <Card className="bg-gradient-to-b from-neutral-50 to-white">
+      <Card className="bg-surface">
         <SectionHeading
           title="Devices & connections"
           subtitle="What is wired up today. A device turns a bill-only site into a measured one."
@@ -157,7 +157,7 @@ export default function DevicesPanel() {
 
               {site.loads.length > 0 && (
                 <div className="mt-3 flex flex-wrap items-center gap-1.5">
-                  <span className="text-[11px] uppercase tracking-wider text-neutral-600">Loads</span>
+                  <span className="text-[11px] tracking-wide text-neutral-600">Loads</span>
                   {site.loads.slice(0, 6).map((load) => (
                     <Badge key={load} tone="muted">
                       {load}

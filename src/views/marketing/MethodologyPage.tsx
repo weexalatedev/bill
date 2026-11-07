@@ -32,10 +32,10 @@ const CHECKS = [
 export default function MethodologyPage() {
   return (
     <>
-      <section className="eos-aura relative overflow-hidden border-b border-neutral-200">
+      <section className="relative overflow-hidden border-b border-neutral-200">
         <div className="mx-auto max-w-content px-4 py-14 sm:px-6 lg:px-8">
-          <p className="text-xs font-semibold uppercase tracking-wide text-neutral-600">Methodology</p>
-          <h1 className="eos-text-gradient-ink mt-2 max-w-3xl text-4xl font-semibold leading-tight tracking-tight sm:text-5xl">
+          <p className="text-xs font-semibold tracking-wide text-neutral-600">Methodology</p>
+          <h1 className="text-text-1 mt-2 max-w-3xl text-4xl font-semibold leading-tight tracking-tight sm:text-5xl">
             How we check a bill, and what we refuse to claim.
           </h1>
           <p className="mt-4 max-w-2xl text-sm leading-relaxed text-neutral-700">
@@ -67,7 +67,7 @@ export default function MethodologyPage() {
             </p>
             <ul className="mt-3 space-y-2 text-sm text-neutral-700">
               <li className="flex items-start gap-2">
-                <span className="mt-1.5 eos-evidence eos-evidence--verified" aria-hidden />
+                <span className="mt-1.5 eos-evidence" data-state="verified" aria-hidden />
                 <span>
                   <strong>Verified</strong> — every input comes from your own documents and the
                   calculation is shown. A savings figure is signed off as verified only when it is
@@ -75,14 +75,14 @@ export default function MethodologyPage() {
                 </span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="mt-1.5 eos-evidence eos-evidence--estimated" aria-hidden />
+                <span className="mt-1.5 eos-evidence" data-state="estimated" aria-hidden />
                 <span>
                   <strong>Estimated</strong> — a model, a schedule change or a published reference
                   rate is doing part of the work. Useful, clearly not money in the bank.
                 </span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="mt-1.5 eos-evidence eos-evidence--issue" aria-hidden />
+                <span className="mt-1.5 eos-evidence" data-state="issue" aria-hidden />
                 <span>
                   <strong>Issue</strong> — a finding: money we believe is wrong until you recover
                   it or the supplier explains it.
@@ -111,7 +111,7 @@ export default function MethodologyPage() {
             </ul>
             <Link
               href="/start"
-              className="mt-4 inline-flex items-center gap-1.5 rounded-md bg-ink-900 px-4 py-2 text-sm font-semibold text-white hover:bg-ink-800"
+              className="mt-4 inline-flex items-center gap-1.5 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-white hover:bg-[#9c4419]"
             >
               Check a bill against this <ArrowRight className="h-4 w-4" />
             </Link>

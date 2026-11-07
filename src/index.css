@@ -1,41 +1,62 @@
 @import 'tailwindcss';
 
 /* ------------------------------------------------------------------ *
- * EnerOS design tokens — monochrome.
+ * EnerOS design tokens v2 — mirrored from design/eneros-tokens.css.
  *
- * One ink, one paper, and a neutral grey ramp in between. There is no
- * accent colour: hierarchy is carried by weight, scale, rules and black
- * fills, so the interface reads as a document rather than a dashboard.
+ * Direction: exact, calm, quietly alive. Chrome stays neutral; colour
+ * and gradient live in moments (savings hero, main chart, landing scene)
+ * and in meaning (verified / estimated / issue). The theme check
+ * recomputes every contrast pair below.
  * ------------------------------------------------------------------ */
 @theme {
-  /* A system sans — no webfont request, so nothing flashes or falls back
-   * to Arial on a slow connection. */
-  --font-sans: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI',
-    Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas,
-    'Liberation Mono', monospace;
+  --font-sans: var(--font-geist-sans), 'Geist', ui-sans-serif, -apple-system, 'Segoe UI',
+    Roboto, sans-serif;
+  --font-mono: var(--font-geist-mono), 'Geist Mono', ui-monospace, SFMono-Regular, Menlo,
+    monospace;
 
-  /*
-   * One container scale, used by every layout in the product.
-   *
-   *   funnel  → the acquisition + onboarding column (header, rail and body all
-   *             share it, so the page reads as one box rather than a narrow
-   *             column under a wide rule)
-   *   content → marketing pages and the console's reading screens
-   *   wide    → data-dense console screens (tables, charts)
-   *
-   * Tailwind v4 turns `--container-*` into `max-w-funnel`, `max-w-content`,
-   * `max-w-wide`. Nothing below should invent its own `max-w-[…]` again.
-   */
-  --container-funnel: 70rem;  /* 1120px */
-  --container-content: 78rem; /* 1248px */
-  --container-wide: 96rem;    /* 1536px */
+  --color-ink-950: #0b0c0d;
+  --color-ink-900: #121314;
+  --color-ink-800: #1b1d1f;
+  --color-ink-700: #2a2d30;
+  --color-paper: #ffffff;
+  --color-surface: #f7f7f6;
+  --color-raised: #ffffff;
+  --color-hairline: rgb(18 19 20 / 0.08);
+  --color-text-1: #121314;
+  --color-text-2: #454545;
+  --color-text-3: #6b6b6b;
 
-  /* Near-black surfaces: the sidebar, inverted cards and the logo mark. */
-  --color-ink-950: #000000;
-  --color-ink-900: #0a0a0a;
-  --color-ink-800: #171717;
-  --color-ink-700: #262626;
+  --color-accent: #b4501f;
+  --color-accent-ink: #a8481a;
+  --color-accent-tint: #fbefe7;
+
+  --color-verified: #17663f;
+  --color-verified-tint: #e6f4ec;
+  --color-estimated: #8a5a00;
+  --color-estimated-tint: #fbf1dc;
+  --color-issue: #a3302a;
+  --color-issue-tint: #fbe9e7;
+
+  --color-moment: #0f1f1a;
+
+  --radius-control: 0.625rem;
+  --radius-card: 1rem;
+  --radius-panel: 1.25rem;
+
+  --ease-eos: cubic-bezier(0.22, 1, 0.36, 1);
+  --duration-fast: 120ms;
+  --duration-base: 220ms;
+  --duration-enter: 420ms;
+}
+
+:root {
+  --eos-moment-gradient:
+    radial-gradient(120% 140% at 0% 0%, #1d4a3a 0%, rgb(29 74 58 / 0) 55%),
+    radial-gradient(90% 120% at 100% 100%, rgb(180 80 31 / 0.38) 0%, rgb(180 80 31 / 0) 60%),
+    linear-gradient(160deg, #0f1f1a 0%, #0b1512 100%);
+  --eos-chart-fill: linear-gradient(180deg, rgb(180 80 31 / 0.28) 0%, rgb(180 80 31 / 0) 100%);
+  --eos-verified-fill: linear-gradient(180deg, rgb(23 102 63 / 0.22) 0%, rgb(23 102 63 / 0) 100%);
+  --eos-card-shadow: 0 1px 0 rgb(255 255 255 / 0.9) inset, 0 8px 24px -16px rgb(18 19 20 / 0.28);
 }
 
 html,
@@ -47,34 +68,31 @@ body,
 body {
   margin: 0;
   font-family: var(--font-sans);
-  background-color: #ffffff;
-  color: #0a0a0a;
+  background-color: var(--color-surface);
+  color: var(--color-text-1);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-synthesis-weight: none;
   text-rendering: optimizeLegibility;
 }
 
-/* Headings sit tighter than body copy — the single biggest type fix. */
 h1,
 h2,
 h3,
 h4 {
-  letter-spacing: -0.018em;
+  letter-spacing: -0.015em;
 }
 
-/* Figures line up in tables, tiles and ledgers. */
-table,
-.tabular-nums {
+.tabular-nums,
+table {
   font-variant-numeric: tabular-nums;
 }
 
 ::selection {
-  background: #0a0a0a;
+  background: var(--color-accent);
   color: #ffffff;
 }
 
-/* Subtle scrollbars that suit a document-like chrome. */
 * {
   scrollbar-width: thin;
   scrollbar-color: #d4d4d4 transparent;
@@ -96,6 +114,232 @@ table,
   background-color: #a3a3a3;
 }
 
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* ── Moment surface ────────────────────────────────────────────────────
+ * The one bright element per screen. Gradient allowed here and nowhere
+ * else except chart fills.
+ * -------------------------------------------------------------------- */
+.eos-moment {
+  background: var(--eos-moment-gradient);
+  color: #f5f5f4;
+  border-radius: var(--radius-panel);
+  position: relative;
+  overflow: hidden;
+}
+
+.eos-moment::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08);
+}
+
+/* Compatibility alias: older call sites still say eos-ink-panel. */
+.eos-ink-panel {
+  background: var(--eos-moment-gradient);
+  color: #f5f5f4;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ── Cards ───────────────────────────────────────────────────────────────
+ * Quiet surface, hairline, soft neutral shadow, <=2px hover lift.
+ * -------------------------------------------------------------------- */
+.eos-card {
+  background: var(--color-raised);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-card);
+  box-shadow: var(--eos-card-shadow);
+  transition:
+    transform var(--duration-base) var(--ease-eos),
+    box-shadow var(--duration-base) var(--ease-eos);
+}
+
+.eos-card[data-interactive]:hover {
+  transform: translateY(-2px);
+}
+
+/* ── Buttons ─────────────────────────────────────────────────────────────
+ * Solid, no gradient. Copper is the primary action; neutral is the rest.
+ * -------------------------------------------------------------------- */
+.eos-btn,
+.eos-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  border-radius: var(--radius-control);
+  background: var(--color-accent);
+  color: #ffffff;
+  font-weight: 600;
+  transition: background-color var(--duration-fast) var(--ease-eos);
+}
+
+.eos-btn:hover,
+.eos-cta:hover {
+  background: #9c4419;
+}
+
+.eos-btn--secondary,
+.eos-cta-light {
+  background: var(--color-raised);
+  color: var(--color-text-1);
+  border: 1px solid var(--color-hairline);
+}
+
+.eos-btn--secondary:hover,
+.eos-cta-light:hover {
+  background: var(--color-surface);
+}
+
+/* ── Evidence mark: filled = verified, hollow = estimated, ring = issue ── */
+.eos-evidence {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--color-text-2);
+}
+
+.eos-evidence::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background: var(--color-verified);
+  flex: none;
+}
+
+.eos-evidence[data-state='estimated']::before {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--color-estimated);
+}
+
+.eos-evidence[data-state='issue']::before {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--color-issue);
+}
+
+.eos-moment .eos-evidence,
+.eos-ink-panel .eos-evidence {
+  color: #d6d3ce;
+}
+
+.eos-moment .eos-evidence::before,
+.eos-ink-panel .eos-evidence::before {
+  background: #6ee7a8;
+}
+
+.eos-evidence-details > summary {
+  list-style: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+}
+
+.eos-evidence-details > summary::-webkit-details-marker {
+  display: none;
+}
+
+/* Legacy evidence spans (Phase 1 markup) keep working until Phase 3. */
+.eos-evidence--verified {
+  background: var(--color-verified);
+}
+.eos-evidence--estimated {
+  border: 2px solid var(--color-estimated);
+  background: transparent;
+}
+.eos-evidence--issue {
+  border: 2px solid var(--color-issue);
+  background: transparent;
+}
+
+/* ── Liveliness ──────────────────────────────────────────────────────── */
+@keyframes eos-live {
+  0% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+  70%,
+  100% {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+
+.eos-live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background: var(--color-verified);
+  position: relative;
+}
+
+.eos-live-dot::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: inherit;
+  animation: eos-live 2.4s var(--ease-eos) infinite;
+}
+
+@keyframes eos-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.eos-rise {
+  animation: eos-rise var(--duration-enter) var(--ease-eos) both;
+  animation-delay: calc(var(--i, 0) * 50ms);
+}
+
+@keyframes eos-shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+.eos-skeleton {
+  background: linear-gradient(90deg, #ececea 25%, #f6f6f4 50%, #ececea 75%);
+  background-size: 200% 100%;
+  animation: eos-shimmer 1.4s linear infinite;
+  border-radius: var(--radius-control);
+}
+
+@keyframes eos-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.eos-draw path.recharts-curve {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: eos-draw 900ms var(--ease-eos) forwards;
+}
+
+/* Chrome: frosted header, hairline rule, no gradient. */
+.eos-glass {
+  background: rgb(255 255 255 / 0.86);
+  backdrop-filter: saturate(140%) blur(14px);
+  -webkit-backdrop-filter: saturate(140%) blur(14px);
+}
+
+/* Existing animations used by modals and toasts. */
 @keyframes eos-fade-in {
   from {
     opacity: 0;
@@ -108,218 +352,19 @@ table,
 }
 
 .animate-fade-in {
-  animation: eos-fade-in 0.3s ease-out both;
-}
-
-@keyframes eos-pulse-ring {
-  0% {
-    box-shadow: 0 0 0 0 rgba(10, 10, 10, 0.3);
-  }
-  70% {
-    box-shadow: 0 0 0 8px rgba(10, 10, 10, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(10, 10, 10, 0);
-  }
-}
-
-.animate-pulse-ring {
-  animation: eos-pulse-ring 2s infinite;
-}
-
-/* Recharts focus outline cleanup. */
-.recharts-wrapper:focus,
-.recharts-surface:focus {
-  outline: none;
-}
-
-/* ------------------------------------------------------------------ *
- * Techno layer — Apple-like depth in one colour.
- *
- * Every gradient here is built from the ink and neutral ramps, so the
- * interface keeps its single-hue discipline (and `npm run verify:theme`
- * still rejects real colour) while gaining the depth Apple gets from
- * light: soft auras, a hairline grid, gradient type and glass chrome.
- * ------------------------------------------------------------------ */
-
-:root {
-  --eos-grid: rgba(10, 10, 10, 0.045);
-  --eos-aura-a: rgba(255, 255, 255, 0.22);
-  --eos-aura-b: rgba(255, 255, 255, 0.06);
-}
-
-/* A dark panel with a light source in the top-left, like a product shot. */
-.eos-ink-panel {
-  position: relative;
-  isolation: isolate;
-  background:
-    radial-gradient(120% 140% at 0% 0%, #2b2b2b 0%, rgba(43, 43, 43, 0) 55%),
-    radial-gradient(90% 120% at 100% 100%, #3d3d3d 0%, rgba(61, 61, 61, 0) 60%),
-    linear-gradient(155deg, #0a0a0a 0%, #171717 52%, #262626 100%);
-}
-
-.eos-ink-panel::after {
-  /* A hairline sheen along the top edge — the “glass” tell. */
-  content: '';
-  position: absolute;
-  inset: 0 0 auto 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.45), transparent);
-  opacity: 0.7;
-  pointer-events: none;
-}
-
-/* Spotlight aura for marketing sections: two soft white sources on paper. */
-.eos-aura {
-  position: relative;
-  isolation: isolate;
-}
-
-.eos-aura::before {
-  content: '';
-  position: absolute;
-  inset: -20% -10% auto -10%;
-  height: 120%;
-  z-index: -1;
-  background:
-    radial-gradient(45% 45% at 18% 10%, rgba(10, 10, 10, 0.10) 0%, transparent 70%),
-    radial-gradient(40% 40% at 82% 0%, rgba(10, 10, 10, 0.06) 0%, transparent 70%);
-  pointer-events: none;
-}
-
-/* Hairline grid, faded at the edges — structure without noise. */
-.eos-grid {
-  background-image:
-    linear-gradient(to right, var(--eos-grid) 1px, transparent 1px),
-    linear-gradient(to bottom, var(--eos-grid) 1px, transparent 1px);
-  background-size: 56px 56px;
-  mask-image: radial-gradient(80% 70% at 50% 30%, #000 40%, transparent 100%);
-  -webkit-mask-image: radial-gradient(80% 70% at 50% 30%, #000 40%, transparent 100%);
-}
-
-/* Type that picks up the light: white → grey on ink, black → grey on paper. */
-.eos-text-gradient-light {
-  background: linear-gradient(180deg, #ffffff 0%, #ffffff 45%, #a3a3a3 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
-.eos-text-gradient-ink {
-  background: linear-gradient(180deg, #0a0a0a 0%, #171717 62%, #525252 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
-/* Frosted chrome for the sticky headers. */
-.eos-glass {
-  background: rgba(255, 255, 255, 0.72);
-  backdrop-filter: saturate(140%) blur(14px);
-  -webkit-backdrop-filter: saturate(140%) blur(14px);
-}
-
-/* Gradient hairline under a header or between sections. */
-.eos-rule {
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(10, 10, 10, 0.16), transparent);
-}
-
-/* A button that looks lit from above, not flat. */
-.eos-cta {
-  position: relative;
-  overflow: hidden;
-  background: linear-gradient(180deg, #262626 0%, #0a0a0a 100%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.18),
-    0 10px 30px -18px rgba(0, 0, 0, 0.75);
-  transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
-}
-
-.eos-cta:hover {
-  transform: translateY(-1px);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.26),
-    0 16px 40px -20px rgba(0, 0, 0, 0.8);
-}
-
-.eos-cta-light {
-  background: linear-gradient(180deg, #ffffff 0%, #ededed 100%);
-  color: #0a0a0a;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.9),
-    0 10px 30px -18px rgba(0, 0, 0, 0.45);
-}
-
-/* Slow drift for the hero aura, disabled for reduced-motion users. */
-@keyframes eos-drift {
-  0% { transform: translate3d(0, 0, 0) scale(1); }
-  50% { transform: translate3d(0, -12px, 0) scale(1.03); }
-  100% { transform: translate3d(0, 0, 0) scale(1); }
-}
-
-.eos-drift {
-  animation: eos-drift 14s ease-in-out infinite;
+  animation: eos-fade-in 180ms var(--ease-eos) both;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .eos-drift { animation: none; }
-  .eos-cta { transition: none; }
-}
+  .eos-rise,
+  .eos-live-dot::after,
+  .eos-skeleton,
+  .eos-draw path.recharts-curve,
+  .animate-fade-in {
+    animation: none !important;
+  }
 
-/* ------------------------------------------------------------------ *
- * Evidence marks (Phase 1 subset of design/eneros-tokens.css).
- *
- * Every £ figure carries a dot: filled = verified from the customer's own
- * documents, hollow amber = estimated (a model or a reference rate is doing
- * the work), hollow red = an issue. The dot opens the arithmetic.
- * ------------------------------------------------------------------ */
-.eos-evidence {
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 9999px;
-  flex: none;
-  vertical-align: middle;
-}
-
-.eos-evidence--verified {
-  background: #15803d;
-  box-shadow: 0 0 0 2px rgba(21, 128, 61, 0.15);
-}
-
-.eos-evidence--estimated {
-  border: 2px solid #9a5a22;
-  background: transparent;
-}
-
-.eos-evidence--issue {
-  border: 2px solid #b91c1c;
-  background: transparent;
-}
-
-.eos-ink-panel .eos-evidence--verified,
-.eos-moment .eos-evidence--verified {
-  background: #4ade80;
-}
-
-.eos-ink-panel .eos-evidence--estimated,
-.eos-moment .eos-evidence--estimated {
-  border-color: #fbbf24;
-}
-
-.eos-ink-panel .eos-evidence--issue,
-.eos-moment .eos-evidence--issue {
-  border-color: #f87171;
-}
-
-.eos-evidence-details > summary {
-  list-style: none;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-}
-
-.eos-evidence-details > summary::-webkit-details-marker {
-  display: none;
+  .eos-card[data-interactive]:hover {
+    transform: none;
+  }
 }

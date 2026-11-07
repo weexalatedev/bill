@@ -21,10 +21,10 @@ export default function PricingPage() {
 
   return (
     <>
-      <section className="eos-aura relative overflow-hidden border-b border-neutral-200">
+      <section className="relative overflow-hidden border-b border-neutral-200">
         <div className="mx-auto max-w-content px-4 py-14 sm:px-6 lg:px-8">
-          <p className="text-xs font-semibold uppercase tracking-wide text-neutral-600">Pricing</p>
-          <h1 className="eos-text-gradient-ink mt-2 text-4xl font-semibold tracking-tight sm:text-5xl">
+          <p className="text-xs font-semibold tracking-wide text-neutral-600">Pricing</p>
+          <h1 className="text-text-1 mt-2 text-4xl font-semibold tracking-tight sm:text-5xl">
             One price per site. No seats, no setup fee.
           </h1>
           <p className="mt-4 max-w-2xl text-sm leading-relaxed text-neutral-600">
@@ -75,7 +75,7 @@ export default function PricingPage() {
           <div className="mt-6 flex flex-wrap gap-3">
             <Link
               href="/start"
-              className="inline-flex items-center gap-2 rounded-md bg-ink-900 px-5 py-3 text-sm font-semibold text-white hover:bg-ink-800"
+              className="inline-flex items-center gap-2 rounded-md bg-accent px-5 py-3 text-sm font-semibold text-white hover:bg-[#9c4419]"
             >
               Get started free <ArrowRight className="h-4 w-4" />
             </Link>

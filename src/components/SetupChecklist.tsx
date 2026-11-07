@@ -38,7 +38,7 @@ export default function SetupChecklist({
 
   return (
     <Card className="border-ink-900/20">
-      <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-600">
+      <p className="text-[11px] font-semibold tracking-wide text-neutral-600">
         Finish your setup
       </p>
       <p className="mt-1 text-sm text-neutral-600">
