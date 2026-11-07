@@ -8,52 +8,23 @@ import type {
   Plan,
   Site,
 } from '../types.js';
+import { PLAN_CATALOG } from './plans.js';
 
-/** Static plan catalogue — identical for every workspace. */
-export const PLANS: Plan[] = [
-  {
-    id: 'starter',
-    name: 'Starter',
-    pricePerSite: 49,
-    tagline: 'Find and fix what you are wasting.',
-    features: [
-      'Bill auditing and error detection',
-      'Live monitoring dashboard',
-      'AI energy assistant (Copilot)',
-      'Anomaly and overnight-waste detection',
-      'Monthly cost-saving plan',
-    ],
-  },
-  {
-    id: 'growth',
-    name: 'Growth',
-    pricePerSite: 149,
-    tagline: 'Continuously reduce what you spend.',
-    highlight: true,
-    features: [
-      'Everything in Starter',
-      'Half-hourly consumption analysis',
-      'Consumption and price forecasting',
-      'Tariff optimisation and dispute letters',
-      'Verified savings reports',
-      'Multi-site management',
-    ],
-  },
-  {
-    id: 'autonomous',
-    name: 'Autonomous',
-    pricePerSite: 249,
-    tagline: 'Let EnerOS run the eligible assets for you.',
-    features: [
-      'Everything in Growth',
-      'Automated EV charger control (with approval)',
-      'Battery optimisation',
-      'Flexibility market participation',
-      'Advanced integrations (BMS, VPP, hardware)',
-      'Safety-limited: never refrigeration or alarms',
-    ],
-  },
-];
+/**
+ * Static plan catalogue — identical for every workspace.
+ *
+ * The definitions (prices, limits, features) live in `./plans.ts`, which is the
+ * single source of truth; this is the read-only projection the workspace
+ * payload carries so the existing console keeps working unchanged.
+ */
+export const PLANS: Plan[] = PLAN_CATALOG.map(({ id, name, pricePerSite, tagline, features, highlight }) => ({
+  id,
+  name,
+  pricePerSite,
+  tagline,
+  features,
+  ...(highlight ? { highlight } : {}),
+}));
 
 /** Supplier names offered when uploading a new invoice. */
 export const SUPPLIERS: string[] = [

@@ -1,5 +1,6 @@
 'use client';
 import { useMemo, useState, type FormEvent } from 'react';
+import Link from 'next/link';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { Loader2, Plus, Search, Trash2 } from 'lucide-react';
 import { useApp } from '../store';
@@ -15,6 +16,7 @@ import {
   type Tone,
 } from '../components/ui';
 import { gbp, num, signedGbp } from '../lib/format';
+import { useSubscription } from '../lib/subscription';
 
 const statusTone: Record<SiteStatus, Tone> = {
   Optimal: 'muted',
@@ -56,6 +58,9 @@ type DraftSetter = <K extends keyof Draft>(key: K, value: Draft[K]) => void;
 
 export default function Sites() {
   const { sites, annualSpendTotal, metrics, addSite, removeSite } = useApp();
+  const { subscription, refresh: refreshSubscription } = useSubscription();
+  /** Capacity comes from the server's subscription record, never a local guess. */
+  const atCap = Boolean(subscription && subscription.remainingSites <= 0);
   // Seed the filter from `?q=` so the header search can deep-link into a result.
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -137,6 +142,9 @@ export default function Sites() {
         monthActual: numberOrUndefined(draft.monthActual) ?? 0,
         monthExpected: numberOrUndefined(draft.monthExpected),
       });
+      // The capacity counter is server-owned: re-read it so the banner, the
+      // disabled state and the dashboard all agree immediately.
+      await refreshSubscription();
       closeForm();
     } catch (error) {
       setSaveError(error instanceof Error ? error.message : 'Could not add the site.');
@@ -175,6 +183,34 @@ export default function Sites() {
         <StatCard label="Needs attention" value={num(attention)} sub="watch or anomaly status" />
       </div>
 
+      {subscription && (
+        <Card className={atCap ? 'border-neutral-300 bg-neutral-50' : undefined}>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold text-neutral-900">
+                Sites used: {subscription.sitesUsed} / {subscription.siteLimit}{' '}
+                <span className="text-xs font-normal text-neutral-500">
+                  {atCap ? 'no capacity left' : `${subscription.remainingSites} remaining`} · {subscription.planName} plan
+                </span>
+              </p>
+              <p className="mt-1 text-xs text-neutral-600">
+                {atCap
+                  ? 'You have reached the maximum number of sites allowed in your current subscription. Upgrade your plan to add more sites.'
+                  : 'Adding a site increases your monthly total — EnerOS is priced per site, per month.'}
+              </p>
+            </div>
+            {atCap && (
+              <Link
+                href="/onboarding/subscription"
+                className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-ink-900 px-3 py-2 text-xs font-semibold text-white hover:bg-ink-800"
+              >
+                Upgrade plan
+              </Link>
+            )}
+          </div>
+        </Card>
+      )}
+
       <Card>
         <SectionHeading
           title="Portfolio"
@@ -184,8 +220,14 @@ export default function Sites() {
               <Badge tone="solid">Saved this month {signedGbp(metrics.savings)}</Badge>
               <button
                 type="button"
-                onClick={() => setFormOpen(true)}
-                className="inline-flex items-center gap-1.5 rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-neutral-800"
+                onClick={() => !atCap && setFormOpen(true)}
+                disabled={atCap}
+                title={
+                  atCap
+                    ? 'You have reached the maximum number of sites allowed in your current subscription.'
+                    : undefined
+                }
+                className="inline-flex items-center gap-1.5 rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <Plus className="h-4 w-4" />
                 Add site

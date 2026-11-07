@@ -8,13 +8,18 @@ import type {
   AssetSlice,
   BillAnalysis,
   BillBenchmark,
+  BillingPeriod,
   ControlMode,
   Invoice,
   MonthlyPoint,
   OptimisationAction,
+  OrderSummary,
+  PaymentRecord,
   Plan,
+  PlansResponse,
   Site,
   SiteRisk,
+  SubscriptionView,
 } from '../types';
 
 export const API_URL: string =
@@ -426,6 +431,76 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
 
 export const api = {
   getConfig: (): Promise<ApiConfig> => request<ApiConfig>('/api/config'),
+
+  /** Public plan catalogue — the only source of pricing truth. */
+  getPlans: () => request<PlansResponse>('/api/plans'),
+
+  /** Register (dev-auth mode only; Clerk owns sign-up when configured). */
+  devRegister: (email: string, password: string, name?: string) =>
+    request<{ token: string; user: { email: string; name: string }; mode: 'dev' }>(
+      '/api/auth/register',
+      { method: 'POST', body: { email, password, name } },
+    ),
+
+  /** The caller's entitlement — the single status read used by every guard. */
+  getSubscription: (token: string) =>
+    request<{ subscription: SubscriptionView }>('/api/subscription/status', { token }),
+
+  /** Stage a plan choice (pending order; never activates). */
+  selectPlan: (token: string, planId: string, billingPeriod: BillingPeriod) =>
+    request<{ order: OrderSummary; subscription: SubscriptionView }>('/api/subscription/select', {
+      method: 'POST',
+      body: { planId, billingPeriod },
+      token,
+    }),
+
+  /** Create the payment attempt for the staged plan. */
+  startCheckout: (token: string, body: { planId?: string; billingPeriod?: BillingPeriod } = {}) =>
+    request<{
+      mode: 'stripe' | 'dev';
+      url: string | null;
+      note?: string;
+      order: OrderSummary;
+      payment: PaymentRecord;
+    }>('/api/subscription/checkout', { method: 'POST', body, token }),
+
+  /** Dev-mode settlement (with Stripe, only the webhook may settle). */
+  confirmPayment: (token: string, paymentId: string) =>
+    request<{ subscription: SubscriptionView }>(
+      `/api/subscription/payments/${paymentId}/confirm`,
+      { method: 'POST', body: {}, token },
+    ),
+
+  failPayment: (token: string, paymentId: string) =>
+    request<{ subscription: SubscriptionView }>(`/api/subscription/payments/${paymentId}/fail`, {
+      method: 'POST',
+      body: {},
+      token,
+    }),
+
+  cancelPayment: (token: string, paymentId: string) =>
+    request<{ subscription: SubscriptionView }>(`/api/subscription/payments/${paymentId}/cancel`, {
+      method: 'POST',
+      body: {},
+      token,
+    }),
+
+  getPayments: (token: string) =>
+    request<{ payments: PaymentRecord[] }>('/api/subscription/payments', { token }),
+
+  cancelSubscription: (token: string) =>
+    request<{ subscription: SubscriptionView }>('/api/subscription/cancel', {
+      method: 'POST',
+      body: {},
+      token,
+    }),
+
+  resumeSubscription: (token: string) =>
+    request<{ subscription: SubscriptionView }>('/api/subscription/resume', {
+      method: 'POST',
+      body: {},
+      token,
+    }),
 
   /** Upload a bill (PDF/text) and run the full Smart Analysis pipeline. */
   analyseFile: (token: string, file: File, siteId?: string) => {

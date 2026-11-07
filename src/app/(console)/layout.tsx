@@ -1,12 +1,12 @@
 'use client';
 
-import AuthGate from '@/components/AuthGate';
 import Layout from '@/components/Layout';
+import SubscriptionGate from '@/components/SubscriptionGate';
 
 export default function ConsoleLayout({ children }: { children: React.ReactNode }) {
   return (
-    <AuthGate>
+    <SubscriptionGate>
       <Layout>{children}</Layout>
-    </AuthGate>
+    </SubscriptionGate>
   );
 }

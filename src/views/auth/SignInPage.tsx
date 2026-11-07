@@ -40,7 +40,7 @@ export default function SignInPage() {
         subtitle="Demo mode — sign in with the demo account to open your console."
         footer={footer}
       >
-        <DevSignInForm onSuccess={() => router.replace('/onboarding')} />
+        <DevSignInForm onSuccess={() => router.replace('/auth/continue')} />
       </AuthShell>
     );
   }
@@ -56,7 +56,7 @@ export default function SignInPage() {
           path="/sign-in"
           routing="path"
           appearance={clerkAppearance}
-          fallbackRedirectUrl="/onboarding"
+          fallbackRedirectUrl="/auth/continue"
           signUpUrl="/sign-up"
           forceRedirectUrl="/onboarding"
         />

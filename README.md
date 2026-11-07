@@ -1,7 +1,9 @@
 # EnerOS — AI Energy Manager (billing & optimisation console)
 
 **EnerOS** is a web + mobile console for *“the autonomous energy manager for Britain’s small and
-medium businesses.”* It implements the product described in the attached business plan, with a
+medium businesses.”* It implements the product described in the business plan,
+**[`business_plan.txt`](business_plan.txt)** — the main reference for what the
+product is for and the order in which it gets built — with a
 focus on the **energy billing** workflow: monitoring spend, auditing invoices, optimising energy
 use and billing the customer.
 
@@ -51,7 +53,8 @@ or `font-mono` creeps back in.
 | --- | --- | --- |
 | **Get Started (flow)** | Acquisition wedge | **The front door.** `/start` is one continuous, screen-by-screen flow: **ask for a bill** (upload a PDF **or photo**, read with Gemini vision OCR when there is no text layer, or type the figures) → **your audit** (the deterministic engine prices the same usage at the UK reference rate and leads with *"you could save £X"*) → **create an account to save money**. No account needed until the visitor has seen the money. |
 | **Free Bill Check** | Acquisition wedge | The same public check, also reachable directly. The engine is the paid product's engine, so the number is real, not a teaser — the plan's “free bill check without registration”. `/check` and `/get-started` now redirect into `/start`. |
-| **Sign up / Login** | Layer 0 | Clerk-hosted auth embedded in the EnerOS shell at `/sign-up` and `/sign-in`. They are reached *from inside the flow*, not as the front door, and both land on `/onboarding`. |
+| **Sign up / Login** | Layer 0 | Clerk-hosted auth at `/sign-up` and `/sign-in` when Clerk is configured; otherwise the API's own registration + login (dev auth) so the journey is real locally. A **new account always lands on the plan picker**, never the dashboard; sign-in resolves its destination from the subscription (`/auth/continue`). |
+| **Subscription** | Layer 0 | `/onboarding/subscription` → `/onboarding/payment` → `/onboarding/payment-status`, and `/subscription` to manage afterwards. Plans come from one server catalogue (`server/src/services/plans.ts`); activation happens only after a **verified** payment. See [Subscriptions, plans and access](#subscriptions-plans-and-access). |
 | **Onboarding** | Layer 0 | **Phase-wise, skippable screens** at `/onboarding`: site information → any further sites → devices (connect Octopus / a Solis inverter via the connector service) → done. Then the dashboard. The same prompts live on the dashboard as a setup checklist for anyone who skipped. |
 | **Dashboard** – Energy Intelligence | Module A | Spend vs. expected baseline, verified savings, spend by asset and by site, latest AI findings, the baseline → intervention → outcome methodology, and a **Finish your setup** checklist until the workspace is complete. |
 | **Smart Analysis** | Layer 2 – AI Energy Brain | The workbench. Enter a bill and the engine checks it against Ofgem's published price cap for the site's region, re-adds the invoice arithmetic, verifies VAT treatment, and compares consumption with the site's own baseline. Every finding carries its evidence, its £ impact and the licence condition to quote. |
@@ -64,6 +67,69 @@ or `font-mono` creeps back in.
 | **Live Market** | Layer 1 – Energy Data OS | **Real-time UK market data, no keys.** The live half-hourly Agile Octopus price curve for the site's own distribution region (A–P, mapped from its Ofgem cap region), the cheapest and peak windows of the day, a live flexibility shift calculator priced off the real curve, and GB grid carbon intensity. Sources: `server/src/lib/live/`. |
 
 | **Plans & Billing** | §6 Pricing | Starter **£49** / Growth **£149** / Autonomous **£249** per site/month, an interactive **performance-fee calculator** (15% of verified savings), flexibility revenue share, annual value summary and the plan’s worked business case. |
+
+## The SaaS funnel (in this order)
+
+```
+/  landing  →  /start  free bill check  →  /sign-up  account
+           →  /onboarding/subscription  choose plan + order summary
+           →  /onboarding/payment  pay  →  /onboarding/payment-status  verified
+           →  /dashboard
+```
+
+The order is deliberate: a visitor sees the money on their own bill **before** an
+account exists, and an account exists **before** a plan is chosen. `/` is public,
+`/features` and `/pricing` are public, and `/check` / `/get-started` still redirect
+into `/start`.
+
+Once paid, the console lives under the same routes as before — with the home
+screen moved from `/` to **`/dashboard`** — so nothing about the product surface
+changed except the front door.
+
+## Subscriptions, plans and access
+
+**One source of truth.** Plans, prices, features, restrictions and site caps live in
+[`server/src/services/plans.ts`](server/src/services/plans.ts) and are served by
+`GET /api/plans`. No component hardcodes a price or a limit.
+
+| Plan | Price | Sites |
+| --- | --- | --- |
+| Starter | £49 / site / month | up to 3 |
+| Growth (recommended) | £149 / site / month | up to 10 |
+| Autonomous | £249 / site / month | up to 25 |
+
+> **Two facts the README does not define, and therefore does not invent:** the
+> README prices per site per **month** only, so annual billing is *disabled*
+> (`annualBillingAvailable: false`) rather than given a made-up price; and it sets
+> no cap per plan, so the site caps above are marked `provisional` in the catalogue
+> and in the API payload. Change one file to adopt the real numbers.
+
+**State machine** (`server/src/services/subscription.ts`):
+
+```
+none → pending → payment_pending → active → cancelled (at period end) → expired
+                                     ↳ failed (retry from the payment status page)
+```
+
+* A plan choice is a **pending order** with an order summary (subtotal, VAT at 20%,
+total) — it never activates anything.
+* `POST /api/subscription/payments/:id/confirm` exists for **test mode only** (no
+Stripe key). With Stripe configured, only the signature-verified webhook may settle
+a payment, its amount is checked against the order, and every event id is recorded
+once so a replay cannot activate or extend twice.
+* Upgrades and downgrades keep the current plan live until the new payment is
+verified. A downgrade below the current site count keeps every site and simply
+blocks new ones.
+* Access rules: signed out → `/sign-in`; no plan → `/onboarding/subscription`;
+payment in flight → `/onboarding/payment-status`; failed → retry; expired → renewal;
+active → `/dashboard`.
+
+**Enforcement is server-side.** `requireActiveSubscription` guards the product routes
+(`/api/workspace`, invoices, actions, analysis, copilot, consumption, connector) and
+returns `402 subscription_required`. Site creation reserves a slot with a single
+atomic compare-and-increment on the account, so parallel requests cannot exceed the
+cap; the slot is released if the write fails. Published Ofgem data
+(`/api/analysis/price-cap`) and the bill-check endpoints stay public.
 
 Interactive behaviour is real: approving actions updates metrics, running an audit adds an
 invoice and re-computes KPIs, and the fee calculator recalculates live.
@@ -425,5 +491,11 @@ Mobile-specific adaptations:
   presented as *testable assumptions*, not fixed commitments — as the plan itself notes.
 - Run `cd server && npm run smoke` to exercise auth, workspace, audit, action progression,
   control mode and recovery end-to-end (24 checks) against an in-memory MongoDB.
+- Run `cd server && npm run verify:subscription` for the commercial journey (73 checks):
+  register → locked out → choose plan → pay → verify → dashboard, the site cap including
+  **parallel** adds, failed/cancelled/expired payments, upgrade/downgrade, tenant isolation,
+  payment history and webhook idempotency.
+- The web console's mobile sibling still signs in through the same API, so its workspace
+  calls now need an active subscription too — the seeded demo account already has one.
 - The web production bundle is a single chunk (~790 kB, mostly Recharts). Code-splitting per
   route would be the next optimisation if bundle size matters.

@@ -1,15 +1,14 @@
 'use client';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Calculator, Check, CreditCard, Percent, ShieldCheck } from 'lucide-react';
 import { useApp } from '../store';
-import { useAuth } from '../lib/auth';
-import { api } from '../lib/api';
 import { Badge, Card, SectionHeading, StatCard } from '../components/ui';
 import { gbp } from '../lib/format';
 
 export default function Plans() {
-  const { plans, account, sites, metrics, pushToast, refresh } = useApp();
-  const { getToken } = useAuth();
+  const { plans, account, sites, metrics } = useApp();
+  const router = useRouter();
   const [busyPlan, setBusyPlan] = useState<string | null>(null);
 
   const currentPlan = plans.find((p) => p.id === account.planId) ?? plans[0];
@@ -25,22 +24,14 @@ export default function Plans() {
   const totalEnerOSFee = annualSub + performanceFee + flexibilityShare;
   const customerRetains = verifiedSavings - performanceFee + flexibilityShare;
 
-  const choosePlan = async (planId: string) => {
+  /**
+   * Plan changes go through the same order-summary + payment flow as sign-up:
+   * nothing here may activate a plan directly, because activation is a server
+   * decision made only after a verified payment.
+   */
+  const choosePlan = (planId: string) => {
     setBusyPlan(planId);
-    try {
-      const token = (await getToken()) ?? '';
-      const res = await api.billingCheckout(token, planId);
-      if (res.mode === 'stripe' && res.url) {
-        window.location.href = res.url;
-        return;
-      }
-      pushToast('Plan activated — billing is running in demo mode.');
-      await refresh();
-    } catch (err) {
-      pushToast(err instanceof Error ? err.message : 'Could not start checkout.');
-    } finally {
-      setBusyPlan(null);
-    }
+    router.push(`/onboarding/subscription?plan=${planId}`);
   };
 
   return (

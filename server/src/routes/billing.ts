@@ -1,87 +1,83 @@
 import { Router, type Request, type Response } from 'express';
 import { z } from 'zod';
 import { requireUser, type AuthedRequest } from '../auth.js';
-import { env, stripeEnabled } from '../env.js';
-import { PLANS } from '../services/catalog.js';
-import { getBilling, ownerForSubscription, setSubscription } from '../services/billing.js';
-import { createCheckoutSession, verifyAndParseEvent } from '../lib/billing/stripe.js';
+import { env } from '../env.js';
+import { AccountModel, PaymentModel } from '../models/index.js';
+import { isPlanId } from '../services/plans.js';
+import {
+  cancelPayment,
+  confirmPayment,
+  failPayment,
+  ownerForSubscription,
+  recordWebhookEvent,
+  resolveSubscription,
+  startCheckout,
+} from '../services/subscription.js';
+import { verifyAndParseEvent } from '../lib/billing/stripe.js';
 
 export const billingRouter = Router();
 
-/** Current subscription summary. */
+/**
+ * Legacy billing surface, kept so the existing console and the mobile app keep
+ * working. It is a thin projection of the subscription service: one source of
+ * truth, two shapes.
+ */
 billingRouter.get('/status', requireUser, async (req: AuthedRequest, res, next) => {
   try {
-    res.json({ billing: await getBilling(req.ownerId!) });
+    const subscription = await resolveSubscription(req.ownerId!);
+    res.json({
+      billing: {
+        planId: subscription.planId,
+        planName: subscription.planName,
+        sites: subscription.sitesUsed,
+        pricePerSite: subscription.pricePerSite,
+        monthlyGbp: subscription.monthlyGbp,
+        subscriptionStatus: subscription.status,
+        currentPeriodEnd: subscription.currentPeriodEnd,
+        stripeEnabled: subscription.stripeEnabled,
+        devMode: subscription.devMode,
+      },
+      subscription,
+    });
   } catch (error) {
     next(error);
   }
 });
 
-const checkoutSchema = z.object({ planId: z.enum(['starter', 'growth', 'autonomous']) });
+const checkoutSchema = z.object({
+  planId: z.string().refine(isPlanId, 'Choose a valid plan.').optional(),
+  billingPeriod: z.enum(['monthly', 'annual']).optional(),
+});
 
-/**
- * Start a subscription. With Stripe configured this returns a Checkout URL; with
- * no key it activates the plan in dev mode (labelled `mode: "dev"`) so the flow
- * is demoable without a real payment.
- */
+/** Start checkout for the selected (or given) plan. Never activates anything. */
 billingRouter.post('/checkout', requireUser, async (req: AuthedRequest, res, next) => {
   try {
-    const parsed = checkoutSchema.safeParse(req.body);
+    const parsed = checkoutSchema.safeParse(req.body ?? {});
     if (!parsed.success) {
       res.status(400).json({ error: 'Choose a valid plan.' });
       return;
     }
-    const plan = PLANS.find((p) => p.id === parsed.data.planId);
-    if (!plan) {
-      res.status(400).json({ error: 'Unknown plan.' });
+    const result = await startCheckout(req.ownerId!, {
+      planId: parsed.data.planId,
+      billingPeriod: parsed.data.billingPeriod,
+      email: req.userEmail,
+      baseUrl: req.header('origin') || env.stripe.appBaseUrl,
+    });
+    res.json({ ...result, planId: result.order.planId });
+  } catch (error) {
+    const code = (error as { code?: string }).code;
+    if (code === 'plan' || code === 'payment') {
+      res.status(400).json({ error: (error as Error).message, code });
       return;
     }
-
-    const current = await getBilling(req.ownerId!);
-    const sites = Math.max(1, current.sites);
-
-    if (stripeEnabled) {
-      try {
-        const session = await createCheckoutSession({
-          plan,
-          sites,
-          ownerId: req.ownerId!,
-          email: req.userEmail,
-        });
-        res.json({ mode: 'stripe', url: session.url, planId: plan.id });
-        return;
-      } catch (error) {
-        const code = (error as { code?: string }).code;
-        if (code !== 'not-configured') {
-          res.status(502).json({ error: 'Could not start checkout. Please try again.' });
-          return;
-        }
-        // fall through to dev mode
-      }
-    }
-
-    // Dev mode: activate without payment so the product is demoable end to end.
-    const periodEnd = new Date();
-    periodEnd.setMonth(periodEnd.getMonth() + 1);
-    await setSubscription(req.ownerId!, {
-      planId: plan.id,
-      subscriptionStatus: 'active',
-      currentPeriodEnd: periodEnd.toISOString(),
-    });
-    res.json({
-      mode: 'dev',
-      planId: plan.id,
-      note: 'Stripe is not configured — the plan was activated without payment.',
-    });
-  } catch (error) {
     next(error);
   }
 });
 
 /**
  * Stripe webhook. Registered in `app.ts` BEFORE `express.json` so the raw body is
- * available for signature verification. Always returns 200 once the event has
- * been authenticated, so Stripe does not retry indefinitely on our bugs.
+ * available for signature verification. Every event id is recorded once, so a
+ * replay can never activate or extend a subscription twice.
  */
 export async function stripeWebhook(req: Request, res: Response): Promise<void> {
   const raw = req.body as Buffer | undefined;
@@ -102,17 +98,43 @@ export async function stripeWebhook(req: Request, res: Response): Promise<void> 
 
   try {
     const obj = (event.data?.object ?? {}) as Record<string, unknown>;
+    const eventId = event.id ?? `${event.type ?? 'event'}:${String(obj.id ?? Date.now())}`;
+    const fresh = await recordWebhookEvent(eventId, event.type);
+    if (!fresh) {
+      res.json({ received: true, duplicate: true });
+      return;
+    }
 
     if (event.type === 'checkout.session.completed') {
       const metadata = (obj.metadata ?? {}) as Record<string, string>;
       const ownerId = metadata.ownerId ?? (obj.client_reference_id as string | undefined);
-      if (ownerId) {
-        await setSubscription(ownerId, {
-          planId: metadata.planId ?? 'starter',
-          subscriptionStatus: 'active',
-          stripeCustomerId: obj.customer as string | undefined,
-          stripeSubscriptionId: obj.subscription as string | undefined,
-        });
+      const paymentId = metadata.paymentId;
+      if (ownerId && paymentId) {
+        const payment = (await PaymentModel.findOne({ ownerId, id: paymentId }).lean().exec()) as
+          | { amountPence?: number }
+          | null;
+        const paid = typeof obj.amount_total === 'number' ? obj.amount_total : null;
+        if (!payment) {
+          console.warn('[stripe] webhook for unknown payment', paymentId);
+        } else if (paid !== null && payment.amountPence !== paid) {
+          // Amount tampering / wrong session: never activate.
+          await failPayment(ownerId, paymentId, 'Paid amount did not match the order.');
+        } else if (obj.payment_status && obj.payment_status !== 'paid') {
+          console.warn('[stripe] checkout not paid yet', paymentId, obj.payment_status);
+        } else {
+          await confirmPayment(ownerId, paymentId, { providerEventId: eventId });
+        }
+      }
+    } else if (event.type === 'checkout.session.expired') {
+      const metadata = (obj.metadata ?? {}) as Record<string, string>;
+      const ownerId = metadata.ownerId ?? (obj.client_reference_id as string | undefined);
+      if (ownerId && metadata.paymentId) {
+        await cancelPayment(ownerId, metadata.paymentId);
+      }
+    } else if (event.type === 'payment_intent.payment_failed') {
+      const metadata = (obj.metadata ?? {}) as Record<string, string>;
+      if (metadata.ownerId && metadata.paymentId) {
+        await failPayment(metadata.ownerId, metadata.paymentId, 'The payment failed.');
       }
     } else if (
       event.type === 'customer.subscription.updated' ||
@@ -123,10 +145,18 @@ export async function stripeWebhook(req: Request, res: Response): Promise<void> 
         const ownerId = await ownerForSubscription(subscriptionId);
         if (ownerId) {
           const periodEnd = obj.current_period_end as number | undefined;
-          await setSubscription(ownerId, {
-            subscriptionStatus: obj.status ?? 'none',
-            ...(periodEnd ? { currentPeriodEnd: new Date(periodEnd * 1000).toISOString() } : {}),
-          });
+          const status = event.type === 'customer.subscription.deleted' ? 'expired' : obj.status;
+          await AccountModel.updateOne(
+            { ownerId },
+            {
+              $set: {
+                subscriptionStatus: typeof status === 'string' ? status : 'active',
+                ...(periodEnd
+                  ? { currentPeriodEnd: new Date(periodEnd * 1000).toISOString() }
+                  : {}),
+              },
+            },
+          ).exec();
         }
       }
     }

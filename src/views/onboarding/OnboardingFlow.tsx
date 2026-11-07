@@ -83,13 +83,13 @@ export default function OnboardingFlow() {
       }
       setToken(auth);
       if (sites.length > 0 || wasOnboardingSkipped()) {
-        router.replace('/');
+        router.replace('/dashboard');
         return;
       }
       try {
         const { profile } = await api.getProfile(auth);
         if (profile.onboarded) {
-          router.replace('/');
+          router.replace('/dashboard');
           return;
         }
       } catch {
@@ -136,7 +136,7 @@ export default function OnboardingFlow() {
     // later session on a shared device.
     clearAuditSummary();
     markOnboardingSkipped();
-    router.replace('/');
+    router.replace('/dashboard');
   };
 
   if (checking || !token) return <OnboardingSplash />;

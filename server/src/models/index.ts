@@ -148,16 +148,86 @@ const accountSchema = new Schema(
     /** Ofgem price-cap region id resolved from the postcode. */
     region: String,
     onboarded: { type: Boolean, default: false },
-    /** Billing state, driven by Stripe (or dev-mode activation). */
+    /**
+     * Subscription state machine. `none` has never subscribed; `pending` chose a
+     * plan but has not paid; `payment_pending` has a checkout in flight;
+     * `active` paid and verified; `failed` last payment failed; `cancelled` will
+     * lapse at period end; `expired` lapsed.
+     */
     subscriptionStatus: { type: String, default: 'none' },
+    /** `monthly` (README) or `annual` once an annual price exists. */
+    billingPeriod: { type: String, default: 'monthly' },
+    /** Capacity snapshot, copied from the plan at activation. */
+    siteLimit: Number,
+    siteLimitSource: String,
+    currentPeriodStart: String,
+    currentPeriodEnd: String,
+    /** Cancel at period end — access is kept until `currentPeriodEnd`. */
+    cancelAtPeriodEnd: { type: Boolean, default: false },
+    /** A chosen upgrade/downgrade that has not been paid for yet. */
+    pendingPlanId: String,
+    pendingBillingPeriod: String,
+    lastPaymentId: String,
     stripeCustomerId: String,
     stripeSubscriptionId: String,
-    currentPeriodEnd: String,
   },
   schemaOptions,
 );
 accountSchema.index({ ownerId: 1 }, { unique: true });
 export const AccountModel = model('Account', accountSchema);
+
+// ── Payments (one row per checkout attempt — the payment history) ─────────────
+const paymentSchema = new Schema(
+  {
+    ...baseFields,
+    id: { type: String, required: true },
+    planId: { type: String, required: true },
+    billingPeriod: { type: String, default: 'monthly' },
+    /** `stripe` or `dev` (labelled test mode when Stripe is unconfigured). */
+    provider: { type: String, required: true },
+    /** Provider-side reference (Stripe session id, or our own dev reference). */
+    providerRef: { type: String, required: true },
+    /** Webhook event that settled this payment, for audit + replay safety. */
+    providerEventId: String,
+    amountPence: { type: Number, required: true },
+    currency: { type: String, default: 'GBP' },
+    /** `pending` → `succeeded` | `failed` | `cancelled`. Terminal once settled. */
+    status: { type: String, default: 'pending' },
+    description: String,
+    failureReason: String,
+    createdAt: { type: String, default: () => new Date().toISOString() },
+    paidAt: String,
+  },
+  schemaOptions,
+);
+paymentSchema.index({ ownerId: 1, id: 1 }, { unique: true });
+/** One payment per provider reference — makes webhook replays harmless. */
+paymentSchema.index({ providerRef: 1 }, { unique: true });
+export const PaymentModel = model('Payment', paymentSchema);
+
+// ── Webhook events (idempotency ledger for provider callbacks) ────────────────
+const webhookEventSchema = new Schema(
+  {
+    eventId: { type: String, required: true, unique: true },
+    type: String,
+    receivedAt: { type: String, default: () => new Date().toISOString() },
+  },
+  { versionKey: false },
+);
+export const WebhookEventModel = model('WebhookEvent', webhookEventSchema);
+
+// ── Dev-auth users (only used when Clerk is not configured) ──────────────────
+const devUserSchema = new Schema(
+  {
+    email: { type: String, required: true, unique: true },
+    name: String,
+    /** scrypt hash; dev auth only, never used when Clerk is configured. */
+    passwordHash: { type: String, required: true },
+    createdAt: { type: String, default: () => new Date().toISOString() },
+  },
+  { versionKey: false },
+);
+export const DevUserModel = model('DevUser', devUserSchema);
 
 // ── Half-hourly consumption ───────────────────────────────────────────────────
 const consumptionSchema = new Schema(
