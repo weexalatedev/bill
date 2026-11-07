@@ -24,7 +24,7 @@ export const account: Account = {
   flexibilitySharePct: 25,
 };
 
-export const sites: Site[] = [
+const RAW_SITES: Site[] = [
   {
     id: 's1',
     name: 'Harbour House',
@@ -206,6 +206,38 @@ export const sites: Site[] = [
     lastSynced: '9 min ago',
   },
 ];
+
+/**
+ * What we actually hold for each demo site.
+ *
+ * A half-hourly meter yields measured load; an AMR reads daily, so the demo is
+ * honest about having costs but not shape; smart/advanced meters are bill-only
+ * until consumption is imported. The dashboard's data-confidence meter reads
+ * this, which is why it must differ per site.
+ */
+function qualityFor(site: Site, index: number): NonNullable<Site['dataQuality']> {
+  const jitter = index % 5;
+  if (site.meterType === 'Half-hourly') {
+    return {
+      consumption: 'hh',
+      coveragePct: 94 + jitter,
+      lastReadingAt: new Date(Date.now() - (1 + jitter) * 30 * 60 * 1000).toISOString(),
+    };
+  }
+  if (site.meterType === 'AMR') {
+    return {
+      consumption: 'bill-only',
+      coveragePct: 68 + jitter,
+      lastReadingAt: new Date(Date.now() - (2 + jitter) * 24 * 60 * 60 * 1000).toISOString(),
+    };
+  }
+  return { consumption: 'bill-only', coveragePct: 51 + jitter };
+}
+
+export const sites: Site[] = RAW_SITES.map((site, index) => ({
+  ...site,
+  dataQuality: qualityFor(site, index),
+}));
 
 export const invoices: Invoice[] = [
   {
