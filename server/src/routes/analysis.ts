@@ -22,7 +22,8 @@ export const analysisRouter = Router();
 let capCache: { at: number; body: unknown } | null = null;
 const CAP_CACHE_MS = 60 * 60 * 1000;
 
-analysisRouter.get('/price-cap', (_req, res) => {
+/** Exported so it can also be mounted publicly (it is published data). */
+export const priceCapHandler: import('express').RequestHandler = (_req, res) => {
   if (capCache && Date.now() - capCache.at < CAP_CACHE_MS) {
     res.json(capCache.body);
     return;
@@ -46,7 +47,9 @@ analysisRouter.get('/price-cap', (_req, res) => {
   };
   capCache = { at: Date.now(), body };
   res.json(body);
-});
+};
+
+analysisRouter.get('/price-cap', priceCapHandler);
 
 /** Resolve a postcode to a cap region so signup can pre-fill the benchmark. */
 analysisRouter.get('/region', (req, res) => {

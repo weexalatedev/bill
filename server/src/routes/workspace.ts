@@ -2,6 +2,8 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { requireUser, type AuthedRequest } from '../auth.js';
 import { env } from '../env.js';
+import { releaseSiteSlot, reserveSiteSlot } from '../services/subscription.js';
+import { subscriptionFor } from '../middleware/subscription.js';
 import type { MeterType, Site, SiteStatus, SiteType } from '../types.js';
 import {
   addSite,
@@ -81,7 +83,7 @@ const sitePatchSchema = siteSchema.partial().refine(
   'No fields to update.',
 );
 
-/** Add a site to the caller's workspace. */
+/** Add a site to the caller's workspace, within their plan's capacity. */
 workspaceRouter.post('/sites', requireUser, async (req: AuthedRequest, res, next) => {
   try {
     const parsed = siteSchema.safeParse(req.body);
@@ -89,12 +91,38 @@ workspaceRouter.post('/sites', requireUser, async (req: AuthedRequest, res, next
       res.status(400).json({ error: parsed.error.issues[0]?.message ?? 'Invalid site payload.' });
       return;
     }
+
+    // Capacity is enforced here, on the server, before any document is written.
+    // `reserveSiteSlot` compares and increments atomically, so parallel requests
+    // cannot both take the last slot.
+    const reservation = await reserveSiteSlot(req.ownerId!);
+    if (!reservation.ok) {
+      const capacity = reservation.reason === 'capacity';
+      res.status(capacity ? 403 : 402).json({
+        error: capacity
+          ? `You have reached the maximum number of sites allowed in your current subscription. Upgrade your plan to add more sites.`
+          : 'An active subscription is required to add sites.',
+        code: capacity ? 'site_limit_reached' : 'subscription_required',
+        subscription: reservation.subscription,
+      });
+      return;
+    }
+
     const { monthExpected, ...rest } = parsed.data;
-    const site = await addSite(req.ownerId!, {
-      ...rest,
-      monthExpected: monthExpected ?? rest.monthActual,
-    } as Parameters<typeof addSite>[1]);
-    res.status(201).json({ site });
+    try {
+      const site = await addSite(req.ownerId!, {
+        ...rest,
+        monthExpected: monthExpected ?? rest.monthActual,
+      } as Parameters<typeof addSite>[1]);
+      res.status(201).json({
+        site,
+        subscription: await subscriptionFor(req.ownerId!),
+      });
+    } catch (error) {
+      // Give the reserved slot back: a failed write must not consume capacity.
+      await releaseSiteSlot(req.ownerId!);
+      throw error;
+    }
   } catch (error) {
     next(error);
   }

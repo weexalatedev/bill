@@ -131,7 +131,7 @@ export const env = {
     secretKey: str(process.env.STRIPE_SECRET_KEY, ''),
     webhookSecret: str(process.env.STRIPE_WEBHOOK_SECRET, ''),
     /** Base URL used to build success/cancel redirects. */
-    appBaseUrl: str(process.env.APP_BASE_URL, 'http://localhost:5173'),
+    appBaseUrl: str(process.env.APP_BASE_URL, 'http://localhost:3000'),
   },
 };
 

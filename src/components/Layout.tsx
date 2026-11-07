@@ -6,6 +6,7 @@ import {
   AlertTriangle,
   Bell,
   Building2,
+  CreditCard,
   Info,
   LayoutDashboard,
   Loader2,
@@ -31,15 +32,16 @@ interface NavItem {
 
 /** The console is deliberately small: upload invoices, analyse them, manage sites. */
 const NAV: NavItem[] = [
-  { to: '/', label: 'Dashboard', icon: LayoutDashboard },
+  { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/bills', label: 'Invoices', icon: Receipt, badge: 'issues' },
   { to: '/analysis', label: 'Smart Analysis', icon: ScanSearch },
   { to: '/sites', label: 'Sites', icon: Building2 },
+  { to: '/subscription', label: 'Subscription', icon: CreditCard },
   { to: '/settings', label: 'Settings', icon: SettingsIcon },
 ];
 
 const PAGE_META: Record<string, { title: string; subtitle: string }> = {
-  '/': {
+  '/dashboard': {
     title: 'Dashboard',
     subtitle: 'Your energy at a glance — spend, savings and open issues.',
   },
@@ -55,6 +57,10 @@ const PAGE_META: Record<string, { title: string; subtitle: string }> = {
     title: 'Sites',
     subtitle: 'Add your sites — invoices are filed and benchmarked per site.',
   },
+  '/subscription': {
+    title: 'Subscription',
+    subtitle: 'Plan, capacity, payments and changes — straight from your billing record.',
+  },
   '/settings': {
     title: 'Settings',
     subtitle: 'Devices, rate plan, hardware and pause switches — wired to the connector service.',
@@ -67,7 +73,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const { sites, invoices, metrics, toast, loading, error, refresh } = useApp();
   const pathname = usePathname() || '/';
   const router = useRouter();
-  const meta = PAGE_META[pathname] ?? PAGE_META['/'];
+  const meta = PAGE_META[pathname] ?? PAGE_META['/dashboard'];
   /** The Copilot owns the viewport height: a chat app should not page-scroll. */
   const isChat = pathname === '/copilot';
 

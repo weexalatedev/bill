@@ -40,6 +40,12 @@ export async function createCheckoutSession(options: {
   sites: number;
   ownerId: string;
   email?: string;
+  /** Where the hosted checkout returns on success. */
+  successUrl?: string;
+  /** Where it returns when the buyer backs out. */
+  cancelUrl?: string;
+  /** Extra metadata round-tripped on the webhook (e.g. our payment id). */
+  metadata?: Record<string, string>;
 }): Promise<CheckoutSession> {
   if (!stripeEnabled) {
     throw Object.assign(new Error('Stripe is not configured.'), {
@@ -50,11 +56,14 @@ export async function createCheckoutSession(options: {
   const quantity = Math.max(1, Math.round(options.sites));
   const body = new URLSearchParams();
   body.set('mode', 'subscription');
-  body.set('success_url', `${env.stripe.appBaseUrl}/plans?checkout=success`);
-  body.set('cancel_url', `${env.stripe.appBaseUrl}/plans?checkout=cancelled`);
+  body.set('success_url', options.successUrl ?? `${env.stripe.appBaseUrl}/onboarding/payment-status`);
+  body.set('cancel_url', options.cancelUrl ?? `${env.stripe.appBaseUrl}/onboarding/payment-status?state=cancelled`);
   body.set('client_reference_id', options.ownerId);
   body.set('metadata[ownerId]', options.ownerId);
   body.set('metadata[planId]', options.plan.id);
+  for (const [key, value] of Object.entries(options.metadata ?? {})) {
+    body.set(`metadata[${key}]`, value);
+  }
   if (options.email) body.set('customer_email', options.email);
   body.set('line_items[0][quantity]', String(quantity));
   body.set('line_items[0][price_data][currency]', 'gbp');
@@ -98,7 +107,7 @@ export function verifyAndParseEvent(
   signatureHeader: string | undefined,
   secret: string,
   toleranceSeconds = 300,
-): { type?: string; data?: { object?: Record<string, unknown> } } | null {
+): { id?: string; type?: string; data?: { object?: Record<string, unknown> } } | null {
   if (!signatureHeader || !secret) return null;
   const payload = typeof rawBody === 'string' ? rawBody : rawBody.toString('utf8');
 

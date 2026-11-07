@@ -223,3 +223,96 @@ export interface SiteRisk {
   annualisedKwh: number;
   topCodes: string[];
 }
+// ── Subscription / billing (mirrors server/src/services/subscription.ts) ──────
+
+export type BillingPeriod = 'monthly' | 'annual';
+
+export type SubscriptionStatus =
+  | 'none'
+  | 'pending'
+  | 'payment_pending'
+  | 'active'
+  | 'failed'
+  | 'cancelled'
+  | 'expired';
+
+/** A plan as published by `/api/plans` — the only source of pricing truth. */
+export interface PlanDefinition extends Plan {
+  siteLimit: number;
+  restrictions: string[];
+  annualPricePerSite: number | null;
+  active: boolean;
+}
+
+export interface OrderLine {
+  label: string;
+  amount: number;
+}
+
+export interface OrderSummary {
+  planId: Plan['id'];
+  planName: string;
+  billingPeriod: BillingPeriod;
+  sites: number;
+  pricePerSite: number;
+  subtotal: number;
+  vat: number;
+  total: number;
+  currency: 'GBP';
+  totalPence: number;
+  lines: OrderLine[];
+}
+
+export interface PaymentRecord {
+  id: string;
+  planId: Plan['id'];
+  planName: string;
+  billingPeriod: BillingPeriod;
+  provider: 'stripe' | 'dev';
+  status: 'pending' | 'succeeded' | 'failed' | 'cancelled';
+  amountPence: number;
+  amountGbp: number;
+  currency: string;
+  description: string;
+  createdAt: string;
+  paidAt: string | null;
+  failureReason: string | null;
+}
+
+export interface SubscriptionView {
+  status: SubscriptionStatus;
+  isActive: boolean;
+  planId: Plan['id'];
+  planName: string;
+  planTagline: string;
+  pricePerSite: number;
+  billingPeriod: BillingPeriod;
+  siteLimit: number;
+  siteLimitSource: string;
+  sitesUsed: number;
+  remainingSites: number;
+  canAddSite: boolean;
+  currentPeriodStart: string | null;
+  currentPeriodEnd: string | null;
+  renewalDate: string | null;
+  cancelAtPeriodEnd: boolean;
+  monthlyGbp: number;
+  pendingChange: { planId: Plan['id']; planName: string; billingPeriod: BillingPeriod } | null;
+  pendingPaymentId: string | null;
+  latestPayment: PaymentRecord | null;
+  stripeEnabled: boolean;
+  devMode: boolean;
+}
+
+export interface PlansResponse {
+  plans: PlanDefinition[];
+  allPlans: PlanDefinition[];
+  billingPeriods: BillingPeriod[];
+  annualBillingAvailable: boolean;
+  recommendedPlanId: Plan['id'];
+  currency: string;
+  priceBasis: string;
+  vatRatePct: number;
+  siteLimitSource: string;
+  notes: { annualPricing: string; siteLimits: string };
+}

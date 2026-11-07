@@ -1,1 +1,237 @@
-And this Python code should be present in our local VS Code files where we have all this setup, or it is somewhere else, because I don't see it in one of the things I tried to connect, or I don't know. It may lose. Tell me in one line answer.
+ENEROS - BUSINESS PLAN
+================================================================================
+The total energy saver for UK SMEs.
+Version 1.0 - main reference document. Supersedes earlier drafts.
+
+The technical build detail for this plan lives in docs/ENERGY_SAVER_GUIDE.md;
+this file is the business plan it implements.
+
+
+THE BIG IDEA
+================================================================================
+The one number that matters is:
+
+    verified GBP saved per site per year.
+
+Everything else in this plan is a step toward that number:
+
+    know the data  ->  find the waste  ->  fix it  ->  prove the savings were real.
+
+EnerOS is not sold as "a dashboard" and not as "an AI chat". It is sold as a
+machine that finds money in a business's energy bills, proves it was saved, and
+keeps finding more. If a feature does not move data coverage, GBP identified,
+GBP executed or GBP verified, it is not part of the core build.
+
+
+WHERE ENEROS IS TODAY
+================================================================================
+Capabilities that already work:
+  - Reads bills (PDF/photo upload and email-forward), extracts the figures.
+  - Audits those bills for errors with a deterministic engine, evidence per
+    finding, and a plain-English narration.
+  - Shows live UK electricity prices (half-hourly Agile curve per region) and
+    grid carbon intensity.
+  - Answers questions through a grounded chatbot that narrates server-computed
+    numbers, never invented ones.
+  - Keeps a workspace of sites, invoices, actions and plans.
+
+What it is still guessing at ("the gaps"):
+  1. No real half-hourly meter readings. Consumption is estimated from spend,
+     so the product cannot say "you used X kWh at 17:30".
+  2. No bill detail. Invoices are summaries: no billing period, no MPAN, no
+     line items (unit rate, standing charge, network charges, capacity charge,
+     levies, VAT).
+  3. No baseline. Without baseline -> intervention -> measured outcome, a saving
+     can only be estimated, never verified.
+  4. Savings ideas are a fixed seed list, not opportunities worked out per site.
+  5. Nothing actually acts. Actions move Recommend -> Approve -> Automate, but
+     nothing plans, simulates, executes or measures.
+  6. Onboarding captures almost no data (business name, site count, postcode).
+
+
+STEP 1 - GET THE CUSTOMER'S DATA
+================================================================================
+Without data there are no savings. Data capture is the highest-leverage build and
+the hardest part of the product, so it gets the most design attention.
+
+1.1 The onboarding wizard
+A guided, resumable, step-by-step flow. Every step is skippable; drafts persist so
+a customer can leave and come back.
+
+  Step 1  Business details and site info
+          name, sector, sites, postcode(s), floor area, opening hours, occupancy,
+          trading days. Feeds capacity region, benchmarks and the load shape.
+
+  Step 2  Equipment / assets
+          heating and cooling, refrigeration, ovens, hot water, lighting,
+          EV chargers, solar, battery - with counts and rough sizes.
+          Feeds the controllable-load model and the flexibility estimate.
+
+  Step 3  Tariff details and past bills
+          supplier, contract dates, unit rates, standing charge, network (DUoS),
+          capacity charge, VAT/CCL; upload or forward 12 months of bills.
+          Feeds the true cost model and the history for anomaly detection.
+
+  Step 4  Half-hourly meter data
+          CSV export from the supplier, or consent for us to pull it.
+          The hardest to get and the most valuable - it unlocks the whole
+          optimisation and verification layer.
+
+  Step 5  Permission to pull data automatically
+          data-sharing mandate, MPAN/MSN, billing contact. Feeds automated
+          ingestion, the email-forward address and eventually direct meter links.
+
+1.2 How the wizard behaves
+  - Progressive, never gated. A customer reaches "GBP identified" after site info
+    plus bills (a bill-based estimate), then improves accuracy with meter data.
+  - Every field explains its purpose in one line, e.g. opening hours are used to
+    find low-occupancy periods where heating can safely drop 1C.
+  - A value meter runs throughout and shows what each piece unlocks, e.g.
+    "data confidence 62% -> add meter data for 95%; estimated saving so far
+    GBP 12,400/yr".
+  - Data confidence is shown per site ("bill-only" vs "half-hourly").
+
+1.3 Data channels, in priority order
+  - PDF bill upload (already built): text layer or vision OCR -> typed invoice.
+  - Bills emailed to a dedicated forwarding address.
+  - CSV exports from the supplier (long timestamp,kwh or wide date,p1..p48).
+  - Meter data via consent, and eventually direct links to meters/AMR.
+
+
+STEP 2 - WORK OUT WHERE THE MONEY GOES
+================================================================================
+Turn a bill from a single number into its parts, then judge each part.
+
+2.1 Itemise the bill
+  unit rate x kWh / standing charge / network charges (DUoS) / capacity charge /
+  levies (CCL, RO, FiT) / VAT, each attributed to a period and an MPAN.
+
+2.2 Extend the deterministic checks
+  New checks on top of the existing ten, for example:
+  - wrong unit rate or standing charge versus the contracted tariff;
+  - charged for more capacity than was agreed;
+  - billed on estimated readings for too long;
+  - billed twice for the same period or meter;
+  - back-billing beyond the permitted window.
+
+2.3 Make "normal" measurable
+  Compare each site against similar businesses (sector, size, region) and against
+  its own history, so abnormal consumption, abnormal cost and abnormal load shape
+  become measurable rather than a matter of opinion.
+
+
+STEP 3 - PROVE THE SAVINGS
+================================================================================
+Build a baseline: a model of how much energy the site would have used, accounting
+for weather and trading days (and whatever else drives the load). After a change
+is made, compare actual use against that baseline, with a confidence interval.
+
+Only then may a figure be called verified. Until then it is labelled estimated.
+This is the difference between a claim and a product, and it is the number the
+business is priced on.
+
+
+STEP 4 - GENERATE SAVINGS OPPORTUNITIES AUTOMATICALLY
+================================================================================
+Replace the fixed list with opportunities computed per site, from its own data,
+in four groups:
+
+  Tariff and procurement   switch to a better tariff, correct capacity charges,
+                           recover billing errors.
+  Load shifting            run EV charging, heating or cooling at cheaper times.
+  Efficiency               fridge seals, lighting upgrades, thermostat settings,
+                           schedule changes.
+  Waste and faults         high overnight base load, equipment left running,
+                           failing plant.
+
+Rules of the road:
+  - The rules are deterministic - plain logic, auditable, repeatable.
+  - The AI only explains and drafts; it never invents an opportunity or a number.
+  - Every opportunity carries its evidence, its estimated GBP, its confidence
+    and the effort to realise it.
+
+
+STEP 5 - LET THE SYSTEM ACT, SAFELY
+================================================================================
+A single loop runs: observe, diagnose, propose, simulate, get approval, execute,
+verify, learn.
+
+Safety rules, built in rather than bolted on:
+  - Hard limits on comfort and food safety.
+  - Nothing runs without permission.
+  - Everything is logged: who, what, when and why, immutably.
+  - Three trust levels: just recommend, one-click approve, automate within limits.
+  - A kill switch is always visible, plus a per-site autonomy scope.
+
+Assets are reached only through an abstraction layer, so no vendor logic leaks
+into the decision engine.
+
+
+STEP 6 - REDESIGN THE APP AROUND RESULTS
+================================================================================
+The product leads with outcomes, not with charts.
+
+  Home       "You saved GBP X this month; GBP Y is waiting for your approval."
+             Approvals queue, data-confidence chip per site, cheapest window today.
+  Savings    The main screen: opportunities with GBP/yr, confidence, effort and
+             status; bulk approve; a simulate drawer per action; a verified tab
+             showing baseline vs actual and the measured saving.
+  Energy     Live flow and prices, with measured vs modelled clearly labelled.
+  Bills      Upload, email-forward address and meter-data import in one place;
+             itemised cost breakdown, findings and a challenge workflow.
+  Sites      Portfolio with data quality per site.
+  Assistant  The Copilot, with tool access, never able to skip approval.
+  Settings   Tariff, consent, autonomy, integrations.
+
+Every GBP figure in the product is labelled estimated or verified. No exceptions.
+
+
+ROADMAP
+================================================================================
+Phase 1 (2-3 weeks)  Data foundation
+                     Onboarding wizard, richer bill data model (periods, line
+                     items), half-hourly meter data import, data-confidence meter.
+
+Phase 2 (2-3 weeks)  Analysis and opportunities
+                     Itemised cost breakdown, new bill checks, peer and own-history
+                     benchmarks, generated opportunity list per site.
+
+Phase 3 (3-4 weeks)  The approve, execute, verify loop
+                     Baselines, simulation, approvals, execution through the asset
+                     abstraction layer, verified-GBP measurement, audit log.
+
+Phase 4 (3-4 weeks)  Automation and real integrations
+                     Autonomy within policy bounds, kill switch, real equipment
+                     and supplier integrations.
+
+Phase 5              Scale: other industries, cross-customer benchmarks,
+                     portfolio and multi-site optimisation.
+
+Phases 1 and 2 are the commercial unlock: they turn the current console into
+something that can find and price savings per site. Phase 3 is what lets us
+charge on verified savings. Phase 4 is the moat.
+
+
+PRICING AND POSITIONING
+================================================================================
+Three per-site plans - Starter, Growth, Autonomous - plus a performance fee on
+verified savings and a share of flexibility revenue. The performance fee is only
+defensible because savings are verified rather than asserted.
+
+
+CLOSING ADVICE
+================================================================================
+Build data and trust first, automation later:
+
+    "an agent without measured data is just an opinion."
+
+Get the meter data, itemise the bills, build the baseline, generate opportunities
+from evidence, then earn the right to act.
+
+
+SEE ALSO
+================================================================================
+README.md                    What exists in the product today.
+docs/ENERGY_SAVER_GUIDE.md   The technical build order behind this plan.
+docs/INTELLIGENCE_GUIDE.md   Engine decides, AI explains.
+docs/IMPLEMENTATION_GUIDE.md UK data sources and the data-source map.

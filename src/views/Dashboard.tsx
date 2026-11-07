@@ -13,6 +13,7 @@ import { AlertTriangle, Gauge, PiggyBank, ShieldCheck, TrendingDown } from 'luci
 import { useApp } from '../store';
 import { Badge, Card, ProgressBar, SectionHeading, StatCard } from '../components/ui';
 import SetupChecklist from '../components/SetupChecklist';
+import SubscriptionSummary from '../components/SubscriptionSummary';
 import { compactGbp, gbp, pct, share, signedGbp } from '../lib/format';
 
 function SpendTooltip({
@@ -75,6 +76,7 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
+      <SubscriptionSummary />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-neutral-500">
           {account.name} · {account.sites} sites · billing period Mar 2026

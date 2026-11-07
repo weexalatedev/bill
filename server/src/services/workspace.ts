@@ -23,6 +23,8 @@ import {
   sites as demoSites,
 } from '../seed/data.js';
 import { PLANS, SUPPLIERS, type UploadedDocument, type Workspace } from './catalog.js';
+import { addMonths, ensureAccount, isDemoOwner, syncSiteCount } from './subscription.js';
+import { SITE_LIMIT_PROVENANCE } from './plans.js';
 
 /** True when the owner already has any site data. */
 export async function hasWorkspace(ownerId: string): Promise<boolean> {
@@ -33,8 +35,16 @@ export async function hasWorkspace(ownerId: string): Promise<boolean> {
 /**
  * Seed the demo dataset for a given owner.
  * `wipe` clears the owner's data first — used by `npm run seed`.
+ *
+ * The demo account is the only one that gets the 12-site sample portfolio: a real
+ * sign-up starts with an empty workspace so it is never pushed over its plan's
+ * site cap by sample data.
  */
-export async function provisionWorkspace(ownerId: string, wipe = false): Promise<void> {
+export async function provisionWorkspace(
+  ownerId: string,
+  wipe = false,
+  options: { demo?: boolean } = {},
+): Promise<void> {
   if (wipe) {
     await Promise.all([
       SiteModel.deleteMany({ ownerId }),
@@ -47,13 +57,40 @@ export async function provisionWorkspace(ownerId: string, wipe = false): Promise
     ]);
   }
 
+  if (options.demo === false) {
+    await ensureAccount(ownerId);
+    return;
+  }
+
   await SiteModel.insertMany(demoSites.map((s) => ({ ...s, ownerId })));
   await InvoiceModel.insertMany(demoInvoices.map((i) => ({ ...i, ownerId })));
   await ActionModel.insertMany(demoActions.map((a) => ({ ...a, ownerId })));
   await MonthlyModel.insertMany(demoMonthly.map((m) => ({ ...m, ownerId })));
   await AssetMixModel.insertMany(demoAssetMix.map((a) => ({ ...a, ownerId })));
-  await AccountModel.create({ ...demoAccount, ownerId, controlMode: 'Approve' });
+  await AccountModel.updateOne(
+    { ownerId },
+    {
+      $set: {
+        ...demoAccount,
+        ownerId,
+        controlMode: 'Approve',
+        sites: demoSites.length,
+        // The demo workspace is a live, paid Autonomous subscription so the
+        // console is fully explorable (and its 12 sites sit inside the 25 cap).
+        planId: 'autonomous',
+        billingPeriod: 'monthly',
+        siteLimit: 25,
+        siteLimitSource: SITE_LIMIT_PROVENANCE,
+        subscriptionStatus: 'active',
+        currentPeriodStart: new Date().toISOString(),
+        currentPeriodEnd: addMonths(new Date(), 12).toISOString(),
+        cancelAtPeriodEnd: false,
+      },
+    },
+    { upsert: true },
+  ).exec();
 }
+
 
 /** Fields a client may supply when adding or editing a site. */
 export interface SiteInput {
@@ -85,15 +122,17 @@ async function nextSiteId(ownerId: string): Promise<string> {
   return `s-${Date.now().toString(36)}`;
 }
 
-/** Create a site for an owner and keep the account's site count in step. */
+/**
+ * Create a site for an owner.
+ *
+ * The caller must have reserved a slot first (`reserveSiteSlot` in the
+ * subscription service), which is what makes the plan's site cap safe under
+ * concurrency. This function therefore never recomputes the counter — doing so
+ * would race with an in-flight reservation and let the total creep over the cap.
+ */
 export async function addSite(ownerId: string, input: SiteInput): Promise<Site> {
   const created = await SiteModel.create({ ...input, ownerId, id: await nextSiteId(ownerId) });
-  const site = strip(created.toObject()) as unknown as Site;
-  // `account.sites` is denormalised for the dashboard; recompute rather than
-  // increment so it self-heals if earlier counts ever drifted.
-  const total = await SiteModel.countDocuments({ ownerId });
-  await AccountModel.updateOne({ ownerId }, { $set: { sites: total } }, { upsert: true }).exec();
-  return site;
+  return strip(created.toObject()) as unknown as Site;
 }
 
 /** Update the editable fields of a site. Returns null when it does not exist. */
@@ -131,15 +170,16 @@ export async function removeSite(ownerId: string, id: string): Promise<boolean> 
     ActionModel.deleteMany({ ownerId, siteId: id }),
   ]);
 
-  const total = await SiteModel.countDocuments({ ownerId });
-  await AccountModel.updateOne({ ownerId }, { $set: { sites: total } }).exec();
+  await syncSiteCount(ownerId);
   return true;
 }
 
-/** Load the full workspace for an owner, provisioning a demo dataset on first run. */
+/** Load the full workspace for an owner, provisioning on first run. */
 export async function getWorkspace(ownerId: string, autoProvision: boolean): Promise<Workspace> {
   if (autoProvision && !(await hasWorkspace(ownerId))) {
-    await provisionWorkspace(ownerId);
+    // Only the demo identity gets the sample portfolio; a real customer starts
+    // empty so their plan's site cap is measured against their own sites.
+    await provisionWorkspace(ownerId, false, { demo: isDemoOwner(ownerId) });
   }
 
   const [account, sites, invoices, actions, monthly, assetMix, uploads] = await Promise.all([

@@ -29,6 +29,8 @@ export interface AuthValue {
   getToken: () => Promise<string | null>;
   /** Dev-mode only — Clerk signs in through its own <SignIn/> component. */
   signInWithPassword?: (email: string, password: string) => Promise<void>;
+  /** Dev-mode only — Clerk owns registration when it is configured. */
+  signUpWithPassword?: (email: string, password: string, name?: string) => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -78,6 +80,17 @@ export function DevAuthProvider({
     setUser(result.user);
   }, []);
 
+  const signUpWithPassword = useCallback(
+    async (email: string, password: string, name?: string) => {
+      const result = await api.devRegister(email, password, name);
+      localStorage.setItem(TOKEN_KEY, result.token);
+      localStorage.setItem(USER_KEY, JSON.stringify(result.user));
+      setToken(result.token);
+      setUser(result.user);
+    },
+    [],
+  );
+
   const signOut = useCallback(async () => {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
@@ -96,9 +109,10 @@ export function DevAuthProvider({
       user,
       getToken,
       signInWithPassword,
+      signUpWithPassword,
       signOut,
     }),
-    [config, isLoaded, token, user, getToken, signInWithPassword, signOut],
+    [config, isLoaded, token, user, getToken, signInWithPassword, signUpWithPassword, signOut],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

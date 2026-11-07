@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { SignUp } from '@clerk/clerk-react';
 import { ClerkGate } from '../../components/auth/ClerkStates';
 import AuthShell from './AuthShell';
-import DevSignInForm from '../../components/auth/DevSignIn';
+import DevSignUpForm from '../../components/auth/DevSignUp';
 import { useAuth } from '../../lib/auth';
 import { clerkAppearance } from '../../lib/clerkAppearance';
 
@@ -30,15 +30,15 @@ export default function SignUpPage() {
     </>
   );
 
-  // Dev mode has no Clerk instance, so the demo login stands in for sign-up.
+  // Dev mode has no Clerk instance, so the API's own registration is used.
   if (config.authMode === 'dev') {
     return (
       <AuthShell
         title="Create your workspace"
-        subtitle="Demo mode — Clerk is not configured, so sign in with the demo account instead."
+        subtitle="Save the audit, then choose a plan. No card needed to create the account."
         footer={footer}
       >
-        <DevSignInForm onSuccess={() => router.replace('/onboarding')} />
+        <DevSignUpForm onSuccess={() => router.replace('/onboarding/subscription')} />
       </AuthShell>
     );
   }
@@ -55,8 +55,8 @@ export default function SignUpPage() {
           routing="path"
           appearance={clerkAppearance}
           signInUrl="/sign-in"
-          fallbackRedirectUrl="/onboarding"
-          forceRedirectUrl="/onboarding"
+          fallbackRedirectUrl="/onboarding/subscription"
+          forceRedirectUrl="/onboarding/subscription"
         />
       </ClerkGate>
     </AuthShell>
