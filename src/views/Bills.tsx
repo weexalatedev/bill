@@ -131,7 +131,7 @@ function UploadBillCard({ onSaved }: { onSaved: (invoice: Invoice) => void }) {
           {outcome.invoice ? (
             <div className="flex items-center justify-between gap-2 rounded-md bg-white px-3 py-2 ring-1 ring-neutral-100">
               <p className="text-xs text-neutral-600">Filed against <strong className="text-neutral-700">{siteName}</strong> as {outcome.invoice.id}</p>
-              <Link href="/analysis" className="inline-flex items-center gap-1 text-xs font-semibold text-neutral-700 transition-colors hover:text-neutral-800">Full benchmark <ArrowRight className="h-3 w-3" /></Link>
+              <Link href="/analysis" className="inline-flex items-center gap-1 text-xs font-semibold text-text-2 transition-colors hover:text-text-1">Full benchmark <ArrowRight className="h-3 w-3" /></Link>
             </div>
           ) : (
             <p className="text-xs text-neutral-600">Some figures were unreadable, so the bill was analysed but not filed — check the findings above, or enter the figures manually below.</p>

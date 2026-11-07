@@ -59,10 +59,7 @@ const NAV_GROUPS: NavGroup[] = [
   },
   {
     label: 'Money',
-    items: [
-      { to: '/bills', label: 'Invoices', icon: Receipt, badge: 'issues' },
-      { to: '/analysis', label: 'Smart Analysis', icon: ScanSearch },
-    ],
+    items: [{ to: '/bills', label: 'Invoices', icon: Receipt, badge: 'issues' }],
   },
   {
     label: 'Operations',
@@ -199,7 +196,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             {group.items.map((item) => {
               const Icon = item.icon;
               const count = item.badge ? badgeCount[item.badge] : undefined;
-              const isActive = pathname === item.to || pathname.startsWith(`${item.to}/`);
+              const isActive =
+                pathname === item.to ||
+                pathname.startsWith(`${item.to}/`) ||
+                (item.to === '/bills' && pathname.startsWith('/analysis'));
               return (
                 <Link
                   key={item.to}

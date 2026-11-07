@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, type ReactNode } from 'react';
-import { ArrowDownRight, ArrowUpRight, X } from 'lucide-react';
+import { AlertCircle, ArrowDownRight, ArrowUpRight, X } from 'lucide-react';
 import { cx } from '../lib/cx';
 
 /**
@@ -341,3 +341,42 @@ export const controlClass =
   'w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-ink-900 ' +
   'transition-colors placeholder:text-neutral-600 focus:border-ink-900 focus:outline-none ' +
   'focus:ring-2 focus:ring-ink-900/10';
+
+/** A loading placeholder. Use one per data block, never a spinner over text. */
+export function Skeleton({ className }: { className?: string }) {
+  return <div className={cx('eos-skeleton', className ?? 'h-4 w-full')} aria-hidden />;
+}
+
+/**
+ * The error state. Every data widget needs one: what failed, and the one action
+ * that retries it.
+ */
+export function ErrorState({
+  title = 'That did not load',
+  detail,
+  onRetry,
+  retryLabel = 'Try again',
+}: {
+  title?: string;
+  detail?: string;
+  onRetry?: () => void;
+  retryLabel?: string;
+}) {
+  return (
+    <div className="rounded-[var(--radius-card)] border border-issue/30 bg-issue-tint px-4 py-3">
+      <p className="flex items-center gap-2 text-sm font-semibold text-issue">
+        <AlertCircle className="h-4 w-4" /> {title}
+      </p>
+      {detail && <p className="mt-1 text-xs text-text-2">{detail}</p>}
+      {onRetry && (
+        <button
+          type="button"
+          onClick={onRetry}
+          className="mt-2 inline-flex items-center gap-1.5 rounded-[var(--radius-control)] border border-hairline bg-raised px-2.5 py-1.5 text-xs font-semibold text-text-1 hover:bg-surface"
+        >
+          {retryLabel}
+        </button>
+      )}
+    </div>
+  );
+}

@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { ArrowRight, Database, FileSpreadsheet, Receipt, Sparkles } from 'lucide-react';
 import { useApp } from '../../store';
-import { Badge, Card, ProgressBar, SectionHeading } from '../ui';
+import { Badge, Card, EmptyState, ProgressBar, SectionHeading } from '../ui';
 
 const SOURCE_COPY = {
   hh: { label: 'Half-hourly', tone: 'solid' as const, hint: 'Measured load shape — the full optimisation layer' },
@@ -52,6 +52,9 @@ export default function DataPanel() {
           subtitle="A site is only as optimisable as the data behind it. Close the gaps top-down."
           action={<Badge tone="muted">{sites.length} sites</Badge>}
         />
+        {sites.length === 0 ? (
+          <EmptyState title="No sites to measure yet" hint="Add a site, then import a bill or half-hourly readings." />
+        ) : (
         <div className="overflow-x-auto">
           <table className="w-full min-w-[40rem] text-left text-sm">
             <thead>
@@ -104,6 +107,7 @@ export default function DataPanel() {
             </tbody>
           </table>
         </div>
+        )}
       </Card>
 
       <Card className="bg-surface">

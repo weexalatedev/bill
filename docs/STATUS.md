@@ -226,3 +226,21 @@ so a client can never mislabel a figure.
 `EmptyState`/`Skeleton`/`ErrorState` are not yet on every widget; number tweens and the chart draw-in class are not
 applied to live charts; row heights and icon sizing in the sidebar are approximate; the mobile app still uses its own
 `theme.ts`.
+
+---
+
+## 10. Phase 2 completion + Phase 3 start (this increment)
+
+| Item | Change | Verified by |
+| --- | --- | --- |
+| Money workspace | Invoices and Smart Analysis are one destination (`MoneyTabs`): `/bills` opens on invoices, `/analysis` deep-links to the analysis tab, and the sidebar's Money group has a single entry | browser: two tabs render, `/analysis` selects the analysis tab, one Money nav link |
+| Shell | Sidebar groups now collapse to Overview / Money / Operations / Account with the analysis item folded in | browser assertion: no standalone “Smart Analysis” nav link |
+| Loading states | `Skeleton` added to `ui.tsx`; the Devices tab renders skeleton cards while the connector is read (was showing “no provider connected” during the load) | browser: 12 skeletons visible before data resolves |
+| Empty states | `EmptyState` on the Devices grid and the Data coverage table when a workspace has no sites | code path asserted via the same components elsewhere |
+| Error state | `ErrorState` primitive added (issue-tinted, one retry action) for the screens still to adopt it in Phase 3 | theme check renders the primitives |
+
+**Not done in this increment:** splitting `Analysis.tsx` (1,118 lines) and `Sites.tsx` (629); `ErrorState` not yet
+wired into every widget; number tweens and chart draw-in not applied to live charts; the findings status workflow
+(open / disputed / recovered) and challenge-letter generation remain Phase 3 items.
+
+**Checks this increment:** build clean · theme 39/39 · smoke 24/24 · browser 7/7.
