@@ -54,7 +54,7 @@ export default function SubscriptionGate({ children }: { children: ReactNode }) 
 
   return (
     <div className="grid min-h-screen place-items-center bg-neutral-50">
-      <div className="flex flex-col items-center gap-3 text-neutral-500">
+      <div className="flex flex-col items-center gap-3 text-neutral-600">
         <div className="grid h-11 w-11 place-items-center rounded-lg bg-ink-900">
           <Zap className="h-5 w-5 text-white" strokeWidth={2.5} />
         </div>

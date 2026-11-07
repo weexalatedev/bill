@@ -191,7 +191,7 @@ export default function Copilot() {
             </div>
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold text-neutral-900">Copilot</p>
-              <p className="truncate text-xs text-neutral-500">
+              <p className="truncate text-xs text-neutral-600">
                 {online
                   ? 'Online · grounded in your live energy data'
                   : source === null
@@ -204,7 +204,7 @@ export default function Copilot() {
                 'hidden shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold ring-1 ring-inset sm:inline-flex',
                 online
                   ? 'bg-ink-900 text-white ring-ink-900'
-                  : 'bg-neutral-50 text-neutral-500 ring-neutral-300',
+                  : 'bg-neutral-50 text-neutral-600 ring-neutral-300',
               )}
             >
               {online ? 'Live' : 'Offline'}
@@ -251,7 +251,7 @@ export default function Copilot() {
                   <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-neutral-100 text-neutral-600">
                     <Bot className="h-4 w-4" />
                   </div>
-                  <div className="flex items-center gap-2 rounded-xl rounded-bl-md bg-neutral-100 px-4 py-3 text-sm text-neutral-500">
+                  <div className="flex items-center gap-2 rounded-xl rounded-bl-md bg-neutral-100 px-4 py-3 text-sm text-neutral-600">
                     <span className="flex gap-1">
                       <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-neutral-400 [animation-delay:-0.2s]" />
                       <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-neutral-400 [animation-delay:-0.1s]" />
@@ -264,7 +264,7 @@ export default function Copilot() {
 
               {messages.length <= 1 && !thinking && (
                 <div className="pt-1">
-                  <p className="mb-2 text-xs font-medium text-neutral-400">Start with</p>
+                  <p className="mb-2 text-xs font-medium text-neutral-600">Start with</p>
                   <div className="grid gap-2 sm:grid-cols-2">
                     {STARTERS.map((starter) => (
                       <button
@@ -323,7 +323,7 @@ export default function Copilot() {
                   }}
                   rows={Math.min(5, Math.max(1, input.split('\n').length))}
                   placeholder="Message Copilot…"
-                  className="max-h-40 flex-1 resize-none bg-transparent px-3 py-2 text-sm text-neutral-800 placeholder:text-neutral-400 focus:outline-none"
+                  className="max-h-40 flex-1 resize-none bg-transparent px-3 py-2 text-sm text-neutral-800 placeholder:text-neutral-600 focus:outline-none"
                 />
                 <button
                   type="submit"
@@ -338,7 +338,7 @@ export default function Copilot() {
                   )}
                 </button>
               </form>
-              <p className="mt-2 text-center text-[10px] text-neutral-400">
+              <p className="mt-2 text-center text-[10px] text-neutral-600">
                 Copilot can make mistakes. Check important figures before acting.
               </p>
             </div>

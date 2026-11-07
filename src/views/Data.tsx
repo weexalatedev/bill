@@ -32,7 +32,7 @@ import { gbp2, kwh, pence, pct } from '../lib/format';
 import { cx } from '../lib/cx';
 
 const textareaClass =
-  'w-full rounded-md border border-neutral-200 bg-white p-3 tabular-nums text-xs text-neutral-800 placeholder:text-neutral-400 focus:border-neutral-900 focus:outline-none focus:ring-2 focus:ring-neutral-900/12';
+  'w-full rounded-md border border-neutral-200 bg-white p-3 tabular-nums text-xs text-neutral-800 placeholder:text-neutral-600 focus:border-neutral-900 focus:outline-none focus:ring-2 focus:ring-neutral-900/12';
 
 /** A 14-day sample with a mild downward trend so a saving is visible. */
 function sampleCsv(): string {
@@ -127,7 +127,7 @@ export default function Data() {
       {/* Site + data quality */}
       <Card className="flex flex-wrap items-end justify-between gap-4">
         <label className="block">
-          <span className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-neutral-500">
+          <span className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-neutral-600">
             <PlugZap className="h-3.5 w-3.5" /> Site with meter data
           </span>
           <select
@@ -142,7 +142,7 @@ export default function Data() {
             ))}
           </select>
         </label>
-        <div className="flex items-center gap-2 pb-1 text-xs text-neutral-500">
+        <div className="flex items-center gap-2 pb-1 text-xs text-neutral-600">
           {loading ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" /> Loading…
@@ -155,7 +155,7 @@ export default function Data() {
             <Badge tone="outline">No meter data yet — import a CSV</Badge>
           )}
           {data?.price && (
-            <span className="text-neutral-400">
+            <span className="text-neutral-600">
               priced at {pence(data.price.meanP, 2)}/kWh · {data.price.source}
             </span>
           )}
@@ -277,16 +277,16 @@ export default function Data() {
                 <div>
                   <p className="text-3xl font-semibold tracking-tight text-neutral-700">
                     {gbp2(analysis.baseline.savedGbpPerMonth)}
-                    <span className="ml-1 text-sm font-medium text-neutral-400">/ month</span>
+                    <span className="ml-1 text-sm font-medium text-neutral-600">/ month</span>
                   </p>
-                  <p className="mt-1 text-xs text-neutral-500">
+                  <p className="mt-1 text-xs text-neutral-600">
                     {pct(analysis.baseline.savedPct)} lower than baseline (
                     {kwh(analysis.baseline.baselineDailyKwh)} →{' '}
                     {kwh(analysis.baseline.recentDailyKwh)} per day)
                   </p>
                 </div>
               ) : (
-                <p className="text-sm text-neutral-500">
+                <p className="text-sm text-neutral-600">
                   Import at least 14 days to measure a change against a baseline.
                 </p>
               )}
@@ -329,12 +329,12 @@ export default function Data() {
                     interval={5}
                     tickLine={false}
                     axisLine={false}
-                    tick={{ fontSize: 11, fill: '#a3a3a3' }}
+                    tick={{ fontSize: 11, fill: '#525252' }}
                   />
                   <YAxis
                     tickLine={false}
                     axisLine={false}
-                    tick={{ fontSize: 11, fill: '#a3a3a3' }}
+                    tick={{ fontSize: 11, fill: '#525252' }}
                     width={44}
                   />
                   <Tooltip
@@ -352,7 +352,7 @@ export default function Data() {
       {(!analysis || analysis.periods === 0) && !loading && (
         <Card className="py-10 text-center">
           <p className="text-sm font-semibold text-neutral-900">No meter data for {site?.name ?? 'this site'}</p>
-          <p className="mx-auto mt-1 max-w-md text-xs text-neutral-500">
+          <p className="mx-auto mt-1 max-w-md text-xs text-neutral-600">
             Import a half-hourly CSV above — or click “Use sample data” to see the analysis
             immediately. This is what turns bill checks into verified savings.
           </p>

@@ -188,8 +188,8 @@ export default function Sites() {
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <p className="text-sm font-semibold text-neutral-900">
-                Sites used: {subscription.sitesUsed} / {subscription.siteLimit}{' '}
-                <span className="text-xs font-normal text-neutral-500">
+                Sites used: {subscription.sitesUsed} / {subscription.siteLimit} ·{' '}
+                <span className="text-xs font-normal text-neutral-600">
                   {atCap ? 'no capacity left' : `${subscription.remainingSites} remaining`} · {subscription.planName} plan
                 </span>
               </p>
@@ -237,13 +237,13 @@ export default function Sites() {
         />
         <div className="mb-4 flex flex-wrap items-center gap-2">
           <div className="flex items-center gap-2 rounded-md border border-neutral-200 px-3 py-1.5">
-            <Search className="h-4 w-4 text-neutral-400" />
+            <Search className="h-4 w-4 text-neutral-600" />
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search sites…"
               aria-label="Search sites"
-              className="w-44 bg-transparent text-sm text-neutral-700 placeholder:text-neutral-400 focus:outline-none"
+              className="w-44 bg-transparent text-sm text-neutral-700 placeholder:text-neutral-600 focus:outline-none"
             />
           </div>
           <select
@@ -278,12 +278,12 @@ export default function Sites() {
                 setStatus('All');
                 setType('All');
               }}
-              className="rounded-md px-2.5 py-1.5 text-sm font-medium text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-700"
+              className="rounded-md px-2.5 py-1.5 text-sm font-medium text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-700"
             >
               Clear
             </button>
           )}
-          <span className="ml-auto text-xs text-neutral-400">
+          <span className="ml-auto text-xs text-neutral-600">
             Showing {num(visible.length)} of {num(sites.length)}
           </span>
         </div>
@@ -299,7 +299,7 @@ export default function Sites() {
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className="truncate text-base font-semibold text-neutral-900">{site.name}</p>
-                    <p className="mt-1 text-sm text-neutral-500">
+                    <p className="mt-1 text-sm text-neutral-600">
                       {[site.city, site.region].filter(Boolean).join(', ') || 'Location not set'}
                     </p>
                   </div>
@@ -308,7 +308,7 @@ export default function Sites() {
 
                 <dl className="mt-4 grid grid-cols-3 gap-3 border-y border-neutral-100 py-3">
                   <div>
-                    <dt className="text-[11px] uppercase tracking-wide text-neutral-400">
+                    <dt className="text-[11px] uppercase tracking-wide text-neutral-600">
                       This month
                     </dt>
                     <dd className="mt-0.5 text-sm font-semibold text-neutral-900">
@@ -316,7 +316,7 @@ export default function Sites() {
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-[11px] uppercase tracking-wide text-neutral-400">Saved</dt>
+                    <dt className="text-[11px] uppercase tracking-wide text-neutral-600">Saved</dt>
                     <dd
                       className={
                         saving >= 0
@@ -328,7 +328,7 @@ export default function Sites() {
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-[11px] uppercase tracking-wide text-neutral-400">Annual</dt>
+                    <dt className="text-[11px] uppercase tracking-wide text-neutral-600">Annual</dt>
                     <dd className="mt-0.5 text-sm font-semibold text-neutral-900">
                       {gbp(site.annualSpend)}
                     </dd>
@@ -337,7 +337,7 @@ export default function Sites() {
 
                 <div className="mt-3 flex min-h-[1.75rem] flex-wrap content-start gap-1.5">
                   {site.loads.length === 0 ? (
-                    <span className="text-xs text-neutral-400">No controllable loads recorded</span>
+                    <span className="text-xs text-neutral-600">No controllable loads recorded</span>
                   ) : (
                     site.loads.map((load) => (
                       <span
@@ -351,7 +351,7 @@ export default function Sites() {
                 </div>
 
                 <div className="mt-auto flex items-center justify-between gap-2 pt-4">
-                  <div className="min-w-0 text-xs text-neutral-400">
+                  <div className="min-w-0 text-xs text-neutral-600">
                     <p className="truncate">
                       {site.type} · {site.meterType} meter
                     </p>
@@ -371,7 +371,7 @@ export default function Sites() {
           })}
         </div>
         {visible.length === 0 && (
-          <p className="py-12 text-center text-sm text-neutral-500">
+          <p className="py-12 text-center text-sm text-neutral-600">
             No sites match your filters.
           </p>
         )}

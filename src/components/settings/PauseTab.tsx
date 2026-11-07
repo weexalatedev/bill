@@ -67,7 +67,7 @@ export default function PauseTab({ token, homeId, pause, onSaved }: Props) {
     <div className="space-y-5">
       <div>
         <SectionHeading title="Pause connections" />
-        <p className="mt-1 text-sm text-neutral-500">
+        <p className="mt-1 text-sm text-neutral-600">
           Pausing is immediate and reversible: the switch is stored by the connector, so every
           caller sees the same state.
         </p>
@@ -92,7 +92,7 @@ export default function PauseTab({ token, homeId, pause, onSaved }: Props) {
             <div key={row.key} className="flex items-start justify-between gap-4 px-5 py-4">
               <div>
                 <p className="text-sm font-semibold text-neutral-900">{row.title}</p>
-                <p className="mt-0.5 text-xs text-neutral-500">{row.hint}</p>
+                <p className="mt-0.5 text-xs text-neutral-600">{row.hint}</p>
               </div>
               <button
                 type="button"
@@ -125,26 +125,26 @@ export default function PauseTab({ token, homeId, pause, onSaved }: Props) {
         <Card className="p-5">
           <div className="flex items-center justify-between">
             <p className="flex items-center gap-2 text-sm font-semibold text-neutral-900">
-              <RefreshCw className="h-4 w-4 text-neutral-400" /> Device sync
+              <RefreshCw className="h-4 w-4 text-neutral-600" /> Device sync
             </p>
             <Badge tone={state.effective.sync_active ? 'solid' : 'outline'}>
               {state.effective.sync_active ? 'Active' : 'Paused'}
             </Badge>
           </div>
-          <p className="mt-2 text-xs text-neutral-500">
+          <p className="mt-2 text-xs text-neutral-600">
             Taken from the server&apos;s <code>effective.sync_active</code>, not the raw toggles.
           </p>
         </Card>
         <Card className="p-5">
           <div className="flex items-center justify-between">
             <p className="flex items-center gap-2 text-sm font-semibold text-neutral-900">
-              <Bell className="h-4 w-4 text-neutral-400" /> Alerts and controls
+              <Bell className="h-4 w-4 text-neutral-600" /> Alerts and controls
             </p>
             <Badge tone={state.effective.alerts_controls_active ? 'solid' : 'outline'}>
               {state.effective.alerts_controls_active ? 'Active' : 'Paused'}
             </Badge>
           </div>
-          <p className="mt-2 text-xs text-neutral-500">
+          <p className="mt-2 text-xs text-neutral-600">
             Taken from <code>effective.alerts_controls_active</code>. Turning home connections off
             pauses both cards.
           </p>

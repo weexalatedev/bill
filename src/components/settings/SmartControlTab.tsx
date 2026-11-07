@@ -11,7 +11,7 @@ export default function SmartControlTab() {
     <div className="space-y-5">
       <div>
         <SectionHeading title="Smart control" />
-        <p className="mt-1 text-sm text-neutral-500">
+        <p className="mt-1 text-sm text-neutral-600">
           Device-level control is not part of the connector service yet, so this screen keeps the
           app&apos;s existing behaviour rather than pretending to drive hardware.
         </p>
@@ -22,7 +22,7 @@ export default function SmartControlTab() {
         </div>
         <div>
           <p className="text-sm font-semibold text-neutral-900">Nothing to configure here</p>
-          <p className="mt-1 text-sm text-neutral-500">
+          <p className="mt-1 text-sm text-neutral-600">
             Optimiser actions still flow through Recommend → Approve → Automate, and the connector
             only ever reads device data. When Solis and Octopus control endpoints land, they will be
             wired here.

@@ -6,10 +6,10 @@ import { FEATURES } from './Landing';
 export default function FeaturesPage() {
   return (
     <>
-      <section className="border-b border-neutral-200">
+      <section className="eos-aura relative overflow-hidden border-b border-neutral-200">
         <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
-          <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">Features</p>
-          <h1 className="mt-2 max-w-3xl text-4xl font-semibold leading-tight tracking-tight text-ink-900">
+          <p className="text-xs font-semibold uppercase tracking-wide text-neutral-600">Features</p>
+          <h1 className="eos-text-gradient-ink mt-2 max-w-3xl text-4xl font-semibold leading-tight tracking-tight sm:text-5xl">
             The whole energy workflow for a small business, not just a bill reader.
           </h1>
           <p className="mt-4 max-w-2xl text-sm leading-relaxed text-neutral-600">

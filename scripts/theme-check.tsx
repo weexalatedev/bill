@@ -59,6 +59,21 @@ check('outline badge is a hairline', primitives.includes('border-ink-900/25'));
 check('stat labels are kickers', primitives.includes('uppercase tracking-wider'));
 check('cards are flat (no shadow)', !primitives.includes('shadow-'));
 
+// Surface regressions (the audit hero once rendered white text on a white card,
+// because `bg-white` was emitted before the caller's `bg-ink-900`).
+const surfaces = renderToStaticMarkup(
+  <div>
+    <Card tone="ink">hero</Card>
+    <Card className="bg-neutral-50">tinted</Card>
+    <Card tone="glass">frosted</Card>
+  </div>,
+);
+check('ink card uses the lit panel, not paper', surfaces.includes('eos-ink-panel') && surfaces.includes('text-white'));
+check('caller background replaces the paper base', surfaces.includes('bg-neutral-50'));
+check('no card emits bg-white when a surface is given', !surfaces.includes('bg-white'));
+check('glass card is frosted', surfaces.includes('eos-glass'));
+check('surfaces stay flat', !surfaces.includes('shadow-'));
+
 // ── Screens ───────────────────────────────────────────────────────────────────
 const audit: AuditView = {
   score: 46,

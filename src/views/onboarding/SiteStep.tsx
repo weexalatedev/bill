@@ -101,7 +101,7 @@ export default function SiteStep({
             <button
               type="button"
               onClick={onSkip}
-              className="text-sm font-medium text-neutral-400 transition-colors hover:text-neutral-600"
+              className="text-sm font-medium text-neutral-600 transition-colors hover:text-neutral-600"
             >
               Skip for now
             </button>

@@ -50,14 +50,14 @@ export default function MoreSitesStep({
       <Card>
         <div className="flex items-center justify-between gap-3">
           <p className="flex items-center gap-2 text-sm font-semibold text-neutral-900">
-            <Building2 className="h-4 w-4 text-neutral-400" /> Your portfolio
+            <Building2 className="h-4 w-4 text-neutral-600" /> Your portfolio
           </p>
-          <span className="text-xs text-neutral-400">
+          <span className="text-xs text-neutral-600">
             {sites.length} site{sites.length === 1 ? '' : 's'}
           </span>
         </div>
         {sites.length === 0 ? (
-          <p className="mt-3 text-sm text-neutral-500">
+          <p className="mt-3 text-sm text-neutral-600">
             No sites yet — you can add them here, or any time from the Sites page.
           </p>
         ) : (
@@ -65,15 +65,15 @@ export default function MoreSitesStep({
             {sites.map((site) => (
               <li key={site.id} className="flex items-center justify-between gap-3 py-2.5">
                 <div className="flex items-center gap-2.5">
-                  <CheckCircle2 className="h-4 w-4 shrink-0 text-neutral-500" />
+                  <CheckCircle2 className="h-4 w-4 shrink-0 text-neutral-600" />
                   <div>
                     <p className="text-sm font-semibold text-neutral-800">{site.name}</p>
-                    <p className="text-xs text-neutral-500">
+                    <p className="text-xs text-neutral-600">
                       {[site.city, site.postcode].filter(Boolean).join(' · ') || site.type}
                     </p>
                   </div>
                 </div>
-                <span className="text-xs text-neutral-400">{site.type}</span>
+                <span className="text-xs text-neutral-600">{site.type}</span>
               </li>
             ))}
           </ul>
@@ -84,7 +84,7 @@ export default function MoreSitesStep({
         <p className="flex items-center gap-2 text-sm font-semibold text-neutral-900">
           <Plus className="h-4 w-4 text-neutral-600" /> Add another site
         </p>
-        <p className="mt-0.5 text-xs text-neutral-500">
+        <p className="mt-0.5 text-xs text-neutral-600">
           Every bill you upload is filed and benchmarked against its own site.
         </p>
 
@@ -124,7 +124,7 @@ export default function MoreSitesStep({
         <button
           type="button"
           onClick={onSkip}
-          className="text-sm font-medium text-neutral-400 transition-colors hover:text-neutral-600"
+          className="text-sm font-medium text-neutral-600 transition-colors hover:text-neutral-600"
         >
           I only have one site
         </button>

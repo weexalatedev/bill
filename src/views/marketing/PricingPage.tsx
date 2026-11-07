@@ -21,10 +21,10 @@ export default function PricingPage() {
 
   return (
     <>
-      <section className="border-b border-neutral-200">
+      <section className="eos-aura relative overflow-hidden border-b border-neutral-200">
         <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
-          <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">Pricing</p>
-          <h1 className="mt-2 text-4xl font-semibold tracking-tight text-ink-900">
+          <p className="text-xs font-semibold uppercase tracking-wide text-neutral-600">Pricing</p>
+          <h1 className="eos-text-gradient-ink mt-2 text-4xl font-semibold tracking-tight sm:text-5xl">
             One price per site. No seats, no setup fee.
           </h1>
           <p className="mt-4 max-w-2xl text-sm leading-relaxed text-neutral-600">
@@ -41,7 +41,7 @@ export default function PricingPage() {
           </div>
         )}
         {!error && !catalogue && (
-          <div className="flex items-center justify-center gap-2 rounded-xl border border-neutral-200 py-16 text-sm text-neutral-500">
+          <div className="flex items-center justify-center gap-2 rounded-xl border border-neutral-200 py-16 text-sm text-neutral-600">
             <Loader2 className="h-4 w-4 animate-spin" /> Loading plans…
           </div>
         )}
@@ -67,7 +67,7 @@ export default function PricingPage() {
               'Your dashboard opens once the payment is verified.',
             ].map((line, index) => (
               <li key={line} className="rounded-lg border border-neutral-200 bg-white p-4">
-                <span className="text-xs font-semibold text-neutral-400">Step {index + 1}</span>
+                <span className="text-xs font-semibold text-neutral-600">Step {index + 1}</span>
                 <p className="mt-1 text-sm font-medium text-ink-900">{line}</p>
               </li>
             ))}

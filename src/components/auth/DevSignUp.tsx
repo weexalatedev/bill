@@ -76,7 +76,7 @@ export default function DevSignUpForm({ onSuccess }: { onSuccess?: () => void })
           autoComplete="new-password"
           className={field}
         />
-        <span className="mt-1 block text-[11px] text-neutral-500">At least 8 characters.</span>
+        <span className="mt-1 block text-[11px] text-neutral-600">At least 8 characters.</span>
       </label>
 
       {error && (

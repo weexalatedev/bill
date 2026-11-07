@@ -96,7 +96,7 @@ export default function PaymentStep() {
 
   if (!isLoaded || loading) {
     return (
-      <div className="grid min-h-screen place-items-center bg-neutral-50 text-sm text-neutral-500">
+      <div className="grid min-h-screen place-items-center bg-neutral-50 text-sm text-neutral-600">
         <span className="flex items-center gap-2">
           <Loader2 className="h-4 w-4 animate-spin" /> Preparing your payment…
         </span>
@@ -122,13 +122,13 @@ export default function PaymentStep() {
         <Card>
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+              <p className="text-xs font-semibold uppercase tracking-wide text-neutral-600">
                 {showing ? showing.planName : subscription?.planName ?? 'Subscription'}
               </p>
               <p className="mt-1 text-3xl font-semibold tabular-nums text-ink-900">
                 {showing ? gbp2(showing.amountGbp) : subscription ? gbp2(subscription.monthlyGbp) : '—'}
               </p>
-              <p className="mt-1 text-xs text-neutral-500">
+              <p className="mt-1 text-xs text-neutral-600">
                 {showing ? showing.description : 'Per site, per month · VAT included'}
               </p>
             </div>
@@ -152,7 +152,7 @@ export default function PaymentStep() {
             </div>
             <div className="flex justify-between">
               <dt className="text-neutral-600">Reference</dt>
-              <dd className="font-mono text-xs text-neutral-500">{showing?.id ?? paymentId ?? '—'}</dd>
+              <dd className="font-mono text-xs text-neutral-600">{showing?.id ?? paymentId ?? '—'}</dd>
             </div>
           </dl>
         </Card>
@@ -186,14 +186,14 @@ export default function PaymentStep() {
           {showing ? `Pay ${gbp2(showing.amountGbp)}` : 'Pay now'}
         </button>
 
-        <div className="flex items-center justify-between text-xs text-neutral-500">
+        <div className="flex items-center justify-between text-xs text-neutral-600">
           <button type="button" onClick={abandon} className="hover:text-neutral-800 hover:underline">
             Cancel payment
           </button>
           <span>Nothing is activated until the payment is verified.</span>
         </div>
 
-        <p className="flex items-start gap-2 text-xs leading-relaxed text-neutral-500">
+        <p className="flex items-start gap-2 text-xs leading-relaxed text-neutral-600">
           <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0" />
           We never trust a browser “success” flag: the server checks the payment record before it
           changes your plan, and a failed or cancelled payment leaves your account locked.

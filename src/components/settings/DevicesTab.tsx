@@ -95,7 +95,7 @@ export default function DevicesTab({
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <SectionHeading title="Devices" />
-          <p className="mt-1 text-sm text-neutral-500">
+          <p className="mt-1 text-sm text-neutral-600">
             Connect a provider once and every dashboard, audit and Copilot answer for this site can
             use its readings. Keys are encrypted by the connector service and never reach this
             browser.
@@ -152,7 +152,7 @@ export default function DevicesTab({
 
       <Card className="p-5">
         <p className="text-sm font-semibold text-neutral-800">Not covered by the connector yet</p>
-        <p className="mt-1 text-sm text-neutral-500">
+        <p className="mt-1 text-sm text-neutral-600">
           These keep their existing behaviour — the connector service only supplies Octopus and
           Solis.
         </p>
@@ -239,7 +239,7 @@ function ProviderCard({
           </div>
           <div>
             <p className="text-sm font-semibold text-neutral-900">{title}</p>
-            <p className="text-xs text-neutral-500">{subtitle}</p>
+            <p className="text-xs text-neutral-600">{subtitle}</p>
           </div>
         </div>
         <Badge tone={pill ? pill.tone : 'muted'}>

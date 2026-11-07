@@ -112,7 +112,7 @@ export default function Settings() {
       <Card className="p-8 text-center">
         <Gauge className="mx-auto h-6 w-6 text-neutral-300" />
         <p className="mt-3 text-sm font-semibold text-neutral-800">Add a site first</p>
-        <p className="mt-1 text-sm text-neutral-500">
+        <p className="mt-1 text-sm text-neutral-600">
           Devices and settings belong to a site — that site id is the connector&apos;s home id.
         </p>
       </Card>
@@ -124,14 +124,14 @@ export default function Settings() {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-xl font-semibold tracking-tight text-neutral-900">Settings</h1>
-          <p className="mt-1 text-sm text-neutral-500">
+          <p className="mt-1 text-sm text-neutral-600">
             Devices, tariffs, hardware and pause switches for the selected site. Everything here is
             stored by the connector service, not in this browser.
           </p>
         </div>
         <div className="flex items-end gap-2">
           <label className="block">
-            <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-neutral-500">
+            <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-neutral-600">
               Site
             </span>
             <select
@@ -192,7 +192,7 @@ export default function Settings() {
       )}
 
       {!settings && (loading || !error) ? (
-        <Card className="flex items-center gap-2 p-6 text-sm text-neutral-500">
+        <Card className="flex items-center gap-2 p-6 text-sm text-neutral-600">
           <Loader2 className="h-4 w-4 animate-spin" /> Loading settings…
         </Card>
       ) : settings ? (

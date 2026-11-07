@@ -18,10 +18,10 @@ function BootScreen({ error }: { error?: string | null }) {
         {error ? (
           <div className="max-w-sm">
             <p className="text-sm font-semibold text-neutral-800">Cannot reach the EnerOS API</p>
-            <p className="mt-1 text-xs text-neutral-500">{error}</p>
+            <p className="mt-1 text-xs text-neutral-600">{error}</p>
           </div>
         ) : (
-          <p className="flex items-center gap-2 text-sm text-neutral-500">
+          <p className="flex items-center gap-2 text-sm text-neutral-600">
             <Loader2 className="h-4 w-4 animate-spin" /> Connecting to EnerOS…
           </p>
         )}

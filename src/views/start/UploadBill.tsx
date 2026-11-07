@@ -77,7 +77,7 @@ export default function UploadBill({
             <span className="block text-sm font-semibold text-neutral-900">
               {busy ? 'Reading your bill…' : 'Drop your bill here, or click to choose a file'}
             </span>
-            <span className="mt-1 block text-xs text-neutral-500">
+            <span className="mt-1 block text-xs text-neutral-600">
               PDF, JPG, PNG or HEIC — up to 12 MB. Scans and photos are read with OCR.
             </span>
           </span>
@@ -107,15 +107,15 @@ export default function UploadBill({
           >
             <Keyboard className="h-4 w-4" /> Type the figures instead
           </button>
-          <p className="flex items-center gap-1.5 text-[11px] text-neutral-400">
+          <p className="flex items-center gap-1.5 text-[11px] text-neutral-600">
             <ShieldCheck className="h-3.5 w-3.5" /> Nothing is stored — the check is read-only.
           </p>
         </div>
       </Card>
 
       <Card className="flex items-start gap-3 bg-neutral-50/70">
-        <FileText className="mt-0.5 h-4 w-4 shrink-0 text-neutral-400" />
-        <p className="text-xs leading-relaxed text-neutral-500">
+        <FileText className="mt-0.5 h-4 w-4 shrink-0 text-neutral-600" />
+        <p className="text-xs leading-relaxed text-neutral-600">
           We never keep the file. It is read in memory to extract the figures, audited against the
           Ofgem price cap, and then discarded.
         </p>

@@ -62,16 +62,16 @@ export default function AuditResult({
 
   return (
     <div className="space-y-4">
-      <Card className="bg-ink-900 text-white">
+      <Card tone="ink" className="eos-aura overflow-hidden sm:p-6">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
-            <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-neutral-400">
+            <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-neutral-300">
               <Receipt className="h-3.5 w-3.5" /> Your audit
             </p>
             {canSave ? (
               <>
                 <p className="mt-3 text-sm text-neutral-300">You could save</p>
-                <p className="text-5xl font-semibold tracking-tight text-white tabular-nums">
+                <p className="eos-text-gradient-light mt-1 text-6xl font-semibold tracking-tight tabular-nums">
                   {gbp(saving)}
                 </p>
                 <p className="mt-2 max-w-xl text-sm leading-relaxed text-neutral-300">
@@ -81,8 +81,8 @@ export default function AuditResult({
                   above the median.
                 </p>
                 {topFinding && (
-                  <p className="mt-2 text-xs text-neutral-400">
-                    Main reason: <span className="text-neutral-200">{topFinding.title}</span>
+                  <p className="mt-3 text-xs text-neutral-400">
+                    Main reason: <span className="text-neutral-100">{topFinding.title}</span>
                   </p>
                 )}
               </>
@@ -106,9 +106,9 @@ export default function AuditResult({
               </>
             )}
           </div>
-          <div className="shrink-0 rounded-xl border border-white/15 px-4 py-3 text-center">
-            <p className="text-2xl font-semibold tracking-tight tabular-nums">{audit.score}</p>
-            <p className="text-[10px] uppercase tracking-wider text-neutral-400">score</p>
+          <div className="shrink-0 rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-center backdrop-blur">
+            <p className="text-2xl font-semibold tracking-tight text-white tabular-nums">{audit.score}</p>
+            <p className="text-[10px] uppercase tracking-wider text-neutral-300">score</p>
           </div>
         </div>
       </Card>
@@ -121,7 +121,7 @@ export default function AuditResult({
               {benchmark?.label} · {pence(benchmark?.unitRateP ?? 0)}/kWh
             </Badge>
           </div>
-          <p className="mt-0.5 text-xs text-neutral-500">
+          <p className="mt-0.5 text-xs text-neutral-600">
             The same{' '}
             {benchmark?.consumptionKwh
               ? `${benchmark.consumptionKwh.toLocaleString('en-GB')} kWh `
@@ -138,14 +138,14 @@ export default function AuditResult({
       {audit.advice && (
         <Card>
           <p className="flex items-center gap-2 text-sm font-semibold text-neutral-900">
-            <ListChecks className="h-4 w-4 text-neutral-500" /> What to do about it
+            <ListChecks className="h-4 w-4 text-neutral-600" /> What to do about it
           </p>
           <p className="mt-2 text-sm leading-relaxed text-neutral-600">{audit.advice.summary}</p>
           {audit.advice.actions.length > 0 && (
             <ul className="mt-3 space-y-2">
               {audit.advice.actions.map((action, index) => (
                 <li key={index} className="flex items-start gap-2 text-sm text-neutral-700">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-neutral-500" />
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-neutral-600" />
                   {action}
                 </li>
               ))}
@@ -194,7 +194,7 @@ export default function AuditResult({
           </ul>
         )}
         {(audit.note || audit.regionName) && (
-          <p className="mt-3 flex items-start gap-1.5 text-[11px] leading-relaxed text-neutral-400">
+          <p className="mt-3 flex items-start gap-1.5 text-[11px] leading-relaxed text-neutral-600">
             <Info className="mt-0.5 h-3 w-3 shrink-0" />
             {audit.note ??
               `Benchmarked against ${audit.regionName} reference rates for ${audit.capLabel}.`}

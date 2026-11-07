@@ -22,7 +22,7 @@ function ClerkMenuActions() {
         onClick={() => void clerk.openUserProfile()}
         className="flex w-full items-center gap-2 border-b border-neutral-100 px-4 py-3 text-sm font-medium text-neutral-700 hover:bg-neutral-50"
       >
-        <Settings className="h-4 w-4 text-neutral-400" />
+        <Settings className="h-4 w-4 text-neutral-600" />
         Manage account
       </button>
       <SignOutButton redirectUrl="/sign-in">
@@ -30,7 +30,7 @@ function ClerkMenuActions() {
           type="button"
           className="flex w-full items-center gap-2 px-4 py-3 text-sm font-medium text-neutral-700 hover:bg-neutral-50"
         >
-          <LogOut className="h-4 w-4 text-neutral-400" />
+          <LogOut className="h-4 w-4 text-neutral-600" />
           Sign out
         </button>
       </SignOutButton>
@@ -73,7 +73,7 @@ export default function UserMenu() {
         onClick={() => void signOut()}
         className="flex w-full items-center gap-2 px-4 py-3 text-sm font-medium text-neutral-700 hover:bg-neutral-50"
       >
-        <LogOut className="h-4 w-4 text-neutral-400" />
+        <LogOut className="h-4 w-4 text-neutral-600" />
         Sign out
       </button>
     );
@@ -91,17 +91,17 @@ export default function UserMenu() {
         <span className="hidden max-w-[9rem] truncate text-xs font-medium text-neutral-700 sm:block">
           {user?.name || user?.email}
         </span>
-        <ChevronDown className="h-3.5 w-3.5 text-neutral-400" />
+        <ChevronDown className="h-3.5 w-3.5 text-neutral-600" />
       </button>
 
       {open && (
         <div className="absolute right-0 z-40 mt-2 w-64 overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-lg shadow-neutral-900/10">
           <div className="border-b border-neutral-100 px-4 py-3">
             <p className="flex items-center gap-1.5 text-sm font-semibold text-neutral-800">
-              <User className="h-3.5 w-3.5 text-neutral-400" />
+              <User className="h-3.5 w-3.5 text-neutral-600" />
               {user?.name || 'Signed in'}
             </p>
-            <p className="mt-0.5 truncate text-xs text-neutral-500">{user?.email}</p>
+            <p className="mt-0.5 truncate text-xs text-neutral-600">{user?.email}</p>
             <p className="mt-1.5">
               <span
                 className={cx(

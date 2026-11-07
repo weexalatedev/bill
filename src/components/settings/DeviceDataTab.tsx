@@ -118,7 +118,7 @@ export default function DeviceDataTab({ token, devices }: Props) {
       <Card className="p-8 text-center">
         <Gauge className="mx-auto h-6 w-6 text-neutral-300" />
         <p className="mt-3 text-sm font-semibold text-neutral-800">No devices connected yet</p>
-        <p className="mt-1 text-sm text-neutral-500">
+        <p className="mt-1 text-sm text-neutral-600">
           Connect Octopus or a Solis inverter on the Devices tab and its readings appear here.
         </p>
       </Card>
@@ -130,7 +130,7 @@ export default function DeviceDataTab({ token, devices }: Props) {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <SectionHeading title="Live data" />
-          <p className="mt-1 text-sm text-neutral-500">
+          <p className="mt-1 text-sm text-neutral-600">
             Everything except the live tile is about a day behind: the dashboard ends at the last
             full day.
           </p>
@@ -170,7 +170,7 @@ export default function DeviceDataTab({ token, devices }: Props) {
           </div>
           <p className="text-sm text-neutral-600">{readiness.message}</p>
           {readiness.actions.length > 0 && (
-            <ul className="list-disc space-y-1 pl-5 text-sm text-neutral-500">
+            <ul className="list-disc space-y-1 pl-5 text-sm text-neutral-600">
               {readiness.actions.map((action) => (
                 <li key={action}>{action}</li>
               ))}
@@ -183,7 +183,7 @@ export default function DeviceDataTab({ token, devices }: Props) {
         <Card className="p-5">
           <div className="flex items-center justify-between">
             <p className="flex items-center gap-2 text-sm font-semibold text-neutral-900">
-              <Sun className="h-4 w-4 text-neutral-500" /> Solar inverter
+              <Sun className="h-4 w-4 text-neutral-600" /> Solar inverter
             </p>
             <Badge tone="muted">{solisData.totals.inverter_count} inverter(s)</Badge>
           </div>
@@ -193,7 +193,7 @@ export default function DeviceDataTab({ token, devices }: Props) {
             <StatCard label="Energy total" value={`${solisData.totals.energy_total_kwh} kWh`} />
           </div>
           {solisData.inverters.some((inv) => inv.missing_fields.length > 0) && (
-            <p className="mt-3 text-xs text-neutral-500">
+            <p className="mt-3 text-xs text-neutral-600">
               Some Solis fields were not reported by the inverter for this account.
             </p>
           )}
@@ -204,14 +204,14 @@ export default function DeviceDataTab({ token, devices }: Props) {
         <Card className="p-5">
           <div className="flex items-center justify-between">
             <p className="flex items-center gap-2 text-sm font-semibold text-neutral-900">
-              <Zap className="h-4 w-4 text-neutral-500" /> Live demand (Home Mini)
+              <Zap className="h-4 w-4 text-neutral-600" /> Live demand (Home Mini)
             </p>
             <Badge tone="solid">Near real-time</Badge>
           </div>
           <p className="mt-2 text-2xl font-semibold text-neutral-900">
             {(Number(live.readings[live.readings.length - 1]?.demand ?? 0) / 1000).toFixed(3)} kW
           </p>
-          <p className="mt-1 text-xs text-neutral-500">
+          <p className="mt-1 text-xs text-neutral-600">
             Latest reading {live.readings[live.readings.length - 1]?.readAt ?? 'unknown'}. Live data
             is never mixed into the daily totals.
           </p>
@@ -236,7 +236,7 @@ export default function DeviceDataTab({ token, devices }: Props) {
 
           <Card className="p-5">
             <p className="text-sm font-semibold text-neutral-900">Average hourly profile</p>
-            <p className="mt-1 text-xs text-neutral-500">
+            <p className="mt-1 text-xs text-neutral-600">
               Mean kWh for each hour over the last {dashboard?.period.days ?? 30} full days.
             </p>
             <div className="mt-4 h-56 w-full">
@@ -251,7 +251,7 @@ export default function DeviceDataTab({ token, devices }: Props) {
               </ResponsiveContainer>
             </div>
             {primary.notes.length > 0 && (
-              <ul className="mt-3 list-disc space-y-1 pl-5 text-xs text-neutral-500">
+              <ul className="mt-3 list-disc space-y-1 pl-5 text-xs text-neutral-600">
                 {primary.notes.map((note) => (
                   <li key={note}>{note}</li>
                 ))}
@@ -295,7 +295,7 @@ export default function DeviceDataTab({ token, devices }: Props) {
                 </div>
                 <p className="mt-1 text-sm text-neutral-600">{finding.detail}</p>
                 {finding.actions.length > 0 && (
-                  <ul className="mt-2 space-y-1 text-xs text-neutral-500">
+                  <ul className="mt-2 space-y-1 text-xs text-neutral-600">
                     {finding.actions.map((action) => (
                       <li key={action.text}>
                         <span className="font-semibold text-neutral-700">{action.text}</span> Effort{' '}

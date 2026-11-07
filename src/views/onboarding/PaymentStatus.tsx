@@ -87,7 +87,7 @@ export default function PaymentStatus() {
 
   if (!isLoaded || loading) {
     return (
-      <div className="grid min-h-screen place-items-center bg-neutral-50 text-sm text-neutral-500">
+      <div className="grid min-h-screen place-items-center bg-neutral-50 text-sm text-neutral-600">
         <span className="flex items-center gap-2">
           <Loader2 className="h-4 w-4 animate-spin" /> Checking your payment…
         </span>
@@ -142,7 +142,7 @@ export default function PaymentStatus() {
               <p className="text-sm font-semibold text-ink-900">
                 {subscription?.isActive ? subscription.planName : payment?.planName ?? 'Subscription'}
               </p>
-              <p className="mt-0.5 text-xs text-neutral-500">
+              <p className="mt-0.5 text-xs text-neutral-600">
                 {payment ? `${gbp2(payment.amountGbp)} · ${payment.description}` : 'No payment recorded yet'}
               </p>
               {subscription?.isActive && (
@@ -202,7 +202,7 @@ export default function PaymentStatus() {
         </div>
 
         {outcome === 'pending' && (
-          <p className="text-xs text-neutral-500">
+          <p className="text-xs text-neutral-600">
             Still checking… if the provider has already taken the payment, the webhook will settle
             it and this page will switch to active automatically.
           </p>

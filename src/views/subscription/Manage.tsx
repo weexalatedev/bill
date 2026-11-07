@@ -62,7 +62,7 @@ export default function ManageSubscription() {
 
   if (loading) {
     return (
-      <div className="flex items-center gap-2 py-16 text-sm text-neutral-500">
+      <div className="flex items-center gap-2 py-16 text-sm text-neutral-600">
         <Loader2 className="h-4 w-4 animate-spin" /> Loading your subscription…
       </div>
     );
@@ -103,19 +103,19 @@ export default function ManageSubscription() {
 
         <dl className="grid gap-4 text-sm sm:grid-cols-2 lg:grid-cols-4">
           <div>
-            <dt className="text-xs text-neutral-500">Plan</dt>
+            <dt className="text-xs text-neutral-600">Plan</dt>
             <dd className="mt-0.5 font-medium text-neutral-900">{subscription.planName}</dd>
           </div>
           <div>
-            <dt className="text-xs text-neutral-500">Billing period</dt>
+            <dt className="text-xs text-neutral-600">Billing period</dt>
             <dd className="mt-0.5 font-medium capitalize text-neutral-900">{subscription.billingPeriod}</dd>
           </div>
           <div>
-            <dt className="text-xs text-neutral-500">Period end</dt>
+            <dt className="text-xs text-neutral-600">Period end</dt>
             <dd className="mt-0.5 font-medium text-neutral-900">{renewalLabel(subscription.currentPeriodEnd)}</dd>
           </div>
           <div>
-            <dt className="text-xs text-neutral-500">Site capacity</dt>
+            <dt className="text-xs text-neutral-600">Site capacity</dt>
             <dd className="mt-0.5 font-medium text-neutral-900">
               {subscription.sitesUsed} used · {subscription.remainingSites} remaining
             </dd>
@@ -124,7 +124,7 @@ export default function ManageSubscription() {
 
         <div className="mt-4">
           <ProgressBar value={capacityPct} />
-          <p className="mt-1.5 text-xs text-neutral-500">
+          <p className="mt-1.5 text-xs text-neutral-600">
             {subscription.remainingSites === 0
               ? 'You have used every site in this plan. Upgrade to add more.'
               : `${subscription.remainingSites} site${subscription.remainingSites === 1 ? '' : 's'} left on this plan.`}
@@ -148,7 +148,7 @@ export default function ManageSubscription() {
         <div className="mt-5 flex flex-wrap gap-2">
           <Link
             href="/onboarding/subscription"
-            className="inline-flex items-center gap-2 rounded-md bg-ink-900 px-4 py-2 text-sm font-semibold text-white hover:bg-ink-800"
+            className="eos-cta inline-flex items-center gap-2 rounded-md px-4 py-2 text-sm font-semibold text-white"
           >
             <RefreshCw className="h-4 w-4" /> Change plan
           </Link>
@@ -181,7 +181,7 @@ export default function ManageSubscription() {
           </button>
         </div>
 
-        <p className="mt-4 flex items-start gap-2 text-xs leading-relaxed text-neutral-500">
+        <p className="mt-4 flex items-start gap-2 text-xs leading-relaxed text-neutral-600">
           <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0" />
           Cancelling never deletes sites, bills or history: the plan simply stops renewing and you
           keep access until {renewalLabel(subscription.currentPeriodEnd)}.
@@ -197,12 +197,12 @@ export default function ManageSubscription() {
           <p className="mb-3 rounded-md bg-neutral-50 px-3 py-2 text-xs text-neutral-700">{paymentsError}</p>
         )}
         {payments.length === 0 ? (
-          <p className="py-8 text-center text-sm text-neutral-500">No payments yet.</p>
+          <p className="py-8 text-center text-sm text-neutral-600">No payments yet.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead>
-                <tr className="border-b border-neutral-200 text-xs uppercase tracking-wide text-neutral-500">
+                <tr className="border-b border-neutral-200 text-xs uppercase tracking-wide text-neutral-600">
                   <th className="py-2 pr-4 font-medium">Date</th>
                   <th className="py-2 pr-4 font-medium">Plan</th>
                   <th className="py-2 pr-4 font-medium">Description</th>

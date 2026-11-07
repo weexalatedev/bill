@@ -86,7 +86,7 @@ export default function SubscriptionStep() {
 
   if (!isLoaded || loading) {
     return (
-      <div className="grid min-h-screen place-items-center bg-neutral-50 text-sm text-neutral-500">
+      <div className="grid min-h-screen place-items-center bg-neutral-50 text-sm text-neutral-600">
         <span className="flex items-center gap-2">
           <Loader2 className="h-4 w-4 animate-spin" /> Loading your account…
         </span>
@@ -116,9 +116,9 @@ export default function SubscriptionStep() {
           <Card>
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">Plan</p>
+                <p className="text-xs font-semibold uppercase tracking-wide text-neutral-600">Plan</p>
                 <p className="mt-1 text-lg font-semibold text-ink-900">{order.planName}</p>
-                <p className="text-xs text-neutral-500">
+                <p className="text-xs text-neutral-600">
                   {order.sites} site{order.sites > 1 ? 's' : ''} × £{order.pricePerSite}/site/{order.billingPeriod === 'annual' ? 'year' : 'month'}
                 </p>
               </div>
@@ -156,7 +156,7 @@ export default function SubscriptionStep() {
             {paying ? <Loader2 className="h-4 w-4 animate-spin" /> : <Lock className="h-4 w-4" />}
             Continue to payment
           </button>
-          <p className="flex items-start gap-2 text-xs leading-relaxed text-neutral-500">
+          <p className="flex items-start gap-2 text-xs leading-relaxed text-neutral-600">
             <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0" />
             Your dashboard unlocks only after the payment provider confirms the charge to our
             server. Closing the checkout leaves your account exactly as it is.
@@ -242,7 +242,7 @@ export default function SubscriptionStep() {
         )}
 
         {!catalogue && !catalogueError && (
-          <div className="flex items-center justify-center gap-2 py-14 text-sm text-neutral-500">
+          <div className="flex items-center justify-center gap-2 py-14 text-sm text-neutral-600">
             <Loader2 className="h-4 w-4 animate-spin" /> Loading plans…
           </div>
         )}
@@ -271,7 +271,7 @@ export default function SubscriptionStep() {
           </p>
         )}
 
-        <p className="flex items-center justify-center gap-2 text-xs text-neutral-500">
+        <p className="flex items-center justify-center gap-2 text-xs text-neutral-600">
           <ArrowLeft className="h-3.5 w-3.5" />
           <Link href="/dashboard" className="hover:underline">
             You can add sites after subscribing
@@ -283,7 +283,7 @@ export default function SubscriptionStep() {
         </p>
 
         {subscription && (
-          <p className="flex items-center justify-center gap-1.5 text-[11px] text-neutral-400">
+          <p className="flex items-center justify-center gap-1.5 text-[11px] text-neutral-600">
             <Check className="h-3 w-3" /> Status: {subscription.status.replace('_', ' ')} ·{' '}
             {subscription.sitesUsed}/{subscription.siteLimit} sites used
           </p>
