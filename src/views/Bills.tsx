@@ -1,7 +1,7 @@
 'use client';
 /**
  * /bills — Invoices. Primary intake: upload a bill, the AI reads it (OCR if
- * needed), audits against the Ofgem cap, writes advice, files it per site.
+ * needed), audits against the contract and the domestic reference, writes advice and files it.
  */
 
 import { useMemo, useRef, useState } from 'react';
@@ -182,7 +182,7 @@ function ManualEntryCard({ onCreated }: { onCreated: (invoice: Invoice) => void 
           </div>
           <div>
             <label className={labelCls}>Billing period</label>
-            <input className={field} value={form.period} placeholder="Feb 2026" onChange={(e) => setForm({ ...form, period: e.target.value })} />
+            <input className={field} value={form.period} placeholder={new Date().toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })} onChange={(e) => setForm({ ...form, period: e.target.value })} />
           </div>
           <div className="grid grid-cols-3 gap-2">
             <div>

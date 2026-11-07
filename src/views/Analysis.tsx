@@ -1040,7 +1040,7 @@ function BenchmarkCard({
   return (
     <Card>
       <SectionHeading
-        title="Ofgem price cap benchmark"
+        title="Domestic reference benchmark"
         subtitle={cap?.period.source ?? 'Energy price cap unit rates and standing charges'}
         action={cap ? <Badge tone="muted">{cap.period.label}</Badge> : null}
       />

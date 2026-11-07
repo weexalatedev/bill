@@ -38,7 +38,7 @@ export default function BrandPanel({ cap }: { cap: CapSummary | null }) {
           <span className="text-neutral-400">Every pound defended.</span>
         </h2>
         <p className="mt-5 max-w-md text-sm leading-relaxed text-neutral-400">
-          EnerOS audits UK electricity bills against Ofgem&apos;s published price cap, flags what you
+          EnerOS audits UK business electricity bills against your contract and a published domestic reference, flags what you
           were overcharged, and shifts controllable load off the peaks — then proves the saving.
         </p>
 
@@ -65,7 +65,7 @@ export default function BrandPanel({ cap }: { cap: CapSummary | null }) {
         {cap && (
           <div className="border-t border-white/15 pt-5">
             <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">
-              Ofgem cap · {cap.label}
+              Domestic reference · {cap.label}
             </p>
             <p className="mt-2 text-3xl font-semibold tracking-tight tabular-nums">
               {pence(cap.averageUnitRateP)}

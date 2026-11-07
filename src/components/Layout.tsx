@@ -79,7 +79,7 @@ const PAGE_META: Record<string, { title: string; subtitle: string }> = {
   },
   '/analysis': {
     title: 'Smart Analysis',
-    subtitle: 'Benchmark any bill against the Ofgem cap and get a savings score.',
+    subtitle: 'Benchmark any bill against your contract and a domestic reference rate.',
   },
   '/sites': {
     title: 'Sites',

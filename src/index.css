@@ -266,3 +266,60 @@ table,
   .eos-drift { animation: none; }
   .eos-cta { transition: none; }
 }
+
+/* ------------------------------------------------------------------ *
+ * Evidence marks (Phase 1 subset of design/eneros-tokens.css).
+ *
+ * Every £ figure carries a dot: filled = verified from the customer's own
+ * documents, hollow amber = estimated (a model or a reference rate is doing
+ * the work), hollow red = an issue. The dot opens the arithmetic.
+ * ------------------------------------------------------------------ */
+.eos-evidence {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  flex: none;
+  vertical-align: middle;
+}
+
+.eos-evidence--verified {
+  background: #15803d;
+  box-shadow: 0 0 0 2px rgba(21, 128, 61, 0.15);
+}
+
+.eos-evidence--estimated {
+  border: 2px solid #9a5a22;
+  background: transparent;
+}
+
+.eos-evidence--issue {
+  border: 2px solid #b91c1c;
+  background: transparent;
+}
+
+.eos-ink-panel .eos-evidence--verified,
+.eos-moment .eos-evidence--verified {
+  background: #4ade80;
+}
+
+.eos-ink-panel .eos-evidence--estimated,
+.eos-moment .eos-evidence--estimated {
+  border-color: #fbbf24;
+}
+
+.eos-ink-panel .eos-evidence--issue,
+.eos-moment .eos-evidence--issue {
+  border-color: #f87171;
+}
+
+.eos-evidence-details > summary {
+  list-style: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+}
+
+.eos-evidence-details > summary::-webkit-details-marker {
+  display: none;
+}

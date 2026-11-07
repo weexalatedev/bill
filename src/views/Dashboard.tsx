@@ -54,6 +54,12 @@ export default function Dashboard() {
   const [tab, setTab] = useState<DashboardTab>('overview');
   const awaiting = actions.filter((action) => action.status === 'Recommended').length;
   const dataGaps = sites.filter((site) => site.dataQuality?.consumption !== 'hh').length;
+  // Latest period actually invoiced — never a hardcoded month. Invoice periods
+  // arrive as labels ("Mar 2026"), so parse them; unparseable labels fall back
+  // to their position rather than inventing a date.
+  const periodTime = (label: string): number => Date.parse(`1 ${label}`) || 0;
+  const latestPeriod =
+    [...invoices].sort((a, b) => periodTime(b.period) - periodTime(a.period))[0]?.period ?? null;
 
   const mixTotal = assetMix.reduce((total, slice) => total + slice.spend, 0);
   const topSites = [...sites].sort((a, b) => b.monthActual - a.monthActual).slice(0, 6);
@@ -95,12 +101,20 @@ export default function Dashboard() {
       <SubscriptionSummary />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-neutral-600">
-          {account.name} · {account.sites} sites · billing period Mar 2026
+          {account.name} · {account.sites} site{account.sites === 1 ? '' : 's'}
+          {latestPeriod ? ` · latest bill ${latestPeriod}` : ' · no bills yet'}
         </p>
-        <Badge tone="solid">
-          <ShieldCheck className="h-3.5 w-3.5" />
-          Savings measured, not estimated
-        </Badge>
+        <p className="flex items-center gap-3 text-xs text-neutral-700">
+          <span className="flex items-center gap-1.5">
+            <span className="eos-evidence eos-evidence--verified" aria-hidden /> Verified
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="eos-evidence eos-evidence--estimated" aria-hidden /> Estimated
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="eos-evidence eos-evidence--issue" aria-hidden /> Issue
+          </span>
+        </p>
       </div>
 
       {(sites.length === 0 || invoices.length === 0) && (

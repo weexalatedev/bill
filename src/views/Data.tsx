@@ -37,7 +37,10 @@ const textareaClass =
 /** A 14-day sample with a mild downward trend so a saving is visible. */
 function sampleCsv(): string {
   const rows = ['timestamp,kwh'];
-  const start = Date.parse('2026-01-05T00:00:00Z');
+  // Sample rows always start on the most recent whole day, so the demo never
+  // looks stale and the import preview matches what a supplier would send today.
+  const today = new Date();
+  const start = Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() - 13);
   for (let d = 0; d < 14; d += 1) {
     for (let p = 0; p < 48; p += 1) {
       const t = start + d * 86_400_000 + p * 1_800_000;
@@ -190,7 +193,7 @@ export default function Data() {
             value={csv}
             onChange={(e) => setCsv(e.target.value)}
             rows={5}
-            placeholder={'timestamp,kwh\n2026-01-05T00:00:00Z,3.4\n2026-01-05T00:30:00Z,3.1'}
+            placeholder={`timestamp,kwh\n${new Date(Date.now() - 86_400_000).toISOString().replace(/\.\d{3}Z$/, 'Z')},3.4\n${new Date(Date.now() - 86_400_000 + 1_800_000).toISOString().replace(/\.\d{3}Z$/, 'Z')},3.1`}
             className={textareaClass}
             spellCheck={false}
           />

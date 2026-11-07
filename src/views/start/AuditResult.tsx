@@ -1,7 +1,9 @@
 'use client';
 import type { ReactNode } from 'react';
+import Link from 'next/link';
 import { ArrowRight, CheckCircle2, Info, ListChecks, Receipt } from 'lucide-react';
 import { Badge, Card, type Tone } from '../../components/ui';
+import EvidenceMark from '../../components/EvidenceMark';
 import { gbp, gbp2, pct, pence } from '../../lib/format';
 import type { BillBenchmark } from '../../types';
 
@@ -71,8 +73,20 @@ export default function AuditResult({
             {canSave ? (
               <>
                 <p className="mt-3 text-sm text-neutral-300">You could save</p>
-                <p className="eos-text-gradient-light mt-1 text-6xl font-semibold tracking-tight tabular-nums">
+                <p className="eos-text-gradient-light mt-1 flex items-baseline gap-3 text-6xl font-semibold tracking-tight tabular-nums">
                   {gbp(saving)}
+                  <EvidenceMark
+                    state="estimated"
+                    evidence={{
+                      inputs: [
+                        `You paid ${gbp(actual ?? 0)}`,
+                        `Same usage at the domestic reference: ${gbp(expected ?? 0)}`,
+                        `${benchmark?.consumptionKwh?.toLocaleString('en-GB') ?? '—'} kWh over ${benchmark?.periodDays ?? '—'} days`,
+                      ],
+                      arithmetic: 'Actual total − the same usage priced at the published reference rate.',
+                      source: 'Your bill lines and the published domestic reference rate for your region.',
+                    }}
+                  />
                 </p>
                 <p className="mt-2 max-w-2xl text-sm leading-relaxed text-neutral-300">
                   You paid {gbp(actual ?? 0)} for this period. At the UK median rate for your usage
@@ -174,7 +188,7 @@ export default function AuditResult({
       <Card>
         <div className="mb-3 flex items-center justify-between gap-3">
           <p className="text-sm font-semibold text-neutral-900">What we found</p>
-          <Badge tone="muted">Ofgem cap {pence(audit.capUnitRateP, 2)}</Badge>
+          <Badge tone="muted">Domestic reference {pence(audit.capUnitRateP, 2)}</Badge>
         </div>
         {audit.findings.length === 0 ? (
           <p className="flex items-start gap-2 rounded-md bg-neutral-50 px-3 py-2.5 text-sm text-neutral-800">
@@ -213,8 +227,13 @@ export default function AuditResult({
         {(audit.note || audit.regionName) && (
           <p className="mt-3 flex items-start gap-1.5 text-[11px] leading-relaxed text-neutral-600">
             <Info className="mt-0.5 h-3 w-3 shrink-0" />
-            {audit.note ??
-              `Benchmarked against ${audit.regionName} reference rates for ${audit.capLabel}.`}
+            <span>
+              {audit.note ??
+                `Benchmarked against the ${audit.regionName} domestic reference for ${audit.capLabel}.`}{' '}
+              <Link href="/methodology" className="font-semibold underline">
+                How we check bills
+              </Link>
+            </span>
           </p>
         )}
       </Card>

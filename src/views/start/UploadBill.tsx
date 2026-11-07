@@ -116,8 +116,8 @@ export default function UploadBill({
       <Card className="flex items-start gap-3 bg-neutral-50/70">
         <FileText className="mt-0.5 h-4 w-4 shrink-0 text-neutral-600" />
         <p className="text-xs leading-relaxed text-neutral-600">
-          We never keep the file. It is read in memory to extract the figures, audited against the
-          Ofgem price cap, and then discarded.
+          We never keep the file. It is read in memory to extract the figures, checked against your
+          contract and a published domestic reference, then discarded.
         </p>
       </Card>
     </div>

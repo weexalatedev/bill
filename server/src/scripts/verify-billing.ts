@@ -60,7 +60,8 @@ async function runCheckout(): Promise<void> {
   check('currency is GBP', params.get('line_items[0][price_data][currency]') === 'gbp');
   check('carries the owner id for the webhook', params.get('metadata[ownerId]') === 'clerk:abc');
   check('carries the plan id for the webhook', params.get('metadata[planId]') === 'growth');
-  check('redirects back to /plans', (params.get('success_url') ?? '').includes('/plans'), params.get('success_url') ?? '');
+  check('returns to the payment-status page', (params.get('success_url') ?? '').includes('/onboarding/payment-status'), params.get('success_url') ?? '');
+  check('cancel path carries the cancelled state', (params.get('cancel_url') ?? '').includes('state=cancelled'), params.get('cancel_url') ?? '');
   check('never sends the secret in the body', !capturedBody.includes('sk_test_123'));
 
   // Stripe error path

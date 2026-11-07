@@ -129,6 +129,7 @@ export default function MarketingShell({ children }: { children: React.ReactNode
             <ul className="mt-3 space-y-2 text-sm text-neutral-600">
               <li><Link href="/features" className="hover:text-neutral-900">Features</Link></li>
               <li><Link href="/pricing" className="hover:text-neutral-900">Pricing</Link></li>
+              <li><Link href="/methodology" className="hover:text-neutral-900">Methodology</Link></li>
               <li><Link href="/start" className="hover:text-neutral-900">Free bill check</Link></li>
               <li><Link href="/#how-it-works" className="hover:text-neutral-900">How it works</Link></li>
             </ul>

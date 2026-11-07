@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { ArrowRight, Check, FileWarning, Loader2, ShieldCheck, Zap } from 'lucide-react';
 import { useApp } from '../../store';
 import { Badge, Card, EmptyState, ProgressBar, SectionHeading } from '../ui';
+import { Money } from '../EvidenceMark';
 import { gbp, pct } from '../../lib/format';
 import type { ActionStatus } from '../../types';
 
@@ -81,10 +82,24 @@ export default function SavingsPanel() {
                     <p className="mt-1 text-xs leading-relaxed text-neutral-700">{action.rationale}</p>
                   </div>
                   <div className="flex items-center gap-3 sm:flex-col sm:items-end">
-                    <p className="text-sm font-semibold tabular-nums text-ink-900">
-                      {gbp(action.monthlySaving)}
-                      <span className="text-[11px] font-normal text-neutral-600">/mo</span>
-                    </p>
+                    <Money
+                      value={
+                        <span className="text-sm font-semibold text-ink-900">
+                          {gbp(action.monthlySaving)}
+                          <span className="text-[11px] font-normal text-neutral-600">/mo</span>
+                        </span>
+                      }
+                      state="estimated"
+                      evidence={{
+                        inputs: [
+                          `${action.asset} schedule ${action.fromSchedule} → ${action.toSchedule}`,
+                          `${pct(action.confidence * 100, 0)} model confidence`,
+                          getSiteById(action.siteId)?.name ?? action.siteId,
+                        ],
+                        arithmetic: 'Modelled saving if the schedule change is applied for a month.',
+                        source: 'Deterministic rules on this site’s data — not yet executed.',
+                      }}
+                    />
                     <p className="text-[11px] text-neutral-600">{pct(action.confidence * 100, 0)} confidence</p>
                     {action.status !== 'Automated' && (
                       <button
@@ -133,9 +148,22 @@ export default function SavingsPanel() {
                       {invoice.issues.map((issue) => issue.type).join(' · ')}
                     </p>
                   </div>
-                  <p className="text-sm font-semibold tabular-nums text-ink-900">
-                    {gbp(Math.abs(invoice.issues.reduce((sum, issue) => sum + issue.impact, 0)))}
-                  </p>
+                  <Money
+                    value={
+                      <span className="text-sm font-semibold text-ink-900">
+                        {gbp(Math.abs(invoice.issues.reduce((sum, issue) => sum + issue.impact, 0)))}
+                      </span>
+                    }
+                    state="issue"
+                    evidence={{
+                      inputs: [
+                        `${invoice.id} · ${invoice.supplier}`,
+                        invoice.issues.map((issue) => issue.type).join(' · '),
+                      ],
+                      arithmetic: 'Sum of the impacts the auditor attributed to this invoice.',
+                      source: 'The invoice lines you uploaded, checked against your contract and reference rates.',
+                    }}
+                  />
                   <button
                     type="button"
                     onClick={() => void recoverInvoice(invoice.id)}

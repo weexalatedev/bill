@@ -50,7 +50,7 @@ export default function Landing() {
               you never used.
             </h1>
             <p className="mt-5 max-w-lg text-base leading-relaxed text-neutral-600">
-              EnerOS reads your bills, audits every line against the Ofgem price cap, and
+              EnerOS reads your bills, checks every line against your contract and a published domestic reference, and
               watches your sites so waste shows up before it reaches your P&amp;L. Start with a
               free bill check — no account needed.
             </p>
@@ -172,7 +172,7 @@ export const FEATURES = [
   {
     icon: FileSearch,
     title: 'Bill auditing that finds the errors',
-    body: 'Ten deterministic checks per invoice: unit rate vs the Ofgem cap for your region, standing charge, arithmetic, VAT treatment and meter read continuity. Evidence for every finding.',
+    body: 'Ten deterministic checks per invoice: charged rate vs your contracted rate and the published domestic reference for your region, standing-charge days, arithmetic, VAT treatment and meter-read continuity. Evidence for every finding.',
   },
   {
     icon: Gauge,

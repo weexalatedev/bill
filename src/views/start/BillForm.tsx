@@ -32,11 +32,21 @@ export const EMPTY_BILL: BillFormValues = {
  * taps "use an example" sees the savings story end-to-end (unit rate 29.4p vs a
  * ~26.3p GB average on 9,200 kWh).
  */
+/** Last complete calendar month, so the example never ages. */
+function lastMonth(): { start: string; end: string } {
+  const now = new Date();
+  const first = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1));
+  const last = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 0));
+  return { start: first.toISOString().slice(0, 10), end: last.toISOString().slice(0, 10) };
+}
+
 export const EXAMPLE_BILL: BillFormValues = {
   supplier: 'British Gas Lite',
   postcode: 'M1 4BT',
-  periodStart: '2026-02-01',
-  periodEnd: '2026-02-28',
+  ...(() => {
+    const { start, end } = lastMonth();
+    return { periodStart: start, periodEnd: end };
+  })(),
   consumptionKwh: '9200',
   unitRateP: '29.4',
   standingChargeP: '62',

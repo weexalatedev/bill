@@ -28,7 +28,7 @@ export default function DoneStep({
         <h2 className="mt-4 text-2xl font-semibold tracking-tight">You&apos;re all set</h2>
         <p className="mt-2 max-w-xl text-sm leading-relaxed text-neutral-300">
           Your workspace is ready. Upload a bill any time and the audit runs instantly against the
-          Ofgem price cap for each site.
+          your contract and the published domestic reference for each site.
         </p>
         <button
           type="button"

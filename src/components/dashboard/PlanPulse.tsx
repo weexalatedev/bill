@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { ArrowRight, BadgeCheck, Database, Gauge, PauseCircle, PlayCircle } from 'lucide-react';
 import { useApp } from '../../store';
 import { Badge, Card } from '../ui';
+import EvidenceMark, { Money } from '../EvidenceMark';
 import { gbp } from '../../lib/format';
 import type { DashboardTab } from './DashboardTabs';
 
@@ -54,12 +55,40 @@ export default function PlanPulse({ onOpenTab }: { onOpenTab: (tab: DashboardTab
           <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-600">
             Verified £ saved per site per year
           </p>
-          <p className="mt-1 text-3xl font-semibold tracking-tight text-ink-900 tabular-nums">
+          <p className="mt-1 flex items-baseline gap-2 text-3xl font-semibold tracking-tight text-ink-900">
             {gbp(metrics.savings)}
+            <EvidenceMark
+              state="verified"
+              evidence={{
+                inputs: [
+                  `Baseline spend ${gbp(metrics.spendExpected)}`,
+                  `Actual spend ${gbp(metrics.spendActual)}`,
+                  `${sites.length} site${sites.length === 1 ? '' : 's'}, ${invoices.length} audited invoice${invoices.length === 1 ? '' : 's'}`,
+                ],
+                arithmetic: 'Expected spend − actual spend, summed across the trailing baseline.',
+                source: 'Your own invoices and the pre-optimisation baseline held per site.',
+              }}
+            />
           </p>
           <p className="mt-1 text-xs text-neutral-600">
             Baseline vs actual across {sites.length} site{sites.length === 1 ? '' : 's'} ·{' '}
             {metrics.savingsRate.toFixed(1)}% below the pre-optimisation baseline
+          </p>
+          <p className="mt-2 flex flex-wrap items-center gap-1.5 text-xs text-neutral-700">
+            <Money
+              value={`${gbp(awaiting + metrics.issuesValue)}`}
+              state="estimated"
+              className="font-semibold text-ink-900"
+              evidence={{
+                inputs: [
+                  `${actions.filter((a) => a.status === 'Recommended').length} recommended opportunities`,
+                  `${invoices.filter((i) => i.status === 'Flagged').length} open bill findings`,
+                ],
+                arithmetic: "Sum of each opportunity's modelled £/mo plus the impacts of open findings.",
+                source: 'Deterministic rules on your data; not yet executed or recovered.',
+              }}
+            />
+            <span className="text-neutral-600">estimated, not yet realised</span>
           </p>
         </div>
 
