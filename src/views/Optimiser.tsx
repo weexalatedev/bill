@@ -118,7 +118,7 @@ export default function Optimiser() {
                   </p>
                   {active && <Check className="h-4 w-4 text-neutral-600" />}
                 </div>
-                <p className="mt-1 text-xs text-neutral-500">{mode.detail}</p>
+                <p className="mt-1 text-xs text-neutral-600">{mode.detail}</p>
               </button>
             );
           })}
@@ -165,14 +165,14 @@ export default function Optimiser() {
                         <p className="text-sm font-semibold text-neutral-800">{action.title}</p>
                         <Badge tone={statusTone[action.status]}>{action.status}</Badge>
                       </div>
-                      <p className="mt-0.5 text-xs text-neutral-500">
+                      <p className="mt-0.5 text-xs text-neutral-600">
                         {site?.name} · {site?.city} · {action.asset}
                       </p>
                     </div>
                   </div>
                   <div className="text-right">
                     <p className="text-sm font-semibold text-neutral-900">{gbp(action.monthlySaving)}/mo</p>
-                    <p className="text-xs text-neutral-400">{gbp(action.monthlySaving * 12)}/yr</p>
+                    <p className="text-xs text-neutral-600">{gbp(action.monthlySaving * 12)}/yr</p>
                   </div>
                 </div>
 
@@ -180,7 +180,7 @@ export default function Optimiser() {
                   <span className="rounded-md bg-neutral-100 px-2 py-1 text-xs font-medium text-neutral-600">
                     {action.fromSchedule}
                   </span>
-                  <ArrowRight className="h-3.5 w-3.5 text-neutral-400" />
+                  <ArrowRight className="h-3.5 w-3.5 text-neutral-600" />
                   <span className="rounded-md bg-neutral-50 px-2 py-1 text-xs font-semibold text-neutral-700">
                     {action.toSchedule}
                   </span>
@@ -190,13 +190,13 @@ export default function Optimiser() {
                       tone={action.confidence >= 0.85 ? 'solid' : 'outline'}
                       className="w-20"
                     />
-                    <span className="text-xs text-neutral-400">
+                    <span className="text-xs text-neutral-600">
                       {pct(action.confidence * 100, 0)} confidence
                     </span>
                   </div>
                 </div>
 
-                <p className="mt-3 text-sm text-neutral-500">{action.rationale}</p>
+                <p className="mt-3 text-sm text-neutral-600">{action.rationale}</p>
 
                 {action.status === 'Recommended' && (
                   <button
@@ -229,7 +229,7 @@ export default function Optimiser() {
           })}
         </ul>
         {visible.length === 0 && (
-          <p className="py-8 text-center text-sm text-neutral-500">No actions with this status.</p>
+          <p className="py-8 text-center text-sm text-neutral-600">No actions with this status.</p>
         )}
       </Card>
     </div>

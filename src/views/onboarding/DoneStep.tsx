@@ -21,7 +21,7 @@ export default function DoneStep({
 }) {
   return (
     <div className="space-y-4">
-      <Card className="bg-ink-900 text-white">
+      <Card tone="ink" className="eos-aura overflow-hidden">
         <span className="grid h-12 w-12 place-items-center rounded-xl bg-white/10 text-white">
           <CheckCircle2 className="h-6 w-6" />
         </span>
@@ -33,7 +33,7 @@ export default function DoneStep({
         <button
           type="button"
           onClick={onFinish}
-          className="mt-5 inline-flex items-center gap-1.5 rounded-md bg-neutral-900 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-neutral-800"
+          className="eos-cta-light mt-5 inline-flex items-center gap-1.5 rounded-md px-4 py-2.5 text-sm font-semibold"
         >
           Go to your dashboard <ArrowRight className="h-4 w-4" />
         </button>
@@ -50,7 +50,7 @@ export default function DoneStep({
               <span className="block text-sm font-semibold text-neutral-800">
                 {siteCount} site{siteCount === 1 ? '' : 's'} connected
               </span>
-              <span className="block text-xs text-neutral-500">
+              <span className="block text-xs text-neutral-600">
                 {siteCount === 0
                   ? 'You can add one from the Sites page whenever you are ready.'
                   : 'Bills are filed and benchmarked per site.'}
@@ -65,7 +65,7 @@ export default function DoneStep({
               <span className="block text-sm font-semibold text-neutral-800">
                 {deviceCount} device{deviceCount === 1 ? '' : 's'} connected
               </span>
-              <span className="block text-xs text-neutral-500">
+              <span className="block text-xs text-neutral-600">
                 {deviceCount === 0
                   ? 'Connect an energy provider or inverter later from Settings.'
                   : 'Live readings feed the audits and the Copilot.'}

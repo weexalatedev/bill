@@ -86,7 +86,7 @@ export default function Plans() {
               <div className="flex items-start justify-between">
                 <div>
                   <h3 className="text-base font-semibold text-neutral-900">{plan.name}</h3>
-                  <p className="mt-0.5 text-sm text-neutral-500">{plan.tagline}</p>
+                  <p className="mt-0.5 text-sm text-neutral-600">{plan.tagline}</p>
                 </div>
                 {isCurrent && <Badge tone="solid">Current</Badge>}
               </div>
@@ -95,7 +95,7 @@ export default function Plans() {
                 <span className="text-3xl font-semibold tracking-tight text-neutral-900">
                   {gbp(plan.pricePerSite)}
                 </span>
-                <span className="text-sm text-neutral-500">/site/month</span>
+                <span className="text-sm text-neutral-600">/site/month</span>
               </p>
 
               <ul className="mt-4 flex-1 space-y-2.5">
@@ -114,7 +114,7 @@ export default function Plans() {
                 className={
                   'mt-5 w-full rounded-md px-4 py-2.5 text-sm font-semibold transition-colors ' +
                   (isCurrent
-                    ? 'cursor-default bg-neutral-100 text-neutral-400'
+                    ? 'cursor-default bg-neutral-100 text-neutral-600'
                     : 'bg-neutral-900 text-white hover:bg-neutral-800')
                 }
               >
@@ -130,13 +130,13 @@ export default function Plans() {
           <SectionHeading
             title="Performance fee calculator"
             subtitle="You only pay on savings that are measured and verified."
-            action={<Calculator className="h-4 w-4 text-neutral-400" />}
+            action={<Calculator className="h-4 w-4 text-neutral-600" />}
           />
-          <label className="text-xs font-medium text-neutral-500">
+          <label className="text-xs font-medium text-neutral-600">
             Verified annual savings
           </label>
           <div className="mt-1 flex items-center gap-2 rounded-md border border-neutral-200 px-3 py-2">
-            <span className="text-sm font-semibold text-neutral-400">£</span>
+            <span className="text-sm font-semibold text-neutral-600">£</span>
             <input
               type="number"
               value={verifiedSavings}
@@ -153,7 +153,7 @@ export default function Plans() {
             onChange={(e) => setVerifiedSavings(Number(e.target.value))}
             className="mt-4 w-full accent-neutral-600"
           />
-          <div className="mt-1 flex justify-between text-[11px] text-neutral-400">
+          <div className="mt-1 flex justify-between text-[11px] text-neutral-600">
             <span>£0</span>
             <span>£{Math.round(Math.max(400000, annualSavings * 2) / 1000)}k</span>
           </div>
@@ -172,7 +172,7 @@ export default function Plans() {
               </p>
             </div>
           </div>
-          <p className="mt-3 text-xs text-neutral-400">
+          <p className="mt-3 text-xs text-neutral-600">
             That is {((1 - account.performanceFeePct / 100) * 100).toFixed(0)}% of verified savings
             kept by the customer — EnerOS earns more only when the customer saves more.
           </p>
@@ -185,15 +185,15 @@ export default function Plans() {
           />
           <dl className="space-y-2.5 text-sm">
             <div className="flex items-center justify-between">
-              <dt className="text-neutral-500">Subscription ({siteCount} × {gbp(currentPlan.pricePerSite)} × 12)</dt>
+              <dt className="text-neutral-600">Subscription ({siteCount} × {gbp(currentPlan.pricePerSite)} × 12)</dt>
               <dd className="font-semibold text-neutral-900">{gbp(annualSub)}</dd>
             </div>
             <div className="flex items-center justify-between">
-              <dt className="text-neutral-500">Performance fee ({account.performanceFeePct}%)</dt>
+              <dt className="text-neutral-600">Performance fee ({account.performanceFeePct}%)</dt>
               <dd className="font-semibold text-neutral-900">{gbp(performanceFee)}</dd>
             </div>
             <div className="flex items-center justify-between">
-              <dt className="text-neutral-500">
+              <dt className="text-neutral-600">
                 Flexibility revenue ({account.flexibilitySharePct}% share)
               </dt>
               <dd className="font-semibold text-neutral-900">{gbp(flexibilityShare)}</dd>
@@ -213,7 +213,7 @@ export default function Plans() {
               {gbp(flexibilityShare)}, net of fees.
             </p>
             <p className="mt-2 text-2xl font-semibold text-white">{gbp(customerRetains)}</p>
-            <p className="text-xs text-neutral-400">net annual benefit retained by the customer</p>
+            <p className="text-xs text-neutral-600">net annual benefit retained by the customer</p>
           </div>
         </Card>
       </div>
@@ -232,7 +232,7 @@ export default function Plans() {
             ['EnerOS fee', '£25k–£40k'],
           ].map(([label, value]) => (
             <div key={label} className="rounded-lg border border-neutral-100 bg-white p-4">
-              <p className="text-xs font-medium text-neutral-500">{label}</p>
+              <p className="text-xs font-medium text-neutral-600">{label}</p>
               <p className="mt-1 text-lg font-semibold text-neutral-900">{value}</p>
             </div>
           ))}

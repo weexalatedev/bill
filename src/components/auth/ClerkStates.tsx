@@ -17,7 +17,7 @@ export function ClerkGate({ children }: { children: ReactNode }) {
     <>
       <ClerkLoaded>{children}</ClerkLoaded>
       <ClerkIsLoading>
-        <div className="flex flex-col items-center gap-3 py-10 text-neutral-500">
+        <div className="flex flex-col items-center gap-3 py-10 text-neutral-600">
           <div className="grid h-11 w-11 place-items-center rounded-lg bg-ink-900">
             <Zap className="h-5 w-5 text-white" strokeWidth={2.5} />
           </div>

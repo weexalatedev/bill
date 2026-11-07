@@ -174,9 +174,9 @@ export default function BillCheckFlow() {
         <AuditResult
           audit={audit}
           footer={
-            <Card className="bg-ink-900 text-white">
+            <Card tone="ink" className="eos-aura overflow-hidden">
               <p className="flex items-center gap-2 text-sm font-semibold">
-                <PiggyBank className="h-4 w-4 text-neutral-400" />
+                <PiggyBank className="h-4 w-4 text-neutral-300" />
                 {canSave(audit)
                   ? `Save ${gbp(audit.benchmark?.savingGbp ?? 0)} — and every bill after it`
                   : 'Keep this working for you'}
@@ -190,7 +190,7 @@ export default function BillCheckFlow() {
                 <button
                   type="button"
                   onClick={() => setStep('account')}
-                  className="inline-flex items-center gap-1.5 rounded-md bg-neutral-900 px-3.5 py-2 text-sm font-semibold text-white transition-colors hover:bg-neutral-800"
+                  className="eos-cta-light inline-flex items-center gap-1.5 rounded-md px-3.5 py-2 text-sm font-semibold"
                 >
                   Create an account to save money <ArrowRight className="h-4 w-4" />
                 </button>
@@ -295,7 +295,7 @@ function IntroStep({ onUpload, onManual }: { onUpload: () => void; onManual: () 
             <Upload className="h-5 w-5" />
           </span>
           <span className="mt-4 text-base font-semibold text-neutral-900">Upload your bill</span>
-          <span className="mt-1 text-sm leading-relaxed text-neutral-500">
+          <span className="mt-1 text-sm leading-relaxed text-neutral-600">
             A PDF or a photo — we read the figures for you, even from a scan.
           </span>
           <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-neutral-700">
@@ -312,7 +312,7 @@ function IntroStep({ onUpload, onManual }: { onUpload: () => void; onManual: () 
             <Keyboard className="h-5 w-5" />
           </span>
           <span className="mt-4 text-base font-semibold text-neutral-900">Enter the figures</span>
-          <span className="mt-1 text-sm leading-relaxed text-neutral-500">
+          <span className="mt-1 text-sm leading-relaxed text-neutral-600">
             Type the numbers from your bill — quickest if you have it open in front of you.
           </span>
           <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-neutral-600">
@@ -325,7 +325,7 @@ function IntroStep({ onUpload, onManual }: { onUpload: () => void; onManual: () 
         <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-neutral-600" />
         <div>
           <p className="text-sm font-semibold text-neutral-800">What we check</p>
-          <p className="mt-1 text-xs leading-relaxed text-neutral-500">
+          <p className="mt-1 text-xs leading-relaxed text-neutral-600">
             Your unit rate and standing charge against the published Ofgem price cap for your
             region, the bill&apos;s own arithmetic, and the VAT treatment — then we tell you what the
             same usage would cost at the UK median rate.
@@ -345,11 +345,11 @@ function ReadingStep() {
       </span>
       <div>
         <p className="text-sm font-semibold text-neutral-800">Running the audit</p>
-        <p className="mt-1 text-xs text-neutral-500">
+        <p className="mt-1 text-xs text-neutral-600">
           Reading the bill, benchmarking it against the Ofgem cap, and totalling what you could save.
         </p>
       </div>
-      <p className="flex items-center gap-1.5 text-[11px] text-neutral-400">
+      <p className="flex items-center gap-1.5 text-[11px] text-neutral-600">
         <Zap className="h-3.5 w-3.5" /> Deterministic — the engine decides, nothing is guessed.
       </p>
     </Card>
@@ -362,7 +362,7 @@ function AccountStep({ audit, onBack }: { audit: AuditView; onBack: () => void }
   const canSaveMoney = saving !== null && saving > 0.5;
   return (
     <div className="space-y-4">
-      <Card className="bg-ink-900 text-white">
+      <Card tone="ink" className="eos-aura overflow-hidden">
         <span className="grid h-12 w-12 place-items-center rounded-xl bg-white/10 text-white">
           <PiggyBank className="h-6 w-6" />
         </span>
@@ -379,7 +379,7 @@ function AccountStep({ audit, onBack }: { audit: AuditView; onBack: () => void }
         <div className="mt-5 flex flex-wrap gap-2">
           <Link
             href="/sign-up"
-            className="inline-flex items-center gap-1.5 rounded-md bg-neutral-900 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-neutral-800"
+            className="eos-cta-light inline-flex items-center gap-1.5 rounded-md px-4 py-2.5 text-sm font-semibold"
           >
             Create a free account <ArrowRight className="h-4 w-4" />
           </Link>
@@ -406,7 +406,7 @@ function AccountStep({ audit, onBack }: { audit: AuditView; onBack: () => void }
               </span>
               <span>
                 <span className="block text-sm font-semibold text-neutral-800">{title}</span>
-                <span className="block text-xs text-neutral-500">{detail}</span>
+                <span className="block text-xs text-neutral-600">{detail}</span>
               </span>
             </li>
           ))}
@@ -414,7 +414,7 @@ function AccountStep({ audit, onBack }: { audit: AuditView; onBack: () => void }
         <button
           type="button"
           onClick={onBack}
-          className="mt-4 text-xs font-semibold text-neutral-400 transition-colors hover:text-neutral-600"
+          className="mt-4 text-xs font-semibold text-neutral-600 transition-colors hover:text-neutral-600"
         >
           ← Back to my audit
         </button>

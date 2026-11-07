@@ -95,7 +95,7 @@ export default function RatePlanTab({ token, homeId, plan, octopusConnectionId, 
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <SectionHeading title="Rate plan" />
-          <p className="mt-1 text-sm text-neutral-500">
+          <p className="mt-1 text-sm text-neutral-600">
             Prices drive every £ figure in Smart Analysis, the Optimiser and the Copilot. Times are
             in the home&apos;s own timezone.
           </p>
@@ -165,10 +165,10 @@ export default function RatePlanTab({ token, homeId, plan, octopusConnectionId, 
 
         <div>
           <div className="flex items-center justify-between">
-            <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+            <p className="text-xs font-semibold uppercase tracking-wide text-neutral-600">
               Import periods
             </p>
-            <span className="text-xs text-neutral-500">
+            <span className="text-xs text-neutral-600">
               {coverage.toFixed(1)}% of the day priced
             </span>
           </div>
@@ -225,7 +225,7 @@ export default function RatePlanTab({ token, homeId, plan, octopusConnectionId, 
               <button
                 type="button"
                 onClick={() => setPeriods((rows) => rows.filter((_, i) => i !== index))}
-                className="grid h-9 w-9 place-items-center rounded-md text-neutral-400 transition-colors hover:bg-neutral-50 hover:text-neutral-600"
+                className="grid h-9 w-9 place-items-center rounded-md text-neutral-600 transition-colors hover:bg-neutral-50 hover:text-neutral-600"
                 aria-label={`Remove period ${index + 1}`}
               >
                 <Trash2 className="h-4 w-4" />

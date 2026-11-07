@@ -70,10 +70,10 @@ export default function DevicesStep({
     return (
       <div className="space-y-4">
         <Card className="flex items-start gap-3">
-          <PlugZap className="mt-0.5 h-4 w-4 shrink-0 text-neutral-400" />
+          <PlugZap className="mt-0.5 h-4 w-4 shrink-0 text-neutral-600" />
           <div>
             <p className="text-sm font-semibold text-neutral-800">Add a site first</p>
-            <p className="mt-1 text-xs leading-relaxed text-neutral-500">
+            <p className="mt-1 text-xs leading-relaxed text-neutral-600">
               Devices are attached to a site — that site id is the connector&apos;s home. Add one from
               the{' '}
               <Link href="/sites" className="font-semibold text-neutral-700 underline underline-offset-2">
@@ -94,7 +94,7 @@ export default function DevicesStep({
           <button
             type="button"
             onClick={onSkip}
-            className="text-sm font-medium text-neutral-400 transition-colors hover:text-neutral-600"
+            className="text-sm font-medium text-neutral-600 transition-colors hover:text-neutral-600"
           >
             Skip for now
           </button>
@@ -148,8 +148,8 @@ export default function DevicesStep({
       </div>
 
       <Card className="flex items-start gap-3 bg-neutral-50/70">
-        <Zap className="mt-0.5 h-4 w-4 shrink-0 text-neutral-400" />
-        <p className="text-xs leading-relaxed text-neutral-500">
+        <Zap className="mt-0.5 h-4 w-4 shrink-0 text-neutral-600" />
+        <p className="text-xs leading-relaxed text-neutral-600">
           Keys are encrypted by the connector service and never reach this browser. More providers —
           gas, EV chargers, batteries — are on the way.
         </p>
@@ -167,7 +167,7 @@ export default function DevicesStep({
         <button
           type="button"
           onClick={onSkip}
-          className="text-sm font-medium text-neutral-400 transition-colors hover:text-neutral-600"
+          className="text-sm font-medium text-neutral-600 transition-colors hover:text-neutral-600"
         >
           Skip for now
         </button>
@@ -229,7 +229,7 @@ function DeviceCard({
             <PlugZap className="h-5 w-5" />
           </span>
           <div>
-            <p className="text-xs uppercase tracking-wide text-neutral-400">{title}</p>
+            <p className="text-xs uppercase tracking-wide text-neutral-600">{title}</p>
             <p className="text-sm font-semibold text-neutral-900">{product}</p>
           </div>
         </div>
@@ -237,7 +237,7 @@ function DeviceCard({
           {connected ? 'Connected' : 'Not connected'}
         </Badge>
       </div>
-      <p className="text-sm text-neutral-500">{detail}</p>
+      <p className="text-sm text-neutral-600">{detail}</p>
       <button
         type="button"
         onClick={onConnect}

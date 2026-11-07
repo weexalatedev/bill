@@ -12,30 +12,30 @@ interface CapSummary {
 /**
  * The ink panel on the auth routes.
  *
- * It is deliberately flat: no gradient, no glow, no colour. The panel carries
- * the pitch through type and rule-work alone, which keeps the form column calm
- * and makes the live Ofgem figures the only thing that moves.
+ * One light source, top-left, on near-black — the only place the product shows
+ * a gradient behind type. The form column beside it stays paper-flat so the
+ * live Ofgem figures remain the thing that moves.
  */
 export default function BrandPanel({ cap }: { cap: CapSummary | null }) {
   return (
-    <aside className="relative isolate flex flex-col justify-between overflow-hidden bg-ink-950 px-6 py-10 text-white sm:px-10 lg:border-r lg:border-white/10 lg:py-12">
+    <aside className="eos-ink-panel relative isolate flex flex-col justify-between overflow-hidden px-6 py-10 text-white sm:px-10 lg:border-r lg:border-white/10 lg:py-12">
       <Link href="/" className="inline-flex w-fit items-center gap-2.5">
         <span className="grid h-10 w-10 place-items-center rounded-md bg-white">
           <Zap className="h-5 w-5 text-ink-900" strokeWidth={2.5} />
         </span>
         <span className="leading-tight">
           <span className="block text-base font-semibold tracking-tight">EnerOS</span>
-          <span className="block text-[11px] text-neutral-500">AI Energy Manager</span>
+          <span className="block text-[11px] text-neutral-400">AI Energy Manager</span>
         </span>
       </Link>
 
       <div className="mt-10 max-w-lg lg:mt-0">
-        <h2 className="text-[28px] font-semibold leading-[1.15] tracking-tight sm:text-[32px]">
+        <h2 className="eos-text-gradient-light text-[28px] font-semibold leading-[1.15] tracking-tight sm:text-[34px]">
           Every invoice checked.
           <br />
           Every tariff questioned.
           <br />
-          <span className="text-neutral-500">Every pound defended.</span>
+          <span className="text-neutral-400">Every pound defended.</span>
         </h2>
         <p className="mt-5 max-w-md text-sm leading-relaxed text-neutral-400">
           EnerOS audits UK electricity bills against Ofgem&apos;s published price cap, flags what you

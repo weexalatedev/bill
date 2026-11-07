@@ -78,7 +78,7 @@ export default function Dashboard() {
     <div className="space-y-6">
       <SubscriptionSummary />
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm text-neutral-500">
+        <p className="text-sm text-neutral-600">
           {account.name} · {account.sites} sites · billing period Mar 2026
         </p>
         <Badge tone="solid">
@@ -129,10 +129,10 @@ export default function Dashboard() {
           subtitle="Baseline → intervention → measured outcome. Trailing 12 months."
           action={
             <div className="hidden items-center gap-4 text-xs sm:flex">
-              <span className="flex items-center gap-1.5 text-neutral-500">
+              <span className="flex items-center gap-1.5 text-neutral-600">
                 <span className="h-2.5 w-2.5 rounded-full bg-neutral-300" /> Expected
               </span>
-              <span className="flex items-center gap-1.5 text-neutral-500">
+              <span className="flex items-center gap-1.5 text-neutral-600">
                 <span className="h-2.5 w-2.5 rounded-full bg-neutral-900" /> Actual
               </span>
             </div>
@@ -152,12 +152,12 @@ export default function Dashboard() {
                 dataKey="month"
                 tickLine={false}
                 axisLine={false}
-                tick={{ fontSize: 12, fill: '#a3a3a3' }}
+                tick={{ fontSize: 12, fill: '#525252' }}
               />
               <YAxis
                 tickLine={false}
                 axisLine={false}
-                tick={{ fontSize: 12, fill: '#a3a3a3' }}
+                tick={{ fontSize: 12, fill: '#525252' }}
                 tickFormatter={(value: number) => compactGbp(value)}
                 width={64}
               />
@@ -198,7 +198,7 @@ export default function Dashboard() {
                 </div>
                 <div className="mt-1.5 flex items-center gap-3">
                   <ProgressBar value={share(slice.spend, mixTotal)} tone="solid" />
-                  <span className="w-10 shrink-0 text-right text-xs text-neutral-400">
+                  <span className="w-10 shrink-0 text-right text-xs text-neutral-600">
                     {share(slice.spend, mixTotal).toFixed(0)}%
                   </span>
                 </div>
@@ -225,7 +225,7 @@ export default function Dashboard() {
                     <p className="truncate text-sm font-semibold text-neutral-800">
                       {site.name} · {site.city}
                     </p>
-                    <p className="text-xs text-neutral-500">
+                    <p className="text-xs text-neutral-600">
                       {site.type} · {gbp(site.annualSpend)}/yr · {site.meterType}
                     </p>
                   </div>
@@ -261,8 +261,8 @@ export default function Dashboard() {
                       {item.kind === 'issue' ? 'Issue' : 'Automated'}
                     </Badge>
                   </div>
-                  <p className="mt-0.5 text-sm text-neutral-500">{item.detail}</p>
-                  <p className="mt-1 text-xs text-neutral-400">{item.meta}</p>
+                  <p className="mt-0.5 text-sm text-neutral-600">{item.detail}</p>
+                  <p className="mt-1 text-xs text-neutral-600">{item.meta}</p>
                 </div>
                 <span className="shrink-0 text-sm font-semibold text-ink-900 tabular-nums">
                   {signedGbp(item.value)}
@@ -274,7 +274,7 @@ export default function Dashboard() {
 
         <Card className="flex flex-col justify-between bg-ink-900 text-white">
           <div>
-            <div className="mb-3 inline-flex items-center gap-2 rounded-md border border-white/15 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-neutral-400">
+            <div className="mb-3 inline-flex items-center gap-2 rounded-md border border-white/15 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-neutral-600">
               <ShieldCheck className="h-3.5 w-3.5" /> Bill analysis in three steps
             </div>
             <ol className="mt-4 space-y-1">
@@ -293,14 +293,14 @@ export default function Dashboard() {
                     </span>
                     <div>
                       <p className="text-sm font-semibold group-hover:text-white">{step}</p>
-                      <p className="text-xs text-neutral-400">{detail}</p>
+                      <p className="text-xs text-neutral-600">{detail}</p>
                     </div>
                   </Link>
                 </li>
               ))}
             </ol>
           </div>
-          <div className="mt-5 rounded-md border border-white/15 p-3 text-xs leading-relaxed text-neutral-400">
+          <div className="mt-5 rounded-md border border-white/15 p-3 text-xs leading-relaxed text-neutral-600">
             <p>
               {invoices.length === 0
                 ? 'No bills yet — upload your first invoice and the audit runs instantly.'

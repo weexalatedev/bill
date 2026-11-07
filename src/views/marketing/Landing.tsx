@@ -37,13 +37,14 @@ export default function Landing() {
   return (
     <>
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
-      <section className="border-b border-neutral-200">
-        <div className="mx-auto grid max-w-6xl gap-10 px-4 py-16 sm:px-6 md:grid-cols-2 md:items-center md:py-24">
+      <section className="eos-aura relative overflow-hidden border-b border-neutral-200">
+        <div className="eos-grid pointer-events-none absolute inset-0 opacity-60" aria-hidden />
+        <div className="relative mx-auto grid max-w-6xl gap-10 px-4 py-16 sm:px-6 md:grid-cols-2 md:items-center md:py-28">
           <div>
             <p className="inline-flex items-center gap-2 rounded-full border border-neutral-200 px-3 py-1 text-xs font-medium text-neutral-600">
               <Sparkles className="h-3.5 w-3.5" /> Built for UK SMEs
             </p>
-            <h1 className="mt-5 text-4xl font-semibold leading-[1.05] tracking-tight text-ink-900 sm:text-5xl">
+            <h1 className="eos-text-gradient-ink mt-5 text-4xl font-semibold leading-[1.02] tracking-tight sm:text-6xl">
               Stop paying for energy
               <br />
               you never used.
@@ -56,18 +57,18 @@ export default function Landing() {
             <div className="mt-7 flex flex-wrap gap-3">
               <Link
                 href="/start"
-                className="inline-flex items-center gap-2 rounded-md bg-ink-900 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-ink-800"
+                className="eos-cta inline-flex items-center gap-2 rounded-md px-5 py-3 text-sm font-semibold text-white"
               >
                 Check your bill free <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
                 href="/features"
-                className="inline-flex items-center gap-2 rounded-md border border-neutral-300 px-5 py-3 text-sm font-semibold text-ink-900 transition-colors hover:bg-neutral-50"
+                className="inline-flex items-center gap-2 rounded-md border border-neutral-300 bg-white/70 px-5 py-3 text-sm font-semibold text-ink-900 backdrop-blur transition-colors hover:bg-white"
               >
                 Explore features
               </Link>
             </div>
-            <p className="mt-4 flex items-center gap-1.5 text-xs text-neutral-500">
+            <p className="mt-4 flex items-center gap-1.5 text-xs text-neutral-600">
               <ShieldCheck className="h-3.5 w-3.5" /> No card to check a bill. Your figures stay
               yours.
             </p>
@@ -78,7 +79,7 @@ export default function Landing() {
       </section>
 
       {/* ── Value strip ──────────────────────────────────────────────────── */}
-      <section className="border-b border-neutral-200 bg-neutral-50">
+      <section className="border-b border-neutral-200 bg-gradient-to-b from-neutral-50 via-white to-neutral-50">
         <div className="mx-auto grid max-w-6xl gap-6 px-4 py-10 sm:px-6 md:grid-cols-3">
           {[
             ['Every bill, checked', 'Unit rate, standing charge, arithmetic and VAT — against the published cap for your region.'],
@@ -107,9 +108,10 @@ export default function Landing() {
 function HeroVisual() {
   return (
     <div className="relative">
-      <div className="rounded-xl border border-neutral-200 bg-white p-5 shadow-[0_1px_0_rgba(0,0,0,0.04),0_24px_48px_-32px_rgba(0,0,0,0.45)]">
+      <div className="relative overflow-hidden rounded-2xl border border-neutral-200/80 bg-white/90 p-5 shadow-[0_1px_0_rgba(255,255,255,0.9)_inset,0_40px_80px_-40px_rgba(0,0,0,0.55)] backdrop-blur">
+        <div className="eos-rule absolute inset-x-0 top-0" aria-hidden />
         <div className="flex items-center justify-between">
-          <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+          <p className="text-xs font-semibold uppercase tracking-wide text-neutral-600">
             Bill audit · illustrative
           </p>
           <span className="rounded-md bg-ink-900 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white">
@@ -132,14 +134,14 @@ function HeroVisual() {
                 className={
                   flagged
                     ? 'mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-ink-900 text-[10px] font-semibold text-white'
-                    : 'mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full border border-neutral-300 text-[10px] text-neutral-500'
+                    : 'mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full border border-neutral-300 text-[10px] text-neutral-600'
                 }
               >
                 {flagged ? '!' : '✓'}
               </span>
               <div className="min-w-0">
                 <p className="text-sm font-medium text-ink-900">{String(title)}</p>
-                <p className="truncate text-xs text-neutral-500">{String(detail)}</p>
+                <p className="truncate text-xs text-neutral-600">{String(detail)}</p>
               </div>
             </div>
           ))}
@@ -147,11 +149,11 @@ function HeroVisual() {
 
         <div className="mt-4 flex items-center justify-between rounded-md bg-neutral-50 px-3 py-3">
           <div>
-            <p className="text-[11px] uppercase tracking-wide text-neutral-500">Recoverable</p>
+            <p className="text-[11px] uppercase tracking-wide text-neutral-600">Recoverable</p>
             <p className="text-lg font-semibold tabular-nums text-ink-900">{gbp(412)}</p>
           </div>
           <div className="text-right">
-            <p className="text-[11px] uppercase tracking-wide text-neutral-500">Confidence</p>
+            <p className="text-[11px] uppercase tracking-wide text-neutral-600">Confidence</p>
             <p className="text-sm font-semibold text-ink-900">Deterministic</p>
           </div>
         </div>
@@ -213,7 +215,7 @@ function Features() {
   return (
     <section id="features" className="border-b border-neutral-200">
       <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
-        <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">Features</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-neutral-600">Features</p>
         <h2 className="mt-2 text-3xl font-semibold tracking-tight text-ink-900">
           Everything here is already running
         </h2>
@@ -224,8 +226,11 @@ function Features() {
 
         <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {FEATURES.map(({ icon: Icon, title, body }) => (
-            <div key={title} className="rounded-xl border border-neutral-200 bg-white p-5">
-              <span className="grid h-9 w-9 place-items-center rounded-md border border-neutral-200 text-ink-900">
+            <div
+              key={title}
+              className="group rounded-xl border border-neutral-200 bg-gradient-to-b from-white to-neutral-50/60 p-5 transition-[transform,box-shadow,border-color] duration-200 hover:-translate-y-0.5 hover:border-neutral-300 hover:shadow-[0_18px_40px_-28px_rgba(0,0,0,0.45)]"
+            >
+              <span className="grid h-9 w-9 place-items-center rounded-md border border-neutral-200 bg-white text-ink-900 transition-colors group-hover:border-ink-900/20">
                 <Icon className="h-4 w-4" />
               </span>
               <h3 className="mt-3 text-sm font-semibold text-ink-900">{title}</h3>
@@ -267,9 +272,9 @@ const STEPS = [
 
 function HowItWorks() {
   return (
-    <section id="how-it-works" className="border-b border-neutral-200 bg-neutral-50">
+    <section id="how-it-works" className="eos-aura relative overflow-hidden border-b border-neutral-200 bg-neutral-50/70">
       <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
-        <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">How it works</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-neutral-600">How it works</p>
         <h2 className="mt-2 text-3xl font-semibold tracking-tight text-ink-900">
           Prove the saving first, subscribe second
         </h2>
@@ -304,7 +309,7 @@ function Pricing({ catalogue, error }: { catalogue: PlansResponse | null; error:
   return (
     <section id="pricing" className="border-b border-neutral-200">
       <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
-        <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">Pricing</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-neutral-600">Pricing</p>
         <h2 className="mt-2 text-3xl font-semibold tracking-tight text-ink-900">
           Priced per site, per month
         </h2>
@@ -324,7 +329,7 @@ function Pricing({ catalogue, error }: { catalogue: PlansResponse | null; error:
             </div>
           )}
           {!error && !catalogue && (
-            <div className="flex items-center justify-center gap-2 rounded-xl border border-neutral-200 bg-white py-16 text-sm text-neutral-500">
+            <div className="flex items-center justify-center gap-2 rounded-xl border border-neutral-200 bg-white py-16 text-sm text-neutral-600">
               <Loader2 className="h-4 w-4 animate-spin" /> Loading plans…
             </div>
           )}
@@ -350,9 +355,10 @@ function Pricing({ catalogue, error }: { catalogue: PlansResponse | null; error:
 function FinalCta() {
   return (
     <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
-      <div className="rounded-2xl bg-ink-900 px-6 py-12 text-white sm:px-10">
+      <div className="eos-ink-panel relative overflow-hidden rounded-2xl px-6 py-12 text-white sm:px-12 sm:py-16">
+        <div className="eos-drift pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-white/10 blur-2xl" aria-hidden />
         <div className="max-w-2xl">
-          <h2 className="text-3xl font-semibold tracking-tight">
+          <h2 className="eos-text-gradient-light text-3xl font-semibold tracking-tight sm:text-4xl">
             Start with the bill in your hand.
           </h2>
           <p className="mt-3 text-sm leading-relaxed text-neutral-300">
@@ -362,7 +368,7 @@ function FinalCta() {
           <div className="mt-6 flex flex-wrap gap-3">
             <Link
               href="/start"
-              className="inline-flex items-center gap-2 rounded-md bg-white px-5 py-3 text-sm font-semibold text-ink-900 transition-colors hover:bg-neutral-200"
+              className="eos-cta-light inline-flex items-center gap-2 rounded-md px-5 py-3 text-sm font-semibold"
             >
               Check your bill free <ArrowRight className="h-4 w-4" />
             </Link>

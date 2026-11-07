@@ -20,7 +20,7 @@ export default function MarketingShell({ children }: { children: React.ReactNode
 
   return (
     <div className="min-h-screen bg-white text-ink-900">
-      <header className="sticky top-0 z-40 border-b border-neutral-200 bg-white/90 backdrop-blur">
+      <header className="eos-glass sticky top-0 z-40 border-b border-neutral-200/70">
         <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3.5 sm:px-6">
           <Link href="/" className="flex items-center gap-2" aria-label="EnerOS home">
             <span className="grid h-8 w-8 place-items-center rounded-md bg-ink-900">
@@ -50,7 +50,7 @@ export default function MarketingShell({ children }: { children: React.ReactNode
             </Link>
             <Link
               href="/start"
-              className="rounded-md bg-ink-900 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-ink-800"
+              className="eos-cta rounded-md px-4 py-2 text-sm font-semibold text-white"
             >
               Get started
             </Link>
@@ -101,7 +101,7 @@ export default function MarketingShell({ children }: { children: React.ReactNode
 
       <main>{children}</main>
 
-      <footer id="contact" className="border-t border-neutral-200 bg-neutral-50">
+      <footer id="contact" className="border-t border-neutral-200 bg-gradient-to-b from-neutral-50 to-white">
         <div className="mx-auto grid max-w-6xl gap-8 px-4 py-12 sm:px-6 md:grid-cols-4">
           <div className="md:col-span-2">
             <div className="flex items-center gap-2">
@@ -125,7 +125,7 @@ export default function MarketingShell({ children }: { children: React.ReactNode
           </div>
 
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">Product</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-neutral-600">Product</p>
             <ul className="mt-3 space-y-2 text-sm text-neutral-600">
               <li><Link href="/features" className="hover:text-neutral-900">Features</Link></li>
               <li><Link href="/pricing" className="hover:text-neutral-900">Pricing</Link></li>
@@ -135,7 +135,7 @@ export default function MarketingShell({ children }: { children: React.ReactNode
           </div>
 
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">Account</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-neutral-600">Account</p>
             <ul className="mt-3 space-y-2 text-sm text-neutral-600">
               <li><Link href="/sign-in" className="hover:text-neutral-900">Login</Link></li>
               <li><Link href="/sign-up" className="hover:text-neutral-900">Create an account</Link></li>
@@ -145,7 +145,7 @@ export default function MarketingShell({ children }: { children: React.ReactNode
         </div>
 
         <div className="border-t border-neutral-200">
-          <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-5 text-xs text-neutral-500 sm:flex-row sm:items-center sm:px-6">
+          <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-5 text-xs text-neutral-600 sm:flex-row sm:items-center sm:px-6">
             <p>© {new Date().getFullYear()} EnerOS Ltd. Registered in England &amp; Wales.</p>
             <p className="sm:ml-auto">
               <Link href="/terms" className="hover:text-neutral-800">Terms</Link>

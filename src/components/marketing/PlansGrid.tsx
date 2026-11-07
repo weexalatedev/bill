@@ -37,7 +37,7 @@ export default function PlansGrid({
   return (
     <div>
       {!annualAvailable && (
-        <p className="mb-4 text-center text-xs text-neutral-500">
+        <p className="mb-4 text-center text-xs text-neutral-600">
           Billed monthly, per site. Annual billing is not offered yet.
         </p>
       )}
@@ -53,14 +53,14 @@ export default function PlansGrid({
               className={cx(
                 'flex flex-col rounded-xl border bg-white p-6 transition-shadow',
                 recommended
-                  ? 'border-ink-900 shadow-[0_1px_0_rgba(0,0,0,0.06),0_12px_32px_-24px_rgba(0,0,0,0.5)]'
+                  ? 'border-ink-900/80 bg-gradient-to-b from-white to-neutral-50 shadow-[0_1px_0_rgba(255,255,255,0.9)_inset,0_24px_60px_-32px_rgba(0,0,0,0.45)]'
                   : 'border-neutral-200',
               )}
             >
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <h3 className="text-base font-semibold tracking-tight text-ink-900">{plan.name}</h3>
-                  <p className="mt-1 text-xs leading-relaxed text-neutral-500">{plan.tagline}</p>
+                  <p className="mt-1 text-xs leading-relaxed text-neutral-600">{plan.tagline}</p>
                 </div>
                 {recommended && (
                   <span className="rounded-md bg-ink-900 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white">
@@ -73,9 +73,9 @@ export default function PlansGrid({
                 <span className="text-3xl font-semibold tracking-tight tabular-nums">
                   £{plan.pricePerSite}
                 </span>
-                <span className="text-xs text-neutral-500">/ site / {billingPeriod === 'annual' ? 'year' : 'month'}</span>
+                <span className="text-xs text-neutral-600">/ site / {billingPeriod === 'annual' ? 'year' : 'month'}</span>
               </div>
-              <p className="mt-1 text-xs text-neutral-500">
+              <p className="mt-1 text-xs text-neutral-600">
                 Billed for the sites you have · up to{' '}
                 <span className="font-medium text-neutral-700">{plan.siteLimit} sites</span>
               </p>
@@ -88,7 +88,7 @@ export default function PlansGrid({
                   </li>
                 ))}
                 {plan.restrictions.map((restriction) => (
-                  <li key={restriction} className="flex items-start gap-2 text-neutral-500">
+                  <li key={restriction} className="flex items-start gap-2 text-neutral-600">
                     <Minus className="mt-0.5 h-3.5 w-3.5 shrink-0" strokeWidth={3} />
                     <span>{restriction}</span>
                   </li>
@@ -103,7 +103,7 @@ export default function PlansGrid({
                   className={cx(
                     'mt-6 inline-flex items-center justify-center gap-2 rounded-md px-4 py-2.5 text-sm font-semibold transition-colors',
                     recommended
-                      ? 'bg-ink-900 text-white hover:bg-ink-800'
+                      ? 'eos-cta text-white'
                       : 'border border-neutral-300 text-ink-900 hover:bg-neutral-50',
                     (busy || current) && 'cursor-not-allowed opacity-60',
                   )}
@@ -129,7 +129,7 @@ export default function PlansGrid({
         })}
       </div>
 
-      {footnote && <p className="mt-4 text-center text-xs text-neutral-400">{footnote}</p>}
+      {footnote && <p className="mt-4 text-center text-xs text-neutral-600">{footnote}</p>}
     </div>
   );
 }

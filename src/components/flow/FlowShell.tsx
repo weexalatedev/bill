@@ -41,7 +41,7 @@ export default function FlowShell({
 }) {
   return (
     <div className="min-h-screen bg-neutral-50">
-      <header className="sticky top-0 z-20 border-b border-neutral-200 bg-white/85 backdrop-blur">
+      <header className="eos-glass sticky top-0 z-20 border-b border-neutral-200/70">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3.5 sm:px-6">
           <div className="flex items-center gap-3">
             {onBack && (
@@ -49,13 +49,13 @@ export default function FlowShell({
                 type="button"
                 onClick={onBack}
                 aria-label="Back"
-                className="grid h-8 w-8 place-items-center rounded-md border border-neutral-200 text-neutral-500 transition-colors hover:bg-neutral-50 hover:text-neutral-800"
+                className="grid h-8 w-8 place-items-center rounded-md border border-neutral-200 text-neutral-600 transition-colors hover:bg-neutral-50 hover:text-neutral-800"
               >
                 <ArrowLeft className="h-4 w-4" />
               </button>
             )}
             <Link href="/" className="flex items-center gap-2.5">
-              <span className="grid h-9 w-9 place-items-center rounded-md bg-ink-900">
+              <span className="grid h-9 w-9 place-items-center rounded-md bg-gradient-to-b from-ink-800 to-ink-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.18)]">
                 <Zap className="h-[18px] w-[18px] text-white" strokeWidth={2.5} />
               </span>
               <span className="text-sm font-semibold tracking-tight text-ink-900">EnerOS</span>
@@ -77,8 +77,8 @@ export default function FlowShell({
                       done
                         ? 'border-ink-900 bg-white text-ink-900'
                         : active
-                          ? 'border-ink-900 bg-ink-900 text-white'
-                          : 'border-transparent bg-neutral-100 text-neutral-400',
+                          ? 'border-ink-900 bg-gradient-to-b from-ink-800 to-ink-900 text-white shadow-[0_6px_18px_-10px_rgba(0,0,0,0.8)]'
+                          : 'border-transparent bg-neutral-100 text-neutral-600',
                     )}
                   >
                     {done ? <Check className="h-3.5 w-3.5" /> : index + 1}
@@ -90,7 +90,7 @@ export default function FlowShell({
                         ? 'font-semibold text-ink-900'
                         : done
                           ? 'font-medium text-neutral-600'
-                          : 'font-medium text-neutral-400',
+                          : 'font-medium text-neutral-600',
                     )}
                   >
                     {step.label}
@@ -115,10 +115,10 @@ export default function FlowShell({
               {eyebrow}
             </p>
           )}
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight text-neutral-900 sm:text-[28px]">
+          <h1 className="eos-text-gradient-ink mt-1 text-2xl font-semibold tracking-tight sm:text-[32px]">
             {title}
           </h1>
-          {subtitle && <p className="mt-1.5 max-w-2xl text-sm text-neutral-500">{subtitle}</p>}
+          {subtitle && <p className="mt-1.5 max-w-2xl text-sm text-neutral-600">{subtitle}</p>}
           <div className="mt-6">{children}</div>
         </div>
       </main>

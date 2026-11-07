@@ -52,18 +52,18 @@ export default function AuthShell({
         <div className="mx-auto w-full max-w-md animate-fade-in">
           <div className="mb-7">
             <h1 className="text-2xl font-semibold tracking-tight text-neutral-900">{title}</h1>
-            <p className="mt-1.5 text-sm text-neutral-500">{subtitle}</p>
+            <p className="mt-1.5 text-sm text-neutral-600">{subtitle}</p>
           </div>
 
           {children}
 
           {footer && (
-            <div className="mt-6 border-t border-neutral-200 pt-6 text-center text-sm text-neutral-500">
+            <div className="mt-6 border-t border-neutral-200 pt-6 text-center text-sm text-neutral-600">
               {footer}
             </div>
           )}
 
-          <p className="mt-8 text-center text-[11px] leading-relaxed text-neutral-400">
+          <p className="mt-8 text-center text-[11px] leading-relaxed text-neutral-600">
             By continuing you agree to EnerOS processing your billing data to produce energy
             analysis. We never sell it, and we never share it with your supplier.
           </p>

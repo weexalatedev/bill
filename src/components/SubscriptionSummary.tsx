@@ -28,7 +28,7 @@ export default function SubscriptionSummary() {
             <p className="text-sm font-semibold text-neutral-900">
               {subscription.planName} · {gbp(subscription.monthlyGbp)}/month
             </p>
-            <p className="mt-0.5 text-xs text-neutral-500">
+            <p className="mt-0.5 text-xs text-neutral-600">
               {subscription.billingPeriod} · renews {renewalLabel(subscription.renewalDate)}
               {subscription.cancelAtPeriodEnd ? ' · cancelling at period end' : ''}
             </p>
@@ -48,10 +48,10 @@ export default function SubscriptionSummary() {
       </div>
 
       <div className="mt-4 flex items-center gap-2">
-        <Building2 className="h-3.5 w-3.5 text-neutral-400" />
+        <Building2 className="h-3.5 w-3.5 text-neutral-600" />
         <p className="text-xs font-medium text-neutral-700">
-          Sites used: {subscription.sitesUsed} / {subscription.siteLimit}{' '}
-          <span className="font-normal text-neutral-500">
+          Sites used: {subscription.sitesUsed} / {subscription.siteLimit} ·{' '}
+          <span className="font-normal text-neutral-600">
             {atCap ? 'no capacity left' : `${subscription.remainingSites} remaining`}
           </span>
         </p>
@@ -61,13 +61,13 @@ export default function SubscriptionSummary() {
       </div>
 
       {atCap && (
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-2 rounded-md bg-neutral-50 px-3 py-2.5">
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-neutral-200 bg-gradient-to-b from-neutral-50 to-white px-3 py-2.5">
           <p className="text-xs text-neutral-700">
             You have reached the maximum number of sites allowed in your current subscription.
           </p>
           <Link
             href="/onboarding/subscription"
-            className="inline-flex shrink-0 items-center gap-1 rounded-md bg-ink-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-ink-800"
+            className="eos-cta inline-flex shrink-0 items-center gap-1 rounded-md px-3 py-1.5 text-xs font-semibold text-white"
           >
             Upgrade plan <ArrowRight className="h-3.5 w-3.5" />
           </Link>

@@ -45,12 +45,12 @@ const severityChip: Record<FindingSeverity, string> = {
   high: 'bg-ink-900 text-white',
   medium: 'bg-white text-ink-900 ring-1 ring-inset ring-ink-900/20',
   low: 'bg-neutral-100 text-neutral-700',
-  info: 'bg-transparent text-neutral-500 ring-1 ring-inset ring-neutral-200',
+  info: 'bg-transparent text-neutral-600 ring-1 ring-inset ring-neutral-200',
 };
 
 const field =
   'w-full rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-800 focus:border-neutral-900 focus:outline-none focus:ring-2 focus:ring-neutral-900/12';
-const labelCls = 'mb-1 block text-xs font-medium text-neutral-500';
+const labelCls = 'mb-1 block text-xs font-medium text-neutral-600';
 
 interface FormState {
   supplier: string;
@@ -111,7 +111,7 @@ function annualCostAt(region: CapRegion, annualKwh: number): string {
 function Fact({ label, value, icon }: { label: string; value: string; icon?: React.ReactNode }) {
   return (
     <div>
-      <dt className="flex items-center gap-1.5 text-xs text-neutral-500">
+      <dt className="flex items-center gap-1.5 text-xs text-neutral-600">
         {icon}
         {label}
       </dt>
@@ -463,7 +463,7 @@ return (
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
                       <p className="text-sm font-semibold text-neutral-900">Dispute letter</p>
-                      <p className="mt-0.5 max-w-lg text-xs text-neutral-500">
+                      <p className="mt-0.5 max-w-lg text-xs text-neutral-600">
                         A formal letter claiming {gbp(analysis.recoverableGbp)}. It quotes only the
                         proven findings and sets a 14-day deadline.
                       </p>
@@ -561,7 +561,7 @@ function BillUploadCard({
         <p className="mt-2 text-sm font-semibold text-neutral-900">
           {busy ? 'Reading your bill…' : 'Drop a PDF here or click to choose'}
         </p>
-        <p className="mt-0.5 text-xs text-neutral-500">PDF, photo or text · up to 12 MB</p>
+        <p className="mt-0.5 text-xs text-neutral-600">PDF, photo or text · up to 12 MB</p>
         <input
           ref={ref}
           type="file"
@@ -611,7 +611,7 @@ function NarrationCard({
             <ul className="space-y-1.5">
               {narration.actions.map((action, i) => (
                 <li key={i} className="flex items-start gap-2 text-sm text-neutral-700">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-neutral-500" />
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-neutral-600" />
                   {action}
                 </li>
               ))}
@@ -629,7 +629,7 @@ function NarrationCard({
             {narrating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Quote className="h-4 w-4" />}
             {narrating ? 'Asking Gemini…' : 'Explain this audit'}
           </button>
-          <span className="text-xs text-neutral-400">
+          <span className="text-xs text-neutral-600">
             {unavailable
               ? 'Gemini is not configured or failed just now — set GEMINI_API_KEY on the API, then try again. The findings above are the deterministic engine.'
               : 'Runs automatically after every analysis.'}
@@ -645,10 +645,10 @@ function AnalysisEmptyState() {
     <Card>
       <div className="grid place-items-center px-6 py-14 text-center">
         <span className="grid h-12 w-12 place-items-center rounded-lg bg-neutral-100">
-          <Quote className="h-6 w-6 text-neutral-400" />
+          <Quote className="h-6 w-6 text-neutral-600" />
         </span>
         <p className="mt-4 text-sm font-semibold text-neutral-800">Enter a bill to start the audit</p>
-        <p className="mt-1.5 max-w-md text-xs leading-relaxed text-neutral-500">
+        <p className="mt-1.5 max-w-md text-xs leading-relaxed text-neutral-600">
           The engine checks the unit rate and standing charge against Ofgem&rsquo;s cap for your
           region, re-adds the invoice arithmetic, verifies VAT treatment, and compares consumption
           with this site&rsquo;s own baseline.
@@ -738,7 +738,7 @@ function BillForm({
           placeholder={
             'e.g.\nOctopus Energy Business — Invoice\nPeriod 01/09/2026 – 30/09/2026\n12,480 kWh @ 26.49p/kWh\nStanding charge 45.68p/day\nTotal incl. VAT £3,300.00'
           }
-          className="mt-2 w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-800 placeholder:text-neutral-400 focus:border-neutral-900 focus:outline-none focus:ring-2 focus:ring-neutral-900/12"
+          className="mt-2 w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-800 placeholder:text-neutral-600 focus:border-neutral-900 focus:outline-none focus:ring-2 focus:ring-neutral-900/12"
         />
         {ai.info && (
           <p className="mt-2 text-[11px] leading-relaxed text-neutral-800">
@@ -954,7 +954,7 @@ function FindingRow({ finding }: { finding: AnalysisFinding }) {
             <span
               className={cx(
                 'text-sm font-semibold',
-                finding.impactGbp > 0 ? 'text-ink-900' : 'text-neutral-500',
+                finding.impactGbp > 0 ? 'text-ink-900' : 'text-neutral-600',
               )}
             >
               {signedGbp(finding.impactGbp)}
@@ -970,7 +970,7 @@ function FindingRow({ finding }: { finding: AnalysisFinding }) {
         <dl className="grid gap-x-6 gap-y-1 sm:grid-cols-2">
           {finding.evidence.map((item) => (
             <div key={item.label} className="flex justify-between gap-3 text-xs">
-              <dt className="text-neutral-500">{item.label}</dt>
+              <dt className="text-neutral-600">{item.label}</dt>
               <dd className="text-right font-medium text-neutral-800">{item.value}</dd>
             </div>
           ))}
@@ -981,7 +981,7 @@ function FindingRow({ finding }: { finding: AnalysisFinding }) {
             <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-neutral-600" />
             {finding.recommendation}
           </p>
-          <p className="mt-1.5 flex flex-wrap gap-2 text-[11px] text-neutral-400">
+          <p className="mt-1.5 flex flex-wrap gap-2 text-[11px] text-neutral-600">
             <span>Source: {finding.source.replace(/-/g, ' ')}</span>
             <span>·</span>
             <span>Confidence {pct(finding.confidence * 100, 0)}</span>
@@ -1013,7 +1013,7 @@ function WeatherCard({ weather }: { weather: WeatherSummary }) {
           <Fact label="Balance point" value="15.5°C" />
         </div>
       ) : (
-        <p className="flex items-start gap-2 text-xs leading-relaxed text-neutral-500">
+        <p className="flex items-start gap-2 text-xs leading-relaxed text-neutral-600">
           <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
           {weather.note ?? 'No temperature data was returned.'} Findings above were still produced
           — they are simply not weather-adjusted.
@@ -1047,7 +1047,7 @@ function BenchmarkCard({
 
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <label className="flex items-center gap-2">
-          <MapPin className="h-4 w-4 text-neutral-400" />
+          <MapPin className="h-4 w-4 text-neutral-600" />
           <span className="sr-only">Postcode</span>
           <input
             value={postcode}
@@ -1057,11 +1057,11 @@ function BenchmarkCard({
           />
         </label>
         {region ? (
-          <span className="text-xs text-neutral-500">
+          <span className="text-xs text-neutral-600">
             Benchmarking against <strong className="text-neutral-800">{region.name}</strong>
           </span>
         ) : (
-          <span className="text-xs text-neutral-400">
+          <span className="text-xs text-neutral-600">
             Add a postcode to benchmark against your own region rather than the GB average.
           </span>
         )}
@@ -1070,7 +1070,7 @@ function BenchmarkCard({
       <div className="overflow-x-auto">
         <table className="w-full min-w-[26rem] text-left text-sm">
           <thead>
-            <tr className="border-b border-neutral-200 text-xs uppercase tracking-wide text-neutral-400">
+            <tr className="border-b border-neutral-200 text-xs uppercase tracking-wide text-neutral-600">
               <th className="pb-2 font-semibold">Region</th>
               <th className="pb-2 text-right font-semibold">Unit rate</th>
               <th className="pb-2 text-right font-semibold">Standing charge</th>
@@ -1104,7 +1104,7 @@ function BenchmarkCard({
       </div>
 
       {cap && (
-        <p className="mt-3 text-[11px] leading-relaxed text-neutral-400">
+        <p className="mt-3 text-[11px] leading-relaxed text-neutral-600">
           GB average {pence(cap.period.averageUnitRateP, 2)}/kWh and{' '}
           {pence(cap.period.averageStandingChargeP, 2)}/day standing charge,{' '}
           {cap.period.changePct >= 0 ? 'up ' : 'down '}

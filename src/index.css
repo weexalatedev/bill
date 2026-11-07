@@ -116,3 +116,137 @@ table,
 .recharts-surface:focus {
   outline: none;
 }
+
+/* ------------------------------------------------------------------ *
+ * Techno layer — Apple-like depth in one colour.
+ *
+ * Every gradient here is built from the ink and neutral ramps, so the
+ * interface keeps its single-hue discipline (and `npm run verify:theme`
+ * still rejects real colour) while gaining the depth Apple gets from
+ * light: soft auras, a hairline grid, gradient type and glass chrome.
+ * ------------------------------------------------------------------ */
+
+:root {
+  --eos-grid: rgba(10, 10, 10, 0.045);
+  --eos-aura-a: rgba(255, 255, 255, 0.22);
+  --eos-aura-b: rgba(255, 255, 255, 0.06);
+}
+
+/* A dark panel with a light source in the top-left, like a product shot. */
+.eos-ink-panel {
+  position: relative;
+  isolation: isolate;
+  background:
+    radial-gradient(120% 140% at 0% 0%, #2b2b2b 0%, rgba(43, 43, 43, 0) 55%),
+    radial-gradient(90% 120% at 100% 100%, #3d3d3d 0%, rgba(61, 61, 61, 0) 60%),
+    linear-gradient(155deg, #0a0a0a 0%, #171717 52%, #262626 100%);
+}
+
+.eos-ink-panel::after {
+  /* A hairline sheen along the top edge — the “glass” tell. */
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+/* Spotlight aura for marketing sections: two soft white sources on paper. */
+.eos-aura {
+  position: relative;
+  isolation: isolate;
+}
+
+.eos-aura::before {
+  content: '';
+  position: absolute;
+  inset: -20% -10% auto -10%;
+  height: 120%;
+  z-index: -1;
+  background:
+    radial-gradient(45% 45% at 18% 10%, rgba(10, 10, 10, 0.10) 0%, transparent 70%),
+    radial-gradient(40% 40% at 82% 0%, rgba(10, 10, 10, 0.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* Hairline grid, faded at the edges — structure without noise. */
+.eos-grid {
+  background-image:
+    linear-gradient(to right, var(--eos-grid) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--eos-grid) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(80% 70% at 50% 30%, #000 40%, transparent 100%);
+  -webkit-mask-image: radial-gradient(80% 70% at 50% 30%, #000 40%, transparent 100%);
+}
+
+/* Type that picks up the light: white → grey on ink, black → grey on paper. */
+.eos-text-gradient-light {
+  background: linear-gradient(180deg, #ffffff 0%, #ffffff 45%, #a3a3a3 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.eos-text-gradient-ink {
+  background: linear-gradient(180deg, #0a0a0a 0%, #171717 62%, #525252 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Frosted chrome for the sticky headers. */
+.eos-glass {
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: saturate(140%) blur(14px);
+  -webkit-backdrop-filter: saturate(140%) blur(14px);
+}
+
+/* Gradient hairline under a header or between sections. */
+.eos-rule {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(10, 10, 10, 0.16), transparent);
+}
+
+/* A button that looks lit from above, not flat. */
+.eos-cta {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(180deg, #262626 0%, #0a0a0a 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 10px 30px -18px rgba(0, 0, 0, 0.75);
+  transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
+}
+
+.eos-cta:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.26),
+    0 16px 40px -20px rgba(0, 0, 0, 0.8);
+}
+
+.eos-cta-light {
+  background: linear-gradient(180deg, #ffffff 0%, #ededed 100%);
+  color: #0a0a0a;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 10px 30px -18px rgba(0, 0, 0, 0.45);
+}
+
+/* Slow drift for the hero aura, disabled for reduced-motion users. */
+@keyframes eos-drift {
+  0% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(0, -12px, 0) scale(1.03); }
+  100% { transform: translate3d(0, 0, 0) scale(1); }
+}
+
+.eos-drift {
+  animation: eos-drift 14s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .eos-drift { animation: none; }
+  .eos-cta { transition: none; }
+}

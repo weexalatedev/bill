@@ -86,7 +86,7 @@ export default function HardwareTab({ token, homeId, hardware, onSaved }: Props)
     <div className="space-y-5">
       <div>
         <SectionHeading title="Hardware" />
-        <p className="mt-1 text-sm text-neutral-500">
+        <p className="mt-1 text-sm text-neutral-600">
           The site location is what the weather lookup and the Ofgem cap region use. Battery totals
           are computed by the connector service.
         </p>
@@ -185,11 +185,11 @@ export default function HardwareTab({ token, homeId, hardware, onSaved }: Props)
             </Field>
           </div>
           <div className="rounded-lg bg-neutral-50 px-4 py-3">
-            <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+            <p className="text-xs font-semibold uppercase tracking-wide text-neutral-600">
               Total capacity (from the connector)
             </p>
             <p className="mt-1 text-2xl font-semibold text-neutral-900">{batteryTotal} kWh</p>
-            <p className="mt-1 text-xs text-neutral-500">
+            <p className="mt-1 text-xs text-neutral-600">
               Reading pack size from the Solis inverter is not supported yet, so these details are
               what the app uses.
             </p>
