@@ -68,6 +68,11 @@ or `font-mono` creeps back in.
 
 | **Plans & Billing** | §6 Pricing | Starter **£49** / Growth **£149** / Autonomous **£249** per site/month, an interactive **performance-fee calculator** (15% of verified savings), flexibility revenue share, annual value summary and the plan’s worked business case. |
 
+> **Going to market?** [`PRODUCTION_READINESS.md`](PRODUCTION_READINESS.md) is the
+> production checklist plus the commercial pack: live vendor pricing (checked
+> 7 Nov 2026), a minimum-viable budget, a financial model by scale, adoption
+> research, competitor analysis, a hardware option, marketing and viability.
+
 ## The SaaS funnel (in this order)
 
 ```
