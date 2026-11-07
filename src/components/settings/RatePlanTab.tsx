@@ -165,7 +165,7 @@ export default function RatePlanTab({ token, homeId, plan, octopusConnectionId, 
 
         <div>
           <div className="flex items-center justify-between">
-            <p className="text-xs font-semibold uppercase tracking-wide text-neutral-600">
+            <p className="text-xs font-semibold tracking-wide text-neutral-600">
               Import periods
             </p>
             <span className="text-xs text-neutral-600">

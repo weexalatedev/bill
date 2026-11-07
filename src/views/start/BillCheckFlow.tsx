@@ -174,7 +174,7 @@ export default function BillCheckFlow() {
         <AuditResult
           audit={audit}
           footer={
-            <Card tone="ink" className="eos-aura overflow-hidden">
+            <Card tone="ink" className="overflow-hidden">
               <p className="flex items-center gap-2 text-sm font-semibold">
                 <PiggyBank className="h-4 w-4 text-neutral-300" />
                 {canSave(audit)
@@ -268,7 +268,7 @@ function summarise(view: AuditView, supplier?: string): AuditSummary {
     actualTotalGbp: view.benchmark?.actualTotalGbp ?? null,
     benchmarkTotalGbp: view.benchmark?.expectedTotalGbp ?? null,
     savingGbp: view.benchmark?.savingGbp ?? null,
-    benchmarkLabel: view.benchmark?.label ?? 'UK median (Ofgem price cap)',
+    benchmarkLabel: view.benchmark?.label ?? 'Domestic reference (Ofgem cap)',
     score: view.score,
     supplier,
   };
@@ -326,9 +326,9 @@ function IntroStep({ onUpload, onManual }: { onUpload: () => void; onManual: () 
         <div>
           <p className="text-sm font-semibold text-neutral-800">What we check</p>
           <p className="mt-1 text-xs leading-relaxed text-neutral-600">
-            Your unit rate and standing charge against the published Ofgem price cap for your
-            region, the bill&apos;s own arithmetic, and the VAT treatment — then we tell you what the
-            same usage would cost at the UK median rate.
+            Your charged unit rate and standing charge against your contract, the bill&apos;s own
+            arithmetic and the VAT treatment — with the published domestic reference shown as a
+            labelled benchmark, never as a rule your contract must meet.
           </p>
         </div>
       </Card>
@@ -346,7 +346,8 @@ function ReadingStep() {
       <div>
         <p className="text-sm font-semibold text-neutral-800">Running the audit</p>
         <p className="mt-1 text-xs text-neutral-600">
-          Reading the bill, benchmarking it against the Ofgem cap, and totalling what you could save.
+          Reading the bill, benchmarking it against your contract and the domestic reference, and
+          totalling what you could save.
         </p>
       </div>
       <p className="flex items-center gap-1.5 text-[11px] text-neutral-600">
@@ -362,7 +363,7 @@ function AccountStep({ audit, onBack }: { audit: AuditView; onBack: () => void }
   const canSaveMoney = saving !== null && saving > 0.5;
   return (
     <div className="space-y-4">
-      <Card tone="ink" className="eos-aura overflow-hidden">
+      <Card tone="ink" className="overflow-hidden">
         <span className="grid h-12 w-12 place-items-center rounded-xl bg-white/10 text-white">
           <PiggyBank className="h-6 w-6" />
         </span>

@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, type ReactNode } from 'react';
-import { ArrowDownRight, ArrowUpRight, X } from 'lucide-react';
+import { AlertCircle, ArrowDownRight, ArrowUpRight, X } from 'lucide-react';
 import { cx } from '../lib/cx';
 
 /**
@@ -17,27 +17,49 @@ import { cx } from '../lib/cx';
  * Severity, status and sentiment all map onto this one ramp, which is why the
  * old colour names are gone: `solid` means "this matters", not "this is green".
  */
-export type Tone = 'solid' | 'outline' | 'muted' | 'ghost';
+export type Tone =
+  | 'solid'
+  | 'outline'
+  | 'muted'
+  | 'ghost'
+  /* meaning — never decoration */
+  | 'verified'
+  | 'estimated'
+  | 'issue'
+  /** the copper accent: the one action or figure that matters on a screen */
+  | 'accent';
 
 const badgeTones: Record<Tone, string> = {
   solid: 'border-transparent bg-ink-900 text-white',
-  outline: 'border-ink-900/25 bg-white text-ink-900',
-  muted: 'border-transparent bg-neutral-100 text-neutral-700',
-  ghost: 'border-neutral-200 bg-transparent text-neutral-600',
+  outline: 'border-hairline bg-raised text-text-1',
+  muted: 'border-transparent bg-surface text-text-2',
+  ghost: 'border-hairline bg-transparent text-text-2',
+  verified: 'border-transparent bg-verified-tint text-verified',
+  estimated: 'border-transparent bg-estimated-tint text-estimated',
+  issue: 'border-transparent bg-issue-tint text-issue',
+  accent: 'border-transparent bg-accent-tint text-accent-ink',
 };
 
 const iconTones: Record<Tone, string> = {
   solid: 'bg-ink-900 text-white',
-  outline: 'bg-white text-ink-900 ring-1 ring-inset ring-ink-900/15',
-  muted: 'bg-neutral-100 text-neutral-700',
-  ghost: 'bg-neutral-50 text-neutral-600',
+  outline: 'bg-raised text-text-1 ring-1 ring-inset ring-ink-900/10',
+  muted: 'bg-surface text-text-2',
+  ghost: 'bg-surface text-text-3',
+  verified: 'bg-verified-tint text-verified',
+  estimated: 'bg-estimated-tint text-estimated',
+  issue: 'bg-issue-tint text-issue',
+  accent: 'bg-accent-tint text-accent-ink',
 };
 
 const barTones: Record<Tone, string> = {
-  solid: 'bg-ink-900',
-  outline: 'bg-neutral-700',
+  solid: 'bg-accent',
+  outline: 'bg-ink-700',
   muted: 'bg-neutral-400',
   ghost: 'bg-neutral-300',
+  verified: 'bg-verified',
+  estimated: 'bg-estimated',
+  issue: 'bg-issue',
+  accent: 'bg-accent',
 };
 
 export function Badge({
@@ -86,15 +108,14 @@ export function Card({
 }) {
   const surface =
     tone === 'ink'
-      ? 'eos-ink-panel border-ink-800 text-white'
+      ? 'eos-moment border-transparent text-white'
       : tone === 'glass'
-        ? 'eos-glass border-neutral-200'
-        : 'border-neutral-200 bg-white';
+        ? 'eos-glass border-hairline'
+        : 'eos-card';
   const callerSetsBackground = typeof className === 'string' && /(^|\s)bg-/.test(className);
   return (
     <div
       className={cx(
-        'rounded-xl border',
         callerSetsBackground ? '' : surface,
         padded && 'p-5',
         className,
@@ -117,8 +138,8 @@ export function SectionHeading({
   return (
     <div className="mb-4 flex items-start justify-between gap-3">
       <div>
-        <h2 className="text-[15px] font-semibold tracking-tight text-ink-900">{title}</h2>
-        {subtitle && <p className="mt-1 text-sm text-neutral-600">{subtitle}</p>}
+        <h2 className="text-[15px] font-semibold text-text-1">{title}</h2>
+        {subtitle && <p className="mt-1 text-sm text-text-2">{subtitle}</p>}
       </div>
       {action}
     </div>
@@ -150,10 +171,8 @@ export function StatCard({
   return (
     <Card className="flex items-start justify-between gap-4">
       <div className="min-w-0">
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-600">
-          {label}
-        </p>
-        <p className="mt-2 truncate text-2xl font-semibold tracking-tight text-ink-900 tabular-nums">
+        <p className="text-[12px] font-medium text-text-3">{label}</p>
+        <p className="mt-1.5 truncate font-mono text-[26px] font-semibold leading-tight text-text-1 tabular-nums">
           {value}
         </p>
         <div className="mt-1.5 flex items-center gap-2">
@@ -161,7 +180,7 @@ export function StatCard({
             <span
               className={cx(
                 'inline-flex items-center gap-0.5 text-xs font-semibold tabular-nums',
-                isGood ? 'text-ink-900' : 'text-neutral-600',
+                isGood ? 'text-verified' : 'text-issue',
               )}
             >
               {trend.value >= 0 ? (
@@ -172,7 +191,7 @@ export function StatCard({
               {Math.abs(trend.value).toFixed(1)}%
             </span>
           )}
-          {sub && <span className="truncate text-xs text-neutral-600">{sub}</span>}
+          {sub && <span className="truncate text-xs text-text-2">{sub}</span>}
         </div>
       </div>
       {icon && (
@@ -194,9 +213,9 @@ export function ProgressBar({
   className?: string;
 }) {
   return (
-    <div className={cx('h-1.5 w-full overflow-hidden rounded-full bg-neutral-100', className)}>
+    <div className={cx('h-1.5 w-full overflow-hidden rounded-full bg-hairline/60', className)}>
       <div
-        className={cx('h-full rounded-full transition-all duration-500', barTones[tone])}
+        className={cx('h-full rounded-full transition-[width] duration-500 ease-[var(--ease-eos)]', barTones[tone])}
         style={{ width: `${Math.max(0, Math.min(100, value))}%` }}
       />
     </div>
@@ -265,7 +284,7 @@ export function Modal({
       >
         <div className="flex items-start justify-between gap-4 border-b border-neutral-200 px-6 py-5">
           <div>
-            <h2 className="text-[15px] font-semibold tracking-tight text-ink-900">{title}</h2>
+            <h2 className="text-[15px] font-semibold text-text-1">{title}</h2>
             {description && <p className="mt-1 text-sm text-neutral-600">{description}</p>}
           </div>
           <button
@@ -304,7 +323,7 @@ export function Field({
 }) {
   return (
     <label className="block">
-      <span className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-neutral-600">
+      <span className="mb-1.5 block text-[11px] font-semibold tracking-wide text-neutral-600">
         {label}
       </span>
       {children}
@@ -322,3 +341,42 @@ export const controlClass =
   'w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-ink-900 ' +
   'transition-colors placeholder:text-neutral-600 focus:border-ink-900 focus:outline-none ' +
   'focus:ring-2 focus:ring-ink-900/10';
+
+/** A loading placeholder. Use one per data block, never a spinner over text. */
+export function Skeleton({ className }: { className?: string }) {
+  return <div className={cx('eos-skeleton', className ?? 'h-4 w-full')} aria-hidden />;
+}
+
+/**
+ * The error state. Every data widget needs one: what failed, and the one action
+ * that retries it.
+ */
+export function ErrorState({
+  title = 'That did not load',
+  detail,
+  onRetry,
+  retryLabel = 'Try again',
+}: {
+  title?: string;
+  detail?: string;
+  onRetry?: () => void;
+  retryLabel?: string;
+}) {
+  return (
+    <div className="rounded-[var(--radius-card)] border border-issue/30 bg-issue-tint px-4 py-3">
+      <p className="flex items-center gap-2 text-sm font-semibold text-issue">
+        <AlertCircle className="h-4 w-4" /> {title}
+      </p>
+      {detail && <p className="mt-1 text-xs text-text-2">{detail}</p>}
+      {onRetry && (
+        <button
+          type="button"
+          onClick={onRetry}
+          className="mt-2 inline-flex items-center gap-1.5 rounded-[var(--radius-control)] border border-hairline bg-raised px-2.5 py-1.5 text-xs font-semibold text-text-1 hover:bg-surface"
+        >
+          {retryLabel}
+        </button>
+      )}
+    </div>
+  );
+}

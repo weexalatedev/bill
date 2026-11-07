@@ -124,7 +124,7 @@ publicRouter.post('/bill-check', (req, res) => {
     // The "what should this have cost?" number the acquisition flow quotes.
     benchmark: analysis.benchmark,
     note:
-      'This is a deterministic check against Ofgem reference rates and your own figures. It is not a final determination — a business contract may legitimately differ. Create an account to save it against a site.',
+      'This is a deterministic check against a published domestic reference rate and your own figures. It is not a final determination — a business contract may legitimately differ. See /methodology. Create an account to save it against a site.',
   });
 });
 

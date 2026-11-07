@@ -14,7 +14,7 @@ import {
 import { useAuth } from '../../lib/auth';
 import { useApp } from '../../store';
 import { ConnectorApi, type Device } from '../../lib/connector';
-import { Badge, Card, SectionHeading } from '../ui';
+import { Badge, Card, EmptyState, SectionHeading, Skeleton } from '../ui';
 
 /** Providers the connector service speaks today. */
 const PROVIDER_COPY: Record<string, { label: string; icon: typeof PlugZap }> = {
@@ -73,7 +73,7 @@ export default function DevicesPanel() {
 
   return (
     <div className="space-y-4">
-      <Card className="bg-gradient-to-b from-neutral-50 to-white">
+      <Card className="bg-surface">
         <SectionHeading
           title="Devices & connections"
           subtitle="What is wired up today. A device turns a bill-only site into a measured one."
@@ -105,6 +105,24 @@ export default function DevicesPanel() {
           </p>
         )}
       </Card>
+
+      {loading && (
+        <div className="grid gap-4 lg:grid-cols-2" aria-busy="true">
+          {sites.slice(0, 4).map((site) => (
+            <Card key={site.id}>
+              <Skeleton className="h-4 w-1/2" />
+              <Skeleton className="mt-2 h-3 w-3/4" />
+              <Skeleton className="mt-4 h-9 w-full" />
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {!loading && sites.length === 0 && (
+        <Card>
+          <EmptyState title="No sites yet" hint="Add a site and connect a provider to see live devices here." />
+        </Card>
+      )}
 
       <div className="grid gap-4 lg:grid-cols-2">
         {sites.map((site) => {
@@ -157,7 +175,7 @@ export default function DevicesPanel() {
 
               {site.loads.length > 0 && (
                 <div className="mt-3 flex flex-wrap items-center gap-1.5">
-                  <span className="text-[11px] uppercase tracking-wider text-neutral-600">Loads</span>
+                  <span className="text-[11px] tracking-wide text-neutral-600">Loads</span>
                   {site.loads.slice(0, 6).map((load) => (
                     <Badge key={load} tone="muted">
                       {load}

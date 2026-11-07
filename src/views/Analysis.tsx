@@ -472,7 +472,7 @@ return (
                       type="button"
                       onClick={downloadLetter}
                       disabled={letterBusy}
-                      className="inline-flex items-center gap-2 rounded-md bg-ink-900 px-3.5 py-2 text-sm font-medium text-white transition-colors hover:bg-neutral-800 disabled:opacity-60"
+                      className="inline-flex items-center gap-2 rounded-md bg-accent px-3.5 py-2 text-sm font-medium text-white transition-colors hover:bg-neutral-800 disabled:opacity-60"
                     >
                       {letterBusy ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
@@ -624,7 +624,7 @@ function NarrationCard({
             type="button"
             onClick={onNarrate}
             disabled={narrating}
-            className="inline-flex items-center gap-2 rounded-md bg-ink-900 px-3.5 py-2 text-sm font-medium text-white transition-colors hover:bg-neutral-800 disabled:opacity-60"
+            className="inline-flex items-center gap-2 rounded-md bg-accent px-3.5 py-2 text-sm font-medium text-white transition-colors hover:bg-neutral-800 disabled:opacity-60"
           >
             {narrating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Quote className="h-4 w-4" />}
             {narrating ? 'Asking Gemini…' : 'Explain this audit'}
@@ -1040,7 +1040,7 @@ function BenchmarkCard({
   return (
     <Card>
       <SectionHeading
-        title="Ofgem price cap benchmark"
+        title="Domestic reference benchmark"
         subtitle={cap?.period.source ?? 'Energy price cap unit rates and standing charges'}
         action={cap ? <Badge tone="muted">{cap.period.label}</Badge> : null}
       />
@@ -1070,7 +1070,7 @@ function BenchmarkCard({
       <div className="overflow-x-auto">
         <table className="w-full min-w-[26rem] text-left text-sm">
           <thead>
-            <tr className="border-b border-neutral-200 text-xs uppercase tracking-wide text-neutral-600">
+            <tr className="border-b border-neutral-200 text-xs tracking-wide text-neutral-600">
               <th className="pb-2 font-semibold">Region</th>
               <th className="pb-2 text-right font-semibold">Unit rate</th>
               <th className="pb-2 text-right font-semibold">Standing charge</th>

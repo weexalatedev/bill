@@ -21,6 +21,7 @@ import SavingsPanel from '../components/dashboard/SavingsPanel';
 import DevicesPanel from '../components/dashboard/DevicesPanel';
 import DataPanel from '../components/dashboard/DataPanel';
 import NextBestActions from '../components/dashboard/NextBestActions';
+import EvidenceMark from '../components/EvidenceMark';
 import { compactGbp, gbp, pct, share, signedGbp } from '../lib/format';
 
 function SpendTooltip({
@@ -54,6 +55,12 @@ export default function Dashboard() {
   const [tab, setTab] = useState<DashboardTab>('overview');
   const awaiting = actions.filter((action) => action.status === 'Recommended').length;
   const dataGaps = sites.filter((site) => site.dataQuality?.consumption !== 'hh').length;
+  // Latest period actually invoiced — never a hardcoded month. Invoice periods
+  // arrive as labels ("Mar 2026"), so parse them; unparseable labels fall back
+  // to their position rather than inventing a date.
+  const periodTime = (label: string): number => Date.parse(`1 ${label}`) || 0;
+  const latestPeriod =
+    [...invoices].sort((a, b) => periodTime(b.period) - periodTime(a.period))[0]?.period ?? null;
 
   const mixTotal = assetMix.reduce((total, slice) => total + slice.spend, 0);
   const topSites = [...sites].sort((a, b) => b.monthActual - a.monthActual).slice(0, 6);
@@ -95,12 +102,14 @@ export default function Dashboard() {
       <SubscriptionSummary />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-neutral-600">
-          {account.name} · {account.sites} sites · billing period Mar 2026
+          {account.name} · {account.sites} site{account.sites === 1 ? '' : 's'}
+          {latestPeriod ? ` · latest bill ${latestPeriod}` : ' · no bills yet'}
         </p>
-        <Badge tone="solid">
-          <ShieldCheck className="h-3.5 w-3.5" />
-          Savings measured, not estimated
-        </Badge>
+        <p className="flex items-center gap-4 text-xs text-text-2">
+          <EvidenceMark state="verified" label />
+          <EvidenceMark state="estimated" label />
+          <EvidenceMark state="issue" label />
+        </p>
       </div>
 
       {(sites.length === 0 || invoices.length === 0) && (
@@ -149,7 +158,7 @@ export default function Dashboard() {
                 <span className="h-2.5 w-2.5 rounded-full bg-neutral-300" /> Expected
               </span>
               <span className="flex items-center gap-1.5 text-neutral-600">
-                <span className="h-2.5 w-2.5 rounded-full bg-neutral-900" /> Actual
+                <span className="h-2.5 w-2.5 rounded-full bg-accent" /> Actual
               </span>
             </div>
           }
@@ -159,8 +168,8 @@ export default function Dashboard() {
             <AreaChart data={monthly} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
               <defs>
                 <linearGradient id="actualFill" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#0a0a0a" stopOpacity={0.35} />
-                  <stop offset="95%" stopColor="#0a0a0a" stopOpacity={0} />
+                  <stop offset="5%" stopColor="#b4501f" stopOpacity={0.28} />
+                  <stop offset="95%" stopColor="#b4501f" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e5e5" vertical={false} />
@@ -192,7 +201,7 @@ export default function Dashboard() {
                 type="monotone"
                 dataKey="actual"
                 name="Actual"
-                stroke="#0a0a0a"
+                stroke="#b4501f"
                 strokeWidth={2.5}
                 fill="url(#actualFill)"
               />

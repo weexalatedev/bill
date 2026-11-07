@@ -53,7 +53,7 @@ export default function PlansGrid({
               className={cx(
                 'flex flex-col rounded-xl border bg-white p-6 transition-shadow',
                 recommended
-                  ? 'border-ink-900/80 bg-gradient-to-b from-white to-neutral-50 shadow-[0_1px_0_rgba(255,255,255,0.9)_inset,0_24px_60px_-32px_rgba(0,0,0,0.45)]'
+                  ? 'border-ink-900/80 bg-raised shadow-[0_1px_0_rgba(255,255,255,0.9)_inset,0_24px_60px_-32px_rgba(0,0,0,0.45)]'
                   : 'border-neutral-200',
               )}
             >
@@ -63,7 +63,7 @@ export default function PlansGrid({
                   <p className="mt-1 text-xs leading-relaxed text-neutral-600">{plan.tagline}</p>
                 </div>
                 {recommended && (
-                  <span className="rounded-md bg-ink-900 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white">
+                  <span className="rounded-md bg-accent px-2 py-1 text-[10px] font-semibold tracking-wide text-white">
                     Recommended
                   </span>
                 )}
@@ -117,7 +117,7 @@ export default function PlansGrid({
                   className={cx(
                     'mt-6 inline-flex items-center justify-center rounded-md px-4 py-2.5 text-sm font-semibold transition-colors',
                     recommended
-                      ? 'bg-ink-900 text-white hover:bg-ink-800'
+                      ? 'bg-ink-900 text-white hover:bg-[#9c4419]'
                       : 'border border-neutral-300 text-ink-900 hover:bg-neutral-50',
                   )}
                 >

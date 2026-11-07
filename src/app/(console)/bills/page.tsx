@@ -1,2 +1,4 @@
-import Bills from '@/views/Bills';
-export default Bills;
+import MoneyTabs from '@/components/MoneyTabs';
+export default function BillsPage() {
+  return <MoneyTabs initialTab="invoices" />;
+}

@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { ArrowRight, Database, FileSpreadsheet, Receipt, Sparkles } from 'lucide-react';
 import { useApp } from '../../store';
-import { Badge, Card, ProgressBar, SectionHeading } from '../ui';
+import { Badge, Card, EmptyState, ProgressBar, SectionHeading } from '../ui';
 
 const SOURCE_COPY = {
   hh: { label: 'Half-hourly', tone: 'solid' as const, hint: 'Measured load shape — the full optimisation layer' },
@@ -37,7 +37,7 @@ export default function DataPanel() {
           { label: 'Invoices audited', value: String(invoices.length), hint: `${actions.length} opportunities derived`, icon: Receipt },
         ].map(({ label, value, hint, icon: Icon }) => (
           <Card key={label}>
-            <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-neutral-600">
+            <p className="flex items-center gap-2 text-[11px] font-semibold tracking-wide text-neutral-600">
               <Icon className="h-3.5 w-3.5" /> {label}
             </p>
             <p className="mt-1 text-2xl font-semibold tabular-nums text-ink-900">{value}</p>
@@ -52,10 +52,13 @@ export default function DataPanel() {
           subtitle="A site is only as optimisable as the data behind it. Close the gaps top-down."
           action={<Badge tone="muted">{sites.length} sites</Badge>}
         />
+        {sites.length === 0 ? (
+          <EmptyState title="No sites to measure yet" hint="Add a site, then import a bill or half-hourly readings." />
+        ) : (
         <div className="overflow-x-auto">
           <table className="w-full min-w-[40rem] text-left text-sm">
             <thead>
-              <tr className="border-b border-neutral-200 text-[11px] uppercase tracking-wider text-neutral-600">
+              <tr className="border-b border-neutral-200 text-[11px] tracking-wide text-neutral-600">
                 <th className="py-2 pr-3 font-medium">Site</th>
                 <th className="py-2 pr-3 font-medium">Meter</th>
                 <th className="py-2 pr-3 font-medium">Source</th>
@@ -104,9 +107,10 @@ export default function DataPanel() {
             </tbody>
           </table>
         </div>
+        )}
       </Card>
 
-      <Card className="bg-gradient-to-b from-neutral-50 to-white">
+      <Card className="bg-surface">
         <p className="flex items-center gap-2 text-sm font-semibold text-ink-900">
           <FileSpreadsheet className="h-4 w-4" /> What each step unlocks
         </p>

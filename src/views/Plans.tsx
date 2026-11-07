@@ -205,7 +205,7 @@ export default function Plans() {
           </dl>
 
           <div className="mt-4 rounded-lg bg-ink-900 p-4 text-white">
-            <p className="text-xs font-semibold uppercase tracking-wide text-neutral-300">
+            <p className="text-xs font-semibold tracking-wide text-neutral-300">
               Customer outcome
             </p>
             <p className="mt-1 text-sm text-neutral-300">

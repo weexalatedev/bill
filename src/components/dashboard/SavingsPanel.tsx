@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { ArrowRight, Check, FileWarning, Loader2, ShieldCheck, Zap } from 'lucide-react';
 import { useApp } from '../../store';
 import { Badge, Card, EmptyState, ProgressBar, SectionHeading } from '../ui';
+import { Money } from '../EvidenceMark';
 import { gbp, pct } from '../../lib/format';
 import type { ActionStatus } from '../../types';
 
@@ -81,10 +82,24 @@ export default function SavingsPanel() {
                     <p className="mt-1 text-xs leading-relaxed text-neutral-700">{action.rationale}</p>
                   </div>
                   <div className="flex items-center gap-3 sm:flex-col sm:items-end">
-                    <p className="text-sm font-semibold tabular-nums text-ink-900">
-                      {gbp(action.monthlySaving)}
-                      <span className="text-[11px] font-normal text-neutral-600">/mo</span>
-                    </p>
+                    <Money
+                      value={
+                        <span className="text-sm font-semibold text-ink-900">
+                          {gbp(action.monthlySaving)}
+                          <span className="text-[11px] font-normal text-neutral-600">/mo</span>
+                        </span>
+                      }
+                      state="estimated"
+                      evidence={{
+                        inputs: [
+                          `${action.asset} schedule ${action.fromSchedule} → ${action.toSchedule}`,
+                          `${pct(action.confidence * 100, 0)} model confidence`,
+                          getSiteById(action.siteId)?.name ?? action.siteId,
+                        ],
+                        arithmetic: 'Modelled saving if the schedule change is applied for a month.',
+                        source: 'Deterministic rules on this site’s data — not yet executed.',
+                      }}
+                    />
                     <p className="text-[11px] text-neutral-600">{pct(action.confidence * 100, 0)} confidence</p>
                     {action.status !== 'Automated' && (
                       <button
@@ -133,13 +148,26 @@ export default function SavingsPanel() {
                       {invoice.issues.map((issue) => issue.type).join(' · ')}
                     </p>
                   </div>
-                  <p className="text-sm font-semibold tabular-nums text-ink-900">
-                    {gbp(Math.abs(invoice.issues.reduce((sum, issue) => sum + issue.impact, 0)))}
-                  </p>
+                  <Money
+                    value={
+                      <span className="text-sm font-semibold text-ink-900">
+                        {gbp(Math.abs(invoice.issues.reduce((sum, issue) => sum + issue.impact, 0)))}
+                      </span>
+                    }
+                    state="issue"
+                    evidence={{
+                      inputs: [
+                        `${invoice.id} · ${invoice.supplier}`,
+                        invoice.issues.map((issue) => issue.type).join(' · '),
+                      ],
+                      arithmetic: 'Sum of the impacts the auditor attributed to this invoice.',
+                      source: 'The invoice lines you uploaded, checked against your contract and reference rates.',
+                    }}
+                  />
                   <button
                     type="button"
                     onClick={() => void recoverInvoice(invoice.id)}
-                    className="inline-flex items-center gap-1 rounded-md bg-ink-900 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-ink-800"
+                    className="inline-flex items-center gap-1 rounded-md bg-accent px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-[#9c4419]"
                   >
                     Challenge
                   </button>
@@ -168,7 +196,7 @@ export default function SavingsPanel() {
                 onClick={() => void setControlMode(mode)}
                 className={
                   controlMode === mode
-                    ? 'w-full rounded-lg border border-ink-900 bg-ink-900 px-3 py-2 text-left text-white'
+                    ? 'w-full rounded-lg border border-ink-900 bg-accent px-3 py-2 text-left text-white'
                     : 'w-full rounded-lg border border-neutral-200 px-3 py-2 text-left hover:border-neutral-300 hover:bg-neutral-50'
                 }
               >
@@ -190,8 +218,8 @@ export default function SavingsPanel() {
           </p>
         </Card>
 
-        <Card className="bg-gradient-to-b from-neutral-50 to-white">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-600">Pipeline</p>
+        <Card className="bg-surface">
+          <p className="text-[11px] font-semibold tracking-wide text-neutral-600">Pipeline</p>
           <div className="mt-2 space-y-3 text-sm">
             {[
               ['Awaiting approval', awaiting, 'outline' as const],

@@ -202,7 +202,7 @@ export default function Sites() {
             {atCap && (
               <Link
                 href="/onboarding/subscription"
-                className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-ink-900 px-3 py-2 text-xs font-semibold text-white hover:bg-ink-800"
+                className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-accent px-3 py-2 text-xs font-semibold text-white hover:bg-[#9c4419]"
               >
                 Upgrade plan
               </Link>
@@ -308,7 +308,7 @@ export default function Sites() {
 
                 <dl className="mt-4 grid grid-cols-3 gap-3 border-y border-neutral-100 py-3">
                   <div>
-                    <dt className="text-[11px] uppercase tracking-wide text-neutral-600">
+                    <dt className="text-[11px] tracking-wide text-neutral-600">
                       This month
                     </dt>
                     <dd className="mt-0.5 text-sm font-semibold text-neutral-900">
@@ -316,7 +316,7 @@ export default function Sites() {
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-[11px] uppercase tracking-wide text-neutral-600">Saved</dt>
+                    <dt className="text-[11px] tracking-wide text-neutral-600">Saved</dt>
                     <dd
                       className={
                         saving >= 0
@@ -328,7 +328,7 @@ export default function Sites() {
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-[11px] uppercase tracking-wide text-neutral-600">Annual</dt>
+                    <dt className="text-[11px] tracking-wide text-neutral-600">Annual</dt>
                     <dd className="mt-0.5 text-sm font-semibold text-neutral-900">
                       {gbp(site.annualSpend)}
                     </dd>

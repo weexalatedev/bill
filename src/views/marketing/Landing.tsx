@@ -37,20 +37,19 @@ export default function Landing() {
   return (
     <>
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
-      <section className="eos-aura relative overflow-hidden border-b border-neutral-200">
-        <div className="eos-grid pointer-events-none absolute inset-0 opacity-60" aria-hidden />
+      <section className="relative overflow-hidden border-b border-neutral-200">
         <div className="relative mx-auto grid max-w-content gap-10 px-4 py-16 sm:px-6 lg:px-8 md:grid-cols-2 md:items-center md:py-28">
           <div>
             <p className="inline-flex items-center gap-2 rounded-full border border-neutral-200 px-3 py-1 text-xs font-medium text-neutral-600">
               <Sparkles className="h-3.5 w-3.5" /> Built for UK SMEs
             </p>
-            <h1 className="eos-text-gradient-ink mt-5 text-4xl font-semibold leading-[1.02] tracking-tight sm:text-6xl">
+            <h1 className="text-text-1 mt-5 text-4xl font-semibold leading-[1.02] tracking-tight sm:text-6xl">
               Stop paying for energy
               <br />
               you never used.
             </h1>
             <p className="mt-5 max-w-lg text-base leading-relaxed text-neutral-600">
-              EnerOS reads your bills, audits every line against the Ofgem price cap, and
+              EnerOS reads your bills, checks every line against your contract and a published domestic reference, and
               watches your sites so waste shows up before it reaches your P&amp;L. Start with a
               free bill check — no account needed.
             </p>
@@ -79,10 +78,10 @@ export default function Landing() {
       </section>
 
       {/* ── Value strip ──────────────────────────────────────────────────── */}
-      <section className="border-b border-neutral-200 bg-gradient-to-b from-neutral-50 via-white to-neutral-50">
+      <section className="border-b border-neutral-200 bg-surface">
         <div className="mx-auto grid max-w-content gap-6 px-4 py-10 sm:px-6 lg:px-8 md:grid-cols-3">
           {[
-            ['Every bill, checked', 'Unit rate, standing charge, arithmetic and VAT — against the published cap for your region.'],
+            ['Every bill, checked', 'Unit rate, standing charge, arithmetic and VAT — against the domestic reference for your region.'],
             ['Every £ labelled', 'A saving is either estimated or verified against a baseline. Never an unsupported claim.'],
             ['Every site in one place', 'Sites, meters, invoices and findings, per site, priced per site.'],
           ].map(([title, body]) => (
@@ -109,12 +108,12 @@ function HeroVisual() {
   return (
     <div className="relative">
       <div className="relative overflow-hidden rounded-2xl border border-neutral-200/80 bg-white/90 p-5 shadow-[0_1px_0_rgba(255,255,255,0.9)_inset,0_40px_80px_-40px_rgba(0,0,0,0.55)] backdrop-blur">
-        <div className="eos-rule absolute inset-x-0 top-0" aria-hidden />
+        <div className="border-t border-hairline absolute inset-x-0 top-0" aria-hidden />
         <div className="flex items-center justify-between">
-          <p className="text-xs font-semibold uppercase tracking-wide text-neutral-600">
+          <p className="text-xs font-semibold tracking-wide text-neutral-600">
             Bill audit · illustrative
           </p>
-          <span className="rounded-md bg-ink-900 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white">
+          <span className="rounded-md bg-accent px-2 py-1 text-[10px] font-semibold tracking-wide text-white">
             Flagged
           </span>
         </div>
@@ -149,11 +148,11 @@ function HeroVisual() {
 
         <div className="mt-4 flex items-center justify-between rounded-md bg-neutral-50 px-3 py-3">
           <div>
-            <p className="text-[11px] uppercase tracking-wide text-neutral-600">Recoverable</p>
+            <p className="text-[11px] tracking-wide text-neutral-600">Recoverable</p>
             <p className="text-lg font-semibold tabular-nums text-ink-900">{gbp(412)}</p>
           </div>
           <div className="text-right">
-            <p className="text-[11px] uppercase tracking-wide text-neutral-600">Confidence</p>
+            <p className="text-[11px] tracking-wide text-neutral-600">Confidence</p>
             <p className="text-sm font-semibold text-ink-900">Deterministic</p>
           </div>
         </div>
@@ -172,7 +171,7 @@ export const FEATURES = [
   {
     icon: FileSearch,
     title: 'Bill auditing that finds the errors',
-    body: 'Ten deterministic checks per invoice: unit rate vs the Ofgem cap for your region, standing charge, arithmetic, VAT treatment and meter read continuity. Evidence for every finding.',
+    body: 'Ten deterministic checks per invoice: charged rate vs your contracted rate and the published domestic reference for your region, standing-charge days, arithmetic, VAT treatment and meter-read continuity. Evidence for every finding.',
   },
   {
     icon: Gauge,
@@ -215,7 +214,7 @@ function Features() {
   return (
     <section id="features" className="border-b border-neutral-200">
       <div className="mx-auto max-w-content px-4 py-16 sm:px-6 lg:px-8">
-        <p className="text-xs font-semibold uppercase tracking-wide text-neutral-600">Features</p>
+        <p className="text-xs font-semibold tracking-wide text-neutral-600">Features</p>
         <h2 className="mt-2 text-3xl font-semibold tracking-tight text-ink-900">
           Everything here is already running
         </h2>
@@ -228,7 +227,7 @@ function Features() {
           {FEATURES.map(({ icon: Icon, title, body }) => (
             <div
               key={title}
-              className="group rounded-xl border border-neutral-200 bg-gradient-to-b from-white to-neutral-50/60 p-5 transition-[transform,box-shadow,border-color] duration-200 hover:-translate-y-0.5 hover:border-neutral-300 hover:shadow-[0_18px_40px_-28px_rgba(0,0,0,0.45)]"
+              className="group rounded-xl border border-neutral-200 bg-raised p-5 transition-[transform,box-shadow,border-color] duration-200 hover:-translate-y-0.5 hover:border-neutral-300 hover:shadow-[0_18px_40px_-28px_rgba(0,0,0,0.45)]"
             >
               <span className="grid h-9 w-9 place-items-center rounded-md border border-neutral-200 bg-white text-ink-900 transition-colors group-hover:border-ink-900/20">
                 <Icon className="h-4 w-4" />
@@ -272,9 +271,9 @@ const STEPS = [
 
 function HowItWorks() {
   return (
-    <section id="how-it-works" className="eos-aura relative overflow-hidden border-b border-neutral-200 bg-neutral-50/70">
+    <section id="how-it-works" className="relative overflow-hidden border-b border-neutral-200 bg-neutral-50/70">
       <div className="mx-auto max-w-content px-4 py-16 sm:px-6 lg:px-8">
-        <p className="text-xs font-semibold uppercase tracking-wide text-neutral-600">How it works</p>
+        <p className="text-xs font-semibold tracking-wide text-neutral-600">How it works</p>
         <h2 className="mt-2 text-3xl font-semibold tracking-tight text-ink-900">
           Prove the saving first, subscribe second
         </h2>
@@ -309,7 +308,7 @@ function Pricing({ catalogue, error }: { catalogue: PlansResponse | null; error:
   return (
     <section id="pricing" className="border-b border-neutral-200">
       <div className="mx-auto max-w-content px-4 py-16 sm:px-6 lg:px-8">
-        <p className="text-xs font-semibold uppercase tracking-wide text-neutral-600">Pricing</p>
+        <p className="text-xs font-semibold tracking-wide text-neutral-600">Pricing</p>
         <h2 className="mt-2 text-3xl font-semibold tracking-tight text-ink-900">
           Priced per site, per month
         </h2>
@@ -356,9 +355,9 @@ function FinalCta() {
   return (
     <section className="mx-auto max-w-content px-4 py-16 sm:px-6 lg:px-8">
       <div className="eos-ink-panel relative overflow-hidden rounded-2xl px-6 py-12 text-white sm:px-12 sm:py-16">
-        <div className="eos-drift pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-white/10 blur-2xl" aria-hidden />
+        <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-white/10 blur-2xl" aria-hidden />
         <div className="max-w-2xl">
-          <h2 className="eos-text-gradient-light text-3xl font-semibold tracking-tight sm:text-4xl">
+          <h2 className="text-[#f5f5f4] text-3xl font-semibold tracking-tight sm:text-4xl">
             Start with the bill in your hand.
           </h2>
           <p className="mt-3 text-sm leading-relaxed text-neutral-300">

@@ -1,7 +1,7 @@
 'use client';
 /**
  * /bills — Invoices. Primary intake: upload a bill, the AI reads it (OCR if
- * needed), audits against the Ofgem cap, writes advice, files it per site.
+ * needed), audits against the contract and the domestic reference, writes advice and files it.
  */
 
 import { useMemo, useRef, useState } from 'react';
@@ -131,7 +131,7 @@ function UploadBillCard({ onSaved }: { onSaved: (invoice: Invoice) => void }) {
           {outcome.invoice ? (
             <div className="flex items-center justify-between gap-2 rounded-md bg-white px-3 py-2 ring-1 ring-neutral-100">
               <p className="text-xs text-neutral-600">Filed against <strong className="text-neutral-700">{siteName}</strong> as {outcome.invoice.id}</p>
-              <Link href="/analysis" className="inline-flex items-center gap-1 text-xs font-semibold text-neutral-700 transition-colors hover:text-neutral-800">Full benchmark <ArrowRight className="h-3 w-3" /></Link>
+              <Link href="/analysis" className="inline-flex items-center gap-1 text-xs font-semibold text-text-2 transition-colors hover:text-text-1">Full benchmark <ArrowRight className="h-3 w-3" /></Link>
             </div>
           ) : (
             <p className="text-xs text-neutral-600">Some figures were unreadable, so the bill was analysed but not filed — check the findings above, or enter the figures manually below.</p>
@@ -182,7 +182,7 @@ function ManualEntryCard({ onCreated }: { onCreated: (invoice: Invoice) => void 
           </div>
           <div>
             <label className={labelCls}>Billing period</label>
-            <input className={field} value={form.period} placeholder="Feb 2026" onChange={(e) => setForm({ ...form, period: e.target.value })} />
+            <input className={field} value={form.period} placeholder={new Date().toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })} onChange={(e) => setForm({ ...form, period: e.target.value })} />
           </div>
           <div className="grid grid-cols-3 gap-2">
             <div>
@@ -252,7 +252,7 @@ export default function Bills() {
           </div>
           <div className="overflow-x-auto mt-2">
             <table className="w-full border-collapse text-sm">
-              <thead><tr className="border-y border-neutral-100 bg-neutral-50/70 text-left text-xs uppercase tracking-wide text-neutral-600"><th className="px-4 py-2.5 font-semibold">Invoice</th><th className="px-4 py-2.5 font-semibold">Site</th><th className="px-4 py-2.5 font-semibold">Consumption</th><th className="px-4 py-2.5 font-semibold">Unit rate</th><th className="px-4 py-2.5 text-right font-semibold">Total</th><th className="px-4 py-2.5 font-semibold">Status</th></tr></thead>
+              <thead><tr className="border-y border-neutral-100 bg-neutral-50/70 text-left text-xs tracking-wide text-neutral-600"><th className="px-4 py-2.5 font-semibold">Invoice</th><th className="px-4 py-2.5 font-semibold">Site</th><th className="px-4 py-2.5 font-semibold">Consumption</th><th className="px-4 py-2.5 font-semibold">Unit rate</th><th className="px-4 py-2.5 text-right font-semibold">Total</th><th className="px-4 py-2.5 font-semibold">Status</th></tr></thead>
               <tbody>
                 {filtered.map((inv) => {
                   const site = getSiteById(inv.siteId);
@@ -277,7 +277,7 @@ export default function Bills() {
             <>
               <div className="flex items-start justify-between gap-3 px-4 pt-3 pb-1">
                 <div>
-                  <p className="text-xs uppercase tracking-wide text-neutral-600">Invoice detail</p>
+                  <p className="text-xs tracking-wide text-neutral-600">Invoice detail</p>
                   <p className="text-lg font-semibold text-neutral-900">{selected.id}</p>
                   <p className="text-xs text-neutral-600">{getSiteById(selected.siteId)?.name} · {selected.period}</p>
                 </div>

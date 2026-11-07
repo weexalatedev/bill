@@ -1,0 +1,62 @@
+/* EnerOS design tokens v2 — canonical. Mirrored into src/index.css.
+ * Direction: exact, calm, quietly alive. World: meters, switchgear, copper.
+ * Rule: chrome stays neutral; colour and gradient live in "moments"
+ * (savings hero, main chart, landing scene) and in meaning (verified/estimated/issue).
+ * All text pairs were contrast-checked >= 4.5:1 — scripts/theme-check.tsx recomputes them.
+ */
+@theme {
+  /* Type: one family + mono for figures. Geist arrives via next/font. */
+  --font-sans: var(--font-geist-sans), "Geist", ui-sans-serif, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: var(--font-geist-mono), "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Neutral ramp (graphite, slightly cool). Surfaces, borders, text. */
+  --color-ink-950: #0b0c0d;
+  --color-ink-900: #121314;
+  --color-ink-800: #1b1d1f;
+  --color-ink-700: #2a2d30;
+  --color-paper: #ffffff;
+  --color-surface: #f7f7f6;
+  --color-raised: #ffffff;
+  --color-hairline: rgb(18 19 20 / 0.08);
+  --color-text-1: #121314;
+  --color-text-2: #454545; /* 9.6:1 on white */
+  --color-text-3: #6b6b6b; /* 5.3:1 on white */
+
+  /* One accent: copper. Primary action, selection, the one number that matters. */
+  --color-accent: #b4501f; /* white text on it 5.1:1 */
+  --color-accent-ink: #a8481a; /* accent as text on white 5.8:1 */
+  --color-accent-tint: #fbefe7;
+
+  /* Meaning. Never decoration. */
+  --color-verified: #17663f; /* 7.0:1 on white */
+  --color-verified-tint: #e6f4ec;
+  --color-estimated: #8a5a00; /* 5.9:1 on white */
+  --color-estimated-tint: #fbf1dc;
+  --color-issue: #a3302a; /* 7.0:1 on white */
+  --color-issue-tint: #fbe9e7;
+
+  /* Moment surface (savings hero, landing scene). */
+  --color-moment: #0f1f1a;
+
+  /* Radii: controls 10, cards 16, panels 20. Inner = outer - padding. */
+  --radius-control: 0.625rem;
+  --radius-card: 1rem;
+  --radius-panel: 1.25rem;
+
+  /* Motion: one curve, three durations. */
+  --ease-eos: cubic-bezier(0.22, 1, 0.36, 1);
+  --duration-fast: 120ms;
+  --duration-base: 220ms;
+  --duration-enter: 420ms;
+}
+
+:root {
+  /* Gradients: allowed ONLY on moment surfaces and chart fills. */
+  --eos-moment-gradient:
+    radial-gradient(120% 140% at 0% 0%, #1d4a3a 0%, rgb(29 74 58 / 0) 55%),
+    radial-gradient(90% 120% at 100% 100%, rgb(180 80 31 / 0.38) 0%, rgb(180 80 31 / 0) 60%),
+    linear-gradient(160deg, #0f1f1a 0%, #0b1512 100%);
+  --eos-chart-fill: linear-gradient(180deg, rgb(180 80 31 / 0.28) 0%, rgb(180 80 31 / 0) 100%);
+  --eos-verified-fill: linear-gradient(180deg, rgb(23 102 63 / 0.22) 0%, rgb(23 102 63 / 0) 100%);
+  --eos-card-shadow: 0 1px 0 rgb(255 255 255 / 0.9) inset, 0 8px 24px -16px rgb(18 19 20 / 0.28);
+}

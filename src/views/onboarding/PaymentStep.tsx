@@ -122,7 +122,7 @@ export default function PaymentStep() {
         <Card>
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-neutral-600">
+              <p className="text-xs font-semibold tracking-wide text-neutral-600">
                 {showing ? showing.planName : subscription?.planName ?? 'Subscription'}
               </p>
               <p className="mt-1 text-3xl font-semibold tabular-nums text-ink-900">
@@ -180,7 +180,7 @@ export default function PaymentStep() {
           type="button"
           onClick={pay}
           disabled={busy || !paymentId}
-          className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-ink-900 px-4 py-3 text-sm font-semibold text-white hover:bg-ink-800 disabled:opacity-60"
+          className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-3 text-sm font-semibold text-white hover:bg-[#9c4419] disabled:opacity-60"
         >
           {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Lock className="h-4 w-4" />}
           {showing ? `Pay ${gbp2(showing.amountGbp)}` : 'Pay now'}

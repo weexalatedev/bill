@@ -180,7 +180,7 @@ export default function Live() {
       <Card className="flex flex-wrap items-end justify-between gap-4">
         <div className="flex flex-wrap items-end gap-4">
           <label className="block">
-            <span className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-neutral-600">
+            <span className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold tracking-wide text-neutral-600">
               <MapPin className="h-3.5 w-3.5" /> Distribution region
             </span>
             <select
@@ -411,7 +411,7 @@ export default function Live() {
           </div>
 
           <div className="rounded-lg bg-neutral-50 p-4">
-            <p className="text-xs uppercase tracking-wide text-neutral-600">Estimated saving</p>
+            <p className="text-xs tracking-wide text-neutral-600">Estimated saving</p>
             <p className="mt-1 text-3xl font-semibold tracking-tight text-neutral-700">
               {shift ? gbp2(shift.savingGbpPerMonth) : '—'}
               <span className="ml-1 text-sm font-medium text-neutral-600">/ month</span>
@@ -458,7 +458,7 @@ export default function Live() {
                 <p className="text-sm font-semibold text-neutral-800">
                   {p.forecast ?? p.actual ?? '—'}
                 </p>
-                <p className="text-[10px] uppercase tracking-wide text-neutral-600">{p.index}</p>
+                <p className="text-[10px] tracking-wide text-neutral-600">{p.index}</p>
               </div>
             ))}
           </div>

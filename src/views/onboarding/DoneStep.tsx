@@ -21,14 +21,14 @@ export default function DoneStep({
 }) {
   return (
     <div className="space-y-4">
-      <Card tone="ink" className="eos-aura overflow-hidden">
+      <Card tone="ink" className="overflow-hidden">
         <span className="grid h-12 w-12 place-items-center rounded-xl bg-white/10 text-white">
           <CheckCircle2 className="h-6 w-6" />
         </span>
         <h2 className="mt-4 text-2xl font-semibold tracking-tight">You&apos;re all set</h2>
         <p className="mt-2 max-w-xl text-sm leading-relaxed text-neutral-300">
           Your workspace is ready. Upload a bill any time and the audit runs instantly against the
-          Ofgem price cap for each site.
+          your contract and the published domestic reference for each site.
         </p>
         <button
           type="button"

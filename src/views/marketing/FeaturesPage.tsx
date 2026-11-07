@@ -6,10 +6,10 @@ import { FEATURES } from './Landing';
 export default function FeaturesPage() {
   return (
     <>
-      <section className="eos-aura relative overflow-hidden border-b border-neutral-200">
+      <section className="relative overflow-hidden border-b border-neutral-200">
         <div className="mx-auto max-w-content px-4 py-14 sm:px-6 lg:px-8">
-          <p className="text-xs font-semibold uppercase tracking-wide text-neutral-600">Features</p>
-          <h1 className="eos-text-gradient-ink mt-2 max-w-3xl text-4xl font-semibold leading-tight tracking-tight sm:text-5xl">
+          <p className="text-xs font-semibold tracking-wide text-neutral-600">Features</p>
+          <h1 className="text-text-1 mt-2 max-w-3xl text-4xl font-semibold leading-tight tracking-tight sm:text-5xl">
             The whole energy workflow for a small business, not just a bill reader.
           </h1>
           <p className="mt-4 max-w-2xl text-sm leading-relaxed text-neutral-600">
@@ -19,7 +19,7 @@ export default function FeaturesPage() {
           <div className="mt-6 flex flex-wrap gap-3">
             <Link
               href="/start"
-              className="inline-flex items-center gap-2 rounded-md bg-ink-900 px-5 py-3 text-sm font-semibold text-white hover:bg-ink-800"
+              className="inline-flex items-center gap-2 rounded-md bg-accent px-5 py-3 text-sm font-semibold text-white hover:bg-[#9c4419]"
             >
               Check a bill free <ArrowRight className="h-4 w-4" />
             </Link>
