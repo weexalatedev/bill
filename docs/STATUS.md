@@ -244,3 +244,20 @@ wired into every widget; number tweens and chart draw-in not applied to live cha
 (open / disputed / recovered) and challenge-letter generation remain Phase 3 items.
 
 **Checks this increment:** build clean · theme 39/39 · smoke 24/24 · browser 7/7.
+
+---
+
+## 11. Phase 3 — D7 split of the two oversized views
+
+| File | Before | After | Extracted |
+| --- | --- | --- | --- |
+| `views/Analysis.tsx` | 1,118 | **434** | `analysis/shared.tsx` (severity maps, field styles, `FormState`, `toQuery`, `scoreTone`, `annualCostAt`, `Fact`, `emptyForm`) + `BillUploadCard`, `NarrationCard`, `AnalysisEmptyState`, `BillForm`, `FindingsCard`, `WeatherCard`, `BenchmarkCard` |
+| `views/Sites.tsx` | 629 | **399** | `sites/shared.ts` (site vocabularies + draft type) + `AddSiteModal` |
+
+Verified after the split: build clean · theme 39/39 · smoke 24/24 · browser **5/5** (12 site cards, add-site modal opens,
+analysis form renders, form accepts input, and running an analysis still produces the findings, benchmark and
+letter views).
+
+**Known cosmetic issue found in the same pass:** the domestic-reference table inside the analysis card overflows at
+the desktop three-column width, clipping the £/yr column. It belongs to the benchmark card's responsive layout and is
+logged for Phase 3.
