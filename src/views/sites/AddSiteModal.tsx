@@ -19,6 +19,7 @@ import {
  * keeps Enter-to-submit working without nesting the footer inside the <form>.
  */
 export default function AddSiteModal({
+  mode = 'create',
   open,
   onClose,
   draft,
@@ -29,6 +30,8 @@ export default function AddSiteModal({
   onNameChange,
   onSubmit,
 }: {
+  /** `edit` keeps identity and capacity untouched and only patches fields. */
+  mode?: 'create' | 'edit';
   open: boolean;
   onClose: () => void;
   draft: Draft;
@@ -43,8 +46,12 @@ export default function AddSiteModal({
     <Modal
       open={open}
       onClose={onClose}
-      title="Add a site"
-      description="Register a new location. Spend figures can be filled in later from its bills."
+      title={mode === 'edit' ? 'Edit site' : 'Add a site'}
+      description={
+        mode === 'edit'
+          ? 'Change the details of this location. Invoices already filed stay attached.'
+          : 'Register a new location. Spend figures can be filled in later from its bills.'
+      }
       footer={
         <>
           <button
@@ -61,7 +68,7 @@ export default function AddSiteModal({
             className="inline-flex items-center gap-2 rounded-md bg-neutral-900 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-neutral-800 disabled:opacity-60"
           >
             {saving && <Loader2 className="h-4 w-4 animate-spin" />}
-            {saving ? 'Adding…' : 'Add site'}
+            {saving ? 'Saving…' : mode === 'edit' ? 'Save changes' : 'Add site'}
           </button>
         </>
       }

@@ -2,14 +2,14 @@
 import { useMemo, useState, type FormEvent } from 'react';
 import Link from 'next/link';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
-import { Plus, Search, Trash2 } from 'lucide-react';
+import { Pencil, Plus, Search, Trash2 } from 'lucide-react';
 import { useApp } from '../store';
 import type { Site, SiteStatus, SiteType } from '../types';
 import { Badge, Card, Modal, SectionHeading, StatCard, controlClass, type Tone } from '../components/ui';
 import { gbp, num, signedGbp } from '../lib/format';
 import { useSubscription } from '../lib/subscription';
 import AddSiteModal from './sites/AddSiteModal';
-import { METER_TYPES, SITE_TYPES, STATUSES, emptyDraft, type Draft, type DraftSetter } from './sites/shared';
+import { METER_TYPES, SITE_TYPES, STATUSES, emptyDraft, siteToDraft, type Draft, type DraftSetter } from './sites/shared';
 
 const statusTone: Record<SiteStatus, Tone> = {
   Optimal: 'muted',
@@ -18,7 +18,7 @@ const statusTone: Record<SiteStatus, Tone> = {
 };
 
 export default function Sites() {
-  const { sites, annualSpendTotal, metrics, addSite, removeSite } = useApp();
+  const { sites, annualSpendTotal, metrics, addSite, updateSite, removeSite } = useApp();
   const { subscription, refresh: refreshSubscription } = useSubscription();
   /** Capacity comes from the server's subscription record, never a local guess. */
   const atCap = Boolean(subscription && subscription.remainingSites <= 0);
@@ -36,6 +36,8 @@ export default function Sites() {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [pendingDelete, setPendingDelete] = useState<Site | null>(null);
+  /** Non-null while the form is editing an existing site. */
+  const [editing, setEditing] = useState<Site | null>(null);
 
   const types = useMemo(() => ['All', ...new Set(sites.map((s) => s.type))], [sites]);
 
@@ -66,6 +68,7 @@ export default function Sites() {
 
   const closeForm = () => {
     setFormOpen(false);
+    setEditing(null);
     setDraft(emptyDraft);
     setNameError(null);
     setSaveError(null);
@@ -87,7 +90,7 @@ export default function Sites() {
       const numberOrUndefined = (raw: string): number | undefined =>
         raw.trim() === '' ? undefined : Number(raw);
 
-      await addSite({
+      const payload = {
         name,
         city: draft.city.trim(),
         region: draft.region.trim(),
@@ -102,13 +105,25 @@ export default function Sites() {
         annualSpend: numberOrUndefined(draft.annualSpend) ?? 0,
         monthActual: numberOrUndefined(draft.monthActual) ?? 0,
         monthExpected: numberOrUndefined(draft.monthExpected),
-      });
+      };
+
+      if (editing) {
+        await updateSite(editing.id, payload);
+      } else {
+        await addSite(payload);
+      }
       // The capacity counter is server-owned: re-read it so the banner, the
       // disabled state and the dashboard all agree immediately.
       await refreshSubscription();
       closeForm();
     } catch (error) {
-      setSaveError(error instanceof Error ? error.message : 'Could not add the site.');
+      setSaveError(
+        error instanceof Error
+          ? error.message
+          : editing
+            ? 'Could not save the site.'
+            : 'Could not add the site.',
+      );
     } finally {
       setSaving(false);
     }
@@ -319,6 +334,20 @@ export default function Sites() {
                     <p className="truncate">Synced {site.lastSynced}</p>
                   </div>
                   <button
+                      type="button"
+                      onClick={() => {
+                        setEditing(site);
+                        setDraft(siteToDraft(site));
+                        setSaveError(null);
+                        setNameError(null);
+                        setFormOpen(true);
+                      }}
+                      aria-label={`Edit ${site.name}`}
+                      className="shrink-0 rounded-md p-1.5 text-text-3 transition hover:bg-surface hover:text-text-1"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </button>
+                    <button
                     type="button"
                     onClick={() => setPendingDelete(site)}
                     aria-label={`Remove ${site.name}`}
@@ -339,6 +368,7 @@ export default function Sites() {
       </Card>
 
       <AddSiteModal
+        mode={editing ? 'edit' : 'create'}
         open={formOpen}
         onClose={closeForm}
         draft={draft}
