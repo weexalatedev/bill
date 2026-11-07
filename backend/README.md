@@ -1,5 +1,8 @@
 # EnerOS · Octopus Energy connector
 
+> Full setup and troubleshooting: [`../docs/RUNNING_THE_CONNECTOR.md`](../docs/RUNNING_THE_CONNECTOR.md).
+> `npm run doctor` at the repo root checks every prerequisite and names the fix.
+
 FastAPI backend behind the "Connect Octopus Energy" modal (API key + account number).
 
 ## Run

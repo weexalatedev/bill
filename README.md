@@ -337,6 +337,9 @@ npm run start      # Expo dev server — press a / i for Android / iOS
 npm run typecheck  # tsc --noEmit
 ```
 
+> **Python connector not starting?** [`docs/RUNNING_THE_CONNECTOR.md`](docs/RUNNING_THE_CONNECTOR.md)
+> is the setup and troubleshooting runbook, and `npm run doctor` checks every prerequisite.
+
 ## Demo login (identical on web **and** mobile)
 
 `npm run seed` prints the credentials; the defaults are:
