@@ -3,18 +3,22 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
+  Activity,
   AlertTriangle,
   Bell,
   Building2,
   CreditCard,
+  Database,
   Info,
   LayoutDashboard,
   Loader2,
   Menu,
+  MessageSquare,
   Receipt,
   RefreshCw,
   ScanSearch,
   Settings as SettingsIcon,
+  TrendingDown,
   Zap,
 } from 'lucide-react';
 import { cx } from '../lib/cx';
@@ -30,12 +34,20 @@ interface NavItem {
   badge?: 'issues';
 }
 
-/** The console is deliberately small: upload invoices, analyse them, manage sites. */
+/**
+ * Navigation follows the plan's loop: observe (dashboard), act (savings), pay
+ * (invoices), understand (analysis), organise (sites), measure (data), price
+ * (live market), ask (copilot), and administer.
+ */
 const NAV: NavItem[] = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { to: '/optimiser', label: 'Savings', icon: TrendingDown },
   { to: '/bills', label: 'Invoices', icon: Receipt, badge: 'issues' },
   { to: '/analysis', label: 'Smart Analysis', icon: ScanSearch },
   { to: '/sites', label: 'Sites', icon: Building2 },
+  { to: '/data', label: 'Meter data', icon: Database },
+  { to: '/live', label: 'Live market', icon: Activity },
+  { to: '/copilot', label: 'Copilot', icon: MessageSquare },
   { to: '/subscription', label: 'Subscription', icon: CreditCard },
   { to: '/settings', label: 'Settings', icon: SettingsIcon },
 ];
@@ -44,6 +56,22 @@ const PAGE_META: Record<string, { title: string; subtitle: string }> = {
   '/dashboard': {
     title: 'Dashboard',
     subtitle: 'Your energy at a glance — spend, savings and open issues.',
+  },
+  '/optimiser': {
+    title: 'Savings',
+    subtitle: 'Opportunities the engine has priced — approve, automate or dismiss.',
+  },
+  '/data': {
+    title: 'Meter data',
+    subtitle: 'Import half-hourly readings and see what they unlock.',
+  },
+  '/live': {
+    title: 'Live market',
+    subtitle: 'Real half-hourly UK prices, cheapest windows and grid carbon.',
+  },
+  '/copilot': {
+    title: 'Copilot',
+    subtitle: 'Ask about your own numbers — the engine computes, the model explains.',
   },
   '/bills': {
     title: 'Invoices',
@@ -310,8 +338,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
         <main
           className={cx(
-            'mx-auto w-full max-w-[110rem] flex-1',
-            isChat ? 'flex min-h-0 flex-col overflow-hidden' : 'px-4 py-6 sm:px-6',
+            'mx-auto w-full max-w-wide flex-1',
+            isChat ? 'flex min-h-0 flex-col overflow-hidden' : 'px-4 py-6 sm:px-6 lg:px-8',
           )}
         >
           {children}

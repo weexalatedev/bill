@@ -62,8 +62,8 @@ export default function AuditResult({
 
   return (
     <div className="space-y-4">
-      <Card tone="ink" className="eos-aura overflow-hidden sm:p-6">
-        <div className="flex items-start justify-between gap-4">
+      <Card tone="ink" className="eos-aura overflow-hidden sm:p-7">
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_17rem] lg:items-start">
           <div className="min-w-0">
             <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-neutral-300">
               <Receipt className="h-3.5 w-3.5" /> Your audit
@@ -74,7 +74,7 @@ export default function AuditResult({
                 <p className="eos-text-gradient-light mt-1 text-6xl font-semibold tracking-tight tabular-nums">
                   {gbp(saving)}
                 </p>
-                <p className="mt-2 max-w-xl text-sm leading-relaxed text-neutral-300">
+                <p className="mt-2 max-w-2xl text-sm leading-relaxed text-neutral-300">
                   You paid {gbp(actual ?? 0)} for this period. At the UK median rate for your usage
                   it would be about {gbp(expected ?? 0)} — you are{' '}
                   <span className="font-semibold text-white">{pct(benchmark?.savingPct ?? 0)}</span>{' '}
@@ -91,7 +91,7 @@ export default function AuditResult({
                 <p className="mt-3 text-2xl font-semibold tracking-tight">
                   Your bill looks in line with the UK median
                 </p>
-                <p className="mt-2 max-w-xl text-sm leading-relaxed text-neutral-300">
+                <p className="mt-2 max-w-2xl text-sm leading-relaxed text-neutral-300">
                   You paid {gbp(actual ?? 0)} against a benchmark of {gbp(expected ?? 0)}. No obvious
                   overcharge on this bill — but the checks below are still worth reading.
                 </p>
@@ -99,25 +99,42 @@ export default function AuditResult({
             ) : (
               <>
                 <p className="mt-3 text-2xl font-semibold tracking-tight">We read your bill</p>
-                <p className="mt-2 max-w-xl text-sm leading-relaxed text-neutral-300">
+                <p className="mt-2 max-w-2xl text-sm leading-relaxed text-neutral-300">
                   Add your consumption and total to see exactly what you should have paid against the
                   UK median rate.
                 </p>
               </>
             )}
           </div>
-          <div className="shrink-0 rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-center backdrop-blur">
-            <p className="text-2xl font-semibold tracking-tight text-white tabular-nums">{audit.score}</p>
-            <p className="text-[10px] uppercase tracking-wider text-neutral-300">score</p>
+          <div className="flex gap-3 lg:flex-col">
+            <div className="flex-1 rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-center backdrop-blur">
+              <p className="text-2xl font-semibold tracking-tight text-white tabular-nums">
+                {audit.score}
+              </p>
+              <p className="text-[10px] uppercase tracking-wider text-neutral-300">score</p>
+            </div>
+
+            {actual !== null && expected !== null && (
+              <div className="flex-1 rounded-xl border border-white/15 bg-white/5 px-4 py-3 backdrop-blur">
+                <p className="text-[10px] uppercase tracking-wider text-neutral-300">You paid</p>
+                <p className="text-lg font-semibold tabular-nums text-white">{gbp(actual)}</p>
+                <p className="mt-2 text-[10px] uppercase tracking-wider text-neutral-300">
+                  UK median
+                </p>
+                <p className="text-lg font-semibold tabular-nums text-neutral-200">
+                  {gbp(expected)}
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </Card>
 
       {actual !== null && expected !== null && (
         <Card>
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm font-semibold text-neutral-900">Your bill vs the UK median</p>
-            <Badge tone="muted">
+            <Badge tone="muted" className="w-fit">
               {benchmark?.label} · {pence(benchmark?.unitRateP ?? 0)}/kWh
             </Badge>
           </div>
@@ -171,7 +188,7 @@ export default function AuditResult({
                 key={`${finding.code}-${index}`}
                 className="rounded-lg border border-neutral-100 p-3"
               >
-                <div className="flex items-start justify-between gap-3">
+                <div className="flex flex-col gap-1.5 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
                   <div className="flex items-start gap-2">
                     <Badge tone={severityTone[finding.severity] ?? 'muted'}>
                       {finding.severity}
@@ -179,7 +196,7 @@ export default function AuditResult({
                     <p className="text-sm font-semibold text-neutral-900">{finding.title}</p>
                   </div>
                   {Math.abs(finding.impactGbp) > 0 && (
-                    <span className="shrink-0 tabular-nums text-sm font-semibold text-neutral-800">
+                    <span className="shrink-0 self-end tabular-nums text-sm font-semibold text-neutral-800 sm:self-auto">
                       {gbp2(finding.impactGbp)}
                     </span>
                   )}

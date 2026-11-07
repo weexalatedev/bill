@@ -7,7 +7,7 @@ export default function FeaturesPage() {
   return (
     <>
       <section className="eos-aura relative overflow-hidden border-b border-neutral-200">
-        <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
+        <div className="mx-auto max-w-content px-4 py-14 sm:px-6 lg:px-8">
           <p className="text-xs font-semibold uppercase tracking-wide text-neutral-600">Features</p>
           <h1 className="eos-text-gradient-ink mt-2 max-w-3xl text-4xl font-semibold leading-tight tracking-tight sm:text-5xl">
             The whole energy workflow for a small business, not just a bill reader.
@@ -34,7 +34,7 @@ export default function FeaturesPage() {
       </section>
 
       <section className="border-b border-neutral-200">
-        <div className="mx-auto grid max-w-6xl gap-4 px-4 py-14 sm:grid-cols-2 sm:px-6 lg:grid-cols-3">
+        <div className="mx-auto grid max-w-content gap-4 px-4 py-14 sm:grid-cols-2 sm:px-6 lg:grid-cols-3">
           {FEATURES.map(({ icon: Icon, title, body }) => (
             <div key={title} className="rounded-xl border border-neutral-200 bg-white p-5">
               <span className="grid h-9 w-9 place-items-center rounded-md border border-neutral-200 text-ink-900">
@@ -47,7 +47,7 @@ export default function FeaturesPage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
+      <section className="mx-auto max-w-content px-4 py-14 sm:px-6 lg:px-8">
         <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-6">
           <p className="flex items-center gap-2 text-sm font-semibold text-ink-900">
             <ShieldCheck className="h-4 w-4" /> What EnerOS does not claim

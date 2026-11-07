@@ -39,7 +39,7 @@ export default function Landing() {
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
       <section className="eos-aura relative overflow-hidden border-b border-neutral-200">
         <div className="eos-grid pointer-events-none absolute inset-0 opacity-60" aria-hidden />
-        <div className="relative mx-auto grid max-w-6xl gap-10 px-4 py-16 sm:px-6 md:grid-cols-2 md:items-center md:py-28">
+        <div className="relative mx-auto grid max-w-content gap-10 px-4 py-16 sm:px-6 lg:px-8 md:grid-cols-2 md:items-center md:py-28">
           <div>
             <p className="inline-flex items-center gap-2 rounded-full border border-neutral-200 px-3 py-1 text-xs font-medium text-neutral-600">
               <Sparkles className="h-3.5 w-3.5" /> Built for UK SMEs
@@ -80,7 +80,7 @@ export default function Landing() {
 
       {/* ── Value strip ──────────────────────────────────────────────────── */}
       <section className="border-b border-neutral-200 bg-gradient-to-b from-neutral-50 via-white to-neutral-50">
-        <div className="mx-auto grid max-w-6xl gap-6 px-4 py-10 sm:px-6 md:grid-cols-3">
+        <div className="mx-auto grid max-w-content gap-6 px-4 py-10 sm:px-6 lg:px-8 md:grid-cols-3">
           {[
             ['Every bill, checked', 'Unit rate, standing charge, arithmetic and VAT — against the published cap for your region.'],
             ['Every £ labelled', 'A saving is either estimated or verified against a baseline. Never an unsupported claim.'],
@@ -214,7 +214,7 @@ export const FEATURES = [
 function Features() {
   return (
     <section id="features" className="border-b border-neutral-200">
-      <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+      <div className="mx-auto max-w-content px-4 py-16 sm:px-6 lg:px-8">
         <p className="text-xs font-semibold uppercase tracking-wide text-neutral-600">Features</p>
         <h2 className="mt-2 text-3xl font-semibold tracking-tight text-ink-900">
           Everything here is already running
@@ -273,7 +273,7 @@ const STEPS = [
 function HowItWorks() {
   return (
     <section id="how-it-works" className="eos-aura relative overflow-hidden border-b border-neutral-200 bg-neutral-50/70">
-      <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+      <div className="mx-auto max-w-content px-4 py-16 sm:px-6 lg:px-8">
         <p className="text-xs font-semibold uppercase tracking-wide text-neutral-600">How it works</p>
         <h2 className="mt-2 text-3xl font-semibold tracking-tight text-ink-900">
           Prove the saving first, subscribe second
@@ -308,7 +308,7 @@ function HowItWorks() {
 function Pricing({ catalogue, error }: { catalogue: PlansResponse | null; error: string | null }) {
   return (
     <section id="pricing" className="border-b border-neutral-200">
-      <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+      <div className="mx-auto max-w-content px-4 py-16 sm:px-6 lg:px-8">
         <p className="text-xs font-semibold uppercase tracking-wide text-neutral-600">Pricing</p>
         <h2 className="mt-2 text-3xl font-semibold tracking-tight text-ink-900">
           Priced per site, per month
@@ -354,7 +354,7 @@ function Pricing({ catalogue, error }: { catalogue: PlansResponse | null; error:
 
 function FinalCta() {
   return (
-    <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+    <section className="mx-auto max-w-content px-4 py-16 sm:px-6 lg:px-8">
       <div className="eos-ink-panel relative overflow-hidden rounded-2xl px-6 py-12 text-white sm:px-12 sm:py-16">
         <div className="eos-drift pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-white/10 blur-2xl" aria-hidden />
         <div className="max-w-2xl">
