@@ -244,3 +244,35 @@ wired into every widget; number tweens and chart draw-in not applied to live cha
 (open / disputed / recovered) and challenge-letter generation remain Phase 3 items.
 
 **Checks this increment:** build clean · theme 39/39 · smoke 24/24 · browser 7/7.
+
+---
+
+## 11. Phase 3 — D7 split of the two oversized views
+
+| File | Before | After | Extracted |
+| --- | --- | --- | --- |
+| `views/Analysis.tsx` | 1,118 | **434** | `analysis/shared.tsx` (severity maps, field styles, `FormState`, `toQuery`, `scoreTone`, `annualCostAt`, `Fact`, `emptyForm`) + `BillUploadCard`, `NarrationCard`, `AnalysisEmptyState`, `BillForm`, `FindingsCard`, `WeatherCard`, `BenchmarkCard` |
+| `views/Sites.tsx` | 629 | **399** | `sites/shared.ts` (site vocabularies + draft type) + `AddSiteModal` |
+
+Verified after the split: build clean · theme 39/39 · smoke 24/24 · browser **5/5** (12 site cards, add-site modal opens,
+analysis form renders, form accepts input, and running an analysis still produces the findings, benchmark and
+letter views).
+
+**Known cosmetic issue found in the same pass:** the domestic-reference table inside the analysis card overflows at
+the desktop three-column width, clipping the £/yr column. It belongs to the benchmark card's responsive layout and is
+logged for Phase 3.
+
+---
+
+## 12. Edit operations (this increment)
+
+| Entity | Before | Now |
+| --- | --- | --- |
+| **Site** | create + delete only, although `PATCH /api/workspace/sites/:id` existed | full edit: pencil on every card opens the same modal in edit mode, prefilled via `siteToDraft`, saving with `updateSite` → `PATCH`; identity and capacity untouched, portfolio annual spend recomputed |
+| **Business details** | captured at onboarding, never editable | `Subscription → Business details`: name + postcode editable, saved through `PUT /api/account/profile`, workspace refreshed, postcode re-resolves the domestic-reference region |
+| Rate plan / hardware / appliance / pause | already editable | unchanged (`PUT /v1/homes/{id}/settings/*` via the connector) |
+| Subscription plan | already changeable | unchanged (order → payment → activation) |
+| Invoices | — | **deliberately not editable**: an invoice is an audit record; the mutating action is challenge/recover |
+| Provider credentials | — | **deliberately not editable**: keys are validated at connect time; the safe action is remove + reconnect |
+
+Verified: build clean · theme 39/39 (the guard caught an `uppercase` I introduced in the postcode field) · smoke 24/24 · browser **8/8**: 12 edit actions, modal opens in edit mode, form prefilled, edit persists, edit reversed, business details load, save and confirm.

@@ -67,6 +67,8 @@ interface AppContextValue {
   advanceAction: (id: string) => Promise<void>;
   recoverInvoice: (id: string) => Promise<void>;
   addSite: (draft: SiteDraft) => Promise<Site>;
+  /** Edit a site in place. The server owns identity and capacity; only fields change. */
+  updateSite: (id: string, draft: Partial<SiteDraft>) => Promise<Site>;
   removeSite: (id: string) => Promise<void>;
   analyseUpload: (payload: UploadPayload) => Promise<Invoice>;
   analyseBillFile: (
@@ -316,6 +318,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [withToken, pushToast],
   );
 
+  const updateSite = useCallback(
+    async (id: string, draft: Partial<SiteDraft>): Promise<Site> => {
+      const { site } = await withToken((token) => api.updateSite(token, id, draft));
+      // Replace in place and recompute the derived annual spend: editing a
+      // spend figure must move the portfolio total, not just the card.
+      setWorkspace((prev) => {
+        const sites = prev.sites.map((candidate) => (candidate.id === id ? site : candidate));
+        return {
+          ...prev,
+          sites,
+          annualSpendTotal: sites.reduce((sum, s) => sum + s.annualSpend, 0),
+        };
+      });
+      pushToast(`${site.name} updated.`);
+      return site;
+    },
+    [withToken, pushToast],
+  );
+
   const removeSite = useCallback(
     async (id: string) => {
       const snapshot = workspace.sites;
@@ -404,6 +425,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     advanceAction,
     recoverInvoice,
     addSite,
+    updateSite,
     removeSite,
     analyseUpload,
     analyseBillFile,

@@ -2,21 +2,14 @@
 import { useMemo, useState, type FormEvent } from 'react';
 import Link from 'next/link';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
-import { Loader2, Plus, Search, Trash2 } from 'lucide-react';
+import { Pencil, Plus, Search, Trash2 } from 'lucide-react';
 import { useApp } from '../store';
-import type { MeterType, Site, SiteStatus, SiteType } from '../types';
-import {
-  Badge,
-  Card,
-  Field,
-  Modal,
-  SectionHeading,
-  StatCard,
-  controlClass,
-  type Tone,
-} from '../components/ui';
+import type { Site, SiteStatus, SiteType } from '../types';
+import { Badge, Card, Modal, SectionHeading, StatCard, controlClass, type Tone } from '../components/ui';
 import { gbp, num, signedGbp } from '../lib/format';
 import { useSubscription } from '../lib/subscription';
+import AddSiteModal from './sites/AddSiteModal';
+import { METER_TYPES, SITE_TYPES, STATUSES, emptyDraft, siteToDraft, type Draft, type DraftSetter } from './sites/shared';
 
 const statusTone: Record<SiteStatus, Tone> = {
   Optimal: 'muted',
@@ -24,40 +17,8 @@ const statusTone: Record<SiteStatus, Tone> = {
   Anomaly: 'solid',
 };
 
-const SITE_TYPES: SiteType[] = [
-  'Restaurant',
-  'Café',
-  'Bakery',
-  'Pub',
-  'Hotel',
-  'Food Production',
-  'Retail',
-];
-
-const METER_TYPES: MeterType[] = ['Smart', 'Advanced', 'AMR', 'Half-hourly'];
-
-const STATUSES: SiteStatus[] = ['Optimal', 'Watch', 'Anomaly'];
-
-/** Blank form state; spend figures start empty until bills are audited. */
-const emptyDraft = {
-  name: '',
-  city: '',
-  region: '',
-  type: 'Restaurant' as SiteType,
-  annualSpend: '',
-  monthActual: '',
-  monthExpected: '',
-  meterType: 'Advanced' as MeterType,
-  status: 'Optimal' as SiteStatus,
-  postcode: '',
-  loads: '',
-};
-
-type Draft = typeof emptyDraft;
-type DraftSetter = <K extends keyof Draft>(key: K, value: Draft[K]) => void;
-
 export default function Sites() {
-  const { sites, annualSpendTotal, metrics, addSite, removeSite } = useApp();
+  const { sites, annualSpendTotal, metrics, addSite, updateSite, removeSite } = useApp();
   const { subscription, refresh: refreshSubscription } = useSubscription();
   /** Capacity comes from the server's subscription record, never a local guess. */
   const atCap = Boolean(subscription && subscription.remainingSites <= 0);
@@ -75,6 +36,8 @@ export default function Sites() {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [pendingDelete, setPendingDelete] = useState<Site | null>(null);
+  /** Non-null while the form is editing an existing site. */
+  const [editing, setEditing] = useState<Site | null>(null);
 
   const types = useMemo(() => ['All', ...new Set(sites.map((s) => s.type))], [sites]);
 
@@ -105,6 +68,7 @@ export default function Sites() {
 
   const closeForm = () => {
     setFormOpen(false);
+    setEditing(null);
     setDraft(emptyDraft);
     setNameError(null);
     setSaveError(null);
@@ -126,7 +90,7 @@ export default function Sites() {
       const numberOrUndefined = (raw: string): number | undefined =>
         raw.trim() === '' ? undefined : Number(raw);
 
-      await addSite({
+      const payload = {
         name,
         city: draft.city.trim(),
         region: draft.region.trim(),
@@ -141,13 +105,25 @@ export default function Sites() {
         annualSpend: numberOrUndefined(draft.annualSpend) ?? 0,
         monthActual: numberOrUndefined(draft.monthActual) ?? 0,
         monthExpected: numberOrUndefined(draft.monthExpected),
-      });
+      };
+
+      if (editing) {
+        await updateSite(editing.id, payload);
+      } else {
+        await addSite(payload);
+      }
       // The capacity counter is server-owned: re-read it so the banner, the
       // disabled state and the dashboard all agree immediately.
       await refreshSubscription();
       closeForm();
     } catch (error) {
-      setSaveError(error instanceof Error ? error.message : 'Could not add the site.');
+      setSaveError(
+        error instanceof Error
+          ? error.message
+          : editing
+            ? 'Could not save the site.'
+            : 'Could not add the site.',
+      );
     } finally {
       setSaving(false);
     }
@@ -358,6 +334,20 @@ export default function Sites() {
                     <p className="truncate">Synced {site.lastSynced}</p>
                   </div>
                   <button
+                      type="button"
+                      onClick={() => {
+                        setEditing(site);
+                        setDraft(siteToDraft(site));
+                        setSaveError(null);
+                        setNameError(null);
+                        setFormOpen(true);
+                      }}
+                      aria-label={`Edit ${site.name}`}
+                      className="shrink-0 rounded-md p-1.5 text-text-3 transition hover:bg-surface hover:text-text-1"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </button>
+                    <button
                     type="button"
                     onClick={() => setPendingDelete(site)}
                     aria-label={`Remove ${site.name}`}
@@ -378,6 +368,7 @@ export default function Sites() {
       </Card>
 
       <AddSiteModal
+        mode={editing ? 'edit' : 'create'}
         open={formOpen}
         onClose={closeForm}
         draft={draft}
@@ -436,194 +427,3 @@ export default function Sites() {
  * submit button lives in the modal footer and targets the form by id, which
  * keeps Enter-to-submit working without nesting the footer inside the <form>.
  */
-function AddSiteModal({
-  open,
-  onClose,
-  draft,
-  set,
-  saving,
-  saveError,
-  nameError,
-  onNameChange,
-  onSubmit,
-}: {
-  open: boolean;
-  onClose: () => void;
-  draft: Draft;
-  set: DraftSetter;
-  saving: boolean;
-  saveError: string | null;
-  nameError: string | null;
-  onNameChange: (value: string) => void;
-  onSubmit: (event: FormEvent) => void;
-}) {
-  return (
-    <Modal
-      open={open}
-      onClose={onClose}
-      title="Add a site"
-      description="Register a new location. Spend figures can be filled in later from its bills."
-      footer={
-        <>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-md border border-neutral-200 bg-white px-4 py-2 text-sm font-semibold text-neutral-700 transition-colors hover:bg-neutral-50"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            form="add-site-form"
-            disabled={saving}
-            className="inline-flex items-center gap-2 rounded-md bg-neutral-900 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-neutral-800 disabled:opacity-60"
-          >
-            {saving && <Loader2 className="h-4 w-4 animate-spin" />}
-            {saving ? 'Adding…' : 'Add site'}
-          </button>
-        </>
-      }
-    >
-      <form id="add-site-form" onSubmit={onSubmit} className="space-y-4">
-        {saveError && (
-          <p className="rounded-md bg-neutral-50 px-3 py-2 text-sm font-medium text-neutral-700">
-            {saveError}
-          </p>
-        )}
-
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="sm:col-span-2">
-            <Field label="Site name" error={nameError ?? undefined}>
-              <input
-                value={draft.name}
-                onChange={(e) => onNameChange(e.target.value)}
-                placeholder="Harbour House"
-                aria-invalid={Boolean(nameError)}
-                className={controlClass}
-              />
-            </Field>
-          </div>
-
-          <Field label="City">
-            <input
-              value={draft.city}
-              onChange={(e) => set('city', e.target.value)}
-              placeholder="Manchester"
-              className={controlClass}
-            />
-          </Field>
-
-          <Field label="Region">
-            <input
-              value={draft.region}
-              onChange={(e) => set('region', e.target.value)}
-              placeholder="North West"
-              className={controlClass}
-            />
-          </Field>
-
-          <Field label="Postcode" hint="Sets the Ofgem price-cap region.">
-            <input
-              value={draft.postcode}
-              onChange={(e) => set('postcode', e.target.value)}
-              placeholder="M1 1AE"
-              className={controlClass}
-            />
-          </Field>
-
-          <Field label="Site type">
-            <select
-              value={draft.type}
-              onChange={(e) => set('type', e.target.value as SiteType)}
-              className={controlClass}
-            >
-              {SITE_TYPES.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
-          </Field>
-
-          <Field label="Meter type">
-            <select
-              value={draft.meterType}
-              onChange={(e) => set('meterType', e.target.value as MeterType)}
-              className={controlClass}
-            >
-              {METER_TYPES.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
-          </Field>
-
-          <Field label="Status">
-            <select
-              value={draft.status}
-              onChange={(e) => set('status', e.target.value as SiteStatus)}
-              className={controlClass}
-            >
-              {STATUSES.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
-          </Field>
-
-          <Field label="Annual spend (£)" hint="Optional — an estimate is fine.">
-            <input
-              type="number"
-              min={0}
-              step={100}
-              value={draft.annualSpend}
-              onChange={(e) => set('annualSpend', e.target.value)}
-              placeholder="195000"
-              className={controlClass}
-            />
-          </Field>
-
-          <Field label="This month (£)">
-            <input
-              type="number"
-              min={0}
-              step={10}
-              value={draft.monthActual}
-              onChange={(e) => set('monthActual', e.target.value)}
-              placeholder="8120"
-              className={controlClass}
-            />
-          </Field>
-
-          <Field
-            label="Expected this month (£)"
-            hint="Leave blank to match actual spend, so no saving is claimed."
-          >
-            <input
-              type="number"
-              min={0}
-              step={10}
-              value={draft.monthExpected}
-              onChange={(e) => set('monthExpected', e.target.value)}
-              placeholder="9150"
-              className={controlClass}
-            />
-          </Field>
-
-          <div className="sm:col-span-2">
-            <Field label="Controllable loads" hint="Comma separated, e.g. HVAC, Hot water.">
-              <input
-                value={draft.loads}
-                onChange={(e) => set('loads', e.target.value)}
-                placeholder="HVAC, Hot water, Lighting"
-                className={controlClass}
-              />
-            </Field>
-          </div>
-        </div>
-      </form>
-    </Modal>
-  );
-}

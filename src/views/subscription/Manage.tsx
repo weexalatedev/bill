@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { AlertTriangle, CreditCard, Loader2, RefreshCw, RotateCcw, ShieldCheck, XCircle } from 'lucide-react';
 import { api, ApiError } from '../../lib/api';
 import { useAuth } from '../../lib/auth';
+import { useApp } from '../../store';
 import { renewalLabel, useSubscription } from '../../lib/subscription';
 import { Badge, Card, ProgressBar, SectionHeading, StatCard } from '../../components/ui';
 import { gbp, gbp2 } from '../../lib/format';
@@ -15,11 +16,17 @@ const statusTone = (status: string) =>
 /** `/subscription` — plan, capacity, payment history and plan changes. */
 export default function ManageSubscription() {
   const { getToken } = useAuth();
+  const { refresh: refreshWorkspace, pushToast } = useApp();
   const { subscription, loading, error, refresh } = useSubscription();
   const [payments, setPayments] = useState<PaymentRecord[]>([]);
   const [paymentsError, setPaymentsError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+  // Business details: the same profile the onboarding flow captures, editable later.
+  const [business, setBusiness] = useState({ companyName: '', postcode: '', regionId: '' });
+  const [businessBusy, setBusinessBusy] = useState(false);
+  const [businessError, setBusinessError] = useState<string | null>(null);
+  const [businessLoaded, setBusinessLoaded] = useState(false);
 
   const loadPayments = useCallback(async () => {
     const token = await getToken();
@@ -36,6 +43,47 @@ export default function ManageSubscription() {
   useEffect(() => {
     void loadPayments();
   }, [loadPayments]);
+
+  useEffect(() => {
+    if (businessLoaded) return;
+    void (async () => {
+      const token = await getToken();
+      if (!token) return;
+      try {
+        const { profile } = await api.getProfile(token);
+        setBusiness({
+          companyName: profile.companyName,
+          postcode: profile.postcode,
+          regionId: profile.regionId,
+        });
+      } catch {
+        // A missing profile is not an error: the fields simply start empty.
+      } finally {
+        setBusinessLoaded(true);
+      }
+    })();
+  }, [businessLoaded, getToken]);
+
+  const saveBusiness = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setBusinessBusy(true);
+    setBusinessError(null);
+    try {
+      const token = await getToken();
+      if (!token) throw new Error('Please sign in again.');
+      await api.saveProfile(token, {
+        companyName: business.companyName.trim(),
+        siteCount: subscription?.sitesUsed ?? 1,
+        postcode: business.postcode.trim(),
+      });
+      await refreshWorkspace();
+      pushToast('Business details saved.');
+    } catch (error) {
+      setBusinessError(error instanceof ApiError ? error.message : 'Could not save those details.');
+    } finally {
+      setBusinessBusy(false);
+    }
+  };
 
   const run = async (action: 'cancel' | 'resume') => {
     setBusy(true);
@@ -242,6 +290,52 @@ export default function ManageSubscription() {
             </table>
           </div>
         )}
+      </Card>
+
+      <Card>
+        <SectionHeading
+          title="Business details"
+          subtitle="Shown on invoices and used to resolve your price-cap region. Editable at any time."
+        />
+        <form onSubmit={saveBusiness} className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_10rem_auto] sm:items-end">
+          <label className="block">
+            <span className="mb-1 block text-xs font-medium text-text-3">Business name</span>
+            <input
+              value={business.companyName}
+              onChange={(event) => setBusiness({ ...business, companyName: event.target.value })}
+              required
+              minLength={2}
+              className="w-full rounded-[var(--radius-control)] border border-hairline bg-raised px-3 py-2 text-sm text-text-1 focus:border-accent focus:outline-none"
+            />
+          </label>
+          <label className="block">
+            <span className="mb-1 block text-xs font-medium text-text-3">Postcode</span>
+            <input
+              value={business.postcode}
+              onChange={(event) => setBusiness({ ...business, postcode: event.target.value })}
+              required
+              pattern="[A-Za-z0-9 ]{4,10}"
+              className="w-full rounded-[var(--radius-control)] border border-hairline bg-raised px-3 py-2 text-sm text-text-1 focus:border-accent focus:outline-none"
+            />
+          </label>
+          <button
+            type="submit"
+            disabled={businessBusy}
+            className="inline-flex items-center justify-center gap-2 rounded-[var(--radius-control)] bg-accent px-4 py-2 text-sm font-semibold text-white hover:bg-[#9c4419] disabled:opacity-60"
+          >
+            {businessBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+            Save details
+          </button>
+        </form>
+        {businessError && (
+          <p role="alert" className="mt-2 text-xs font-medium text-issue">
+            {businessError}
+          </p>
+        )}
+        <p className="mt-2 text-xs text-text-3">
+          Changing the postcode re-resolves the Ofgem region used for the domestic reference; it does
+          not move any sites.
+        </p>
       </Card>
 
       <Card className="bg-neutral-50">
