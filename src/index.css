@@ -15,6 +15,22 @@
   --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas,
     'Liberation Mono', monospace;
 
+  /*
+   * One container scale, used by every layout in the product.
+   *
+   *   funnel  → the acquisition + onboarding column (header, rail and body all
+   *             share it, so the page reads as one box rather than a narrow
+   *             column under a wide rule)
+   *   content → marketing pages and the console's reading screens
+   *   wide    → data-dense console screens (tables, charts)
+   *
+   * Tailwind v4 turns `--container-*` into `max-w-funnel`, `max-w-content`,
+   * `max-w-wide`. Nothing below should invent its own `max-w-[…]` again.
+   */
+  --container-funnel: 70rem;  /* 1120px */
+  --container-content: 78rem; /* 1248px */
+  --container-wide: 96rem;    /* 1536px */
+
   /* Near-black surfaces: the sidebar, inverted cards and the logo mark. */
   --color-ink-950: #000000;
   --color-ink-900: #0a0a0a;

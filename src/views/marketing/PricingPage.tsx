@@ -22,7 +22,7 @@ export default function PricingPage() {
   return (
     <>
       <section className="eos-aura relative overflow-hidden border-b border-neutral-200">
-        <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
+        <div className="mx-auto max-w-content px-4 py-14 sm:px-6 lg:px-8">
           <p className="text-xs font-semibold uppercase tracking-wide text-neutral-600">Pricing</p>
           <h1 className="eos-text-gradient-ink mt-2 text-4xl font-semibold tracking-tight sm:text-5xl">
             One price per site. No seats, no setup fee.
@@ -34,7 +34,7 @@ export default function PricingPage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
+      <section className="mx-auto max-w-content px-4 py-12 sm:px-6 lg:px-8">
         {error && (
           <div className="rounded-xl border border-neutral-200 bg-white p-6 text-sm text-neutral-600">
             Live pricing could not be loaded ({error}). Plans start at £49 per site per month.
@@ -57,7 +57,7 @@ export default function PricingPage() {
       </section>
 
       <section className="border-t border-neutral-200 bg-neutral-50">
-        <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
+        <div className="mx-auto max-w-content px-4 py-12 sm:px-6 lg:px-8">
           <h2 className="text-lg font-semibold tracking-tight text-ink-900">What happens next</h2>
           <ol className="mt-4 grid gap-3 text-sm text-neutral-600 md:grid-cols-4">
             {[

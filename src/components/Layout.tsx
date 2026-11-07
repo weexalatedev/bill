@@ -310,8 +310,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
         <main
           className={cx(
-            'mx-auto w-full max-w-[110rem] flex-1',
-            isChat ? 'flex min-h-0 flex-col overflow-hidden' : 'px-4 py-6 sm:px-6',
+            'mx-auto w-full max-w-wide flex-1',
+            isChat ? 'flex min-h-0 flex-col overflow-hidden' : 'px-4 py-6 sm:px-6 lg:px-8',
           )}
         >
           {children}

@@ -42,7 +42,7 @@ export default function FlowShell({
   return (
     <div className="min-h-screen bg-neutral-50">
       <header className="eos-glass sticky top-0 z-20 border-b border-neutral-200/70">
-        <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3.5 sm:px-6">
+        <div className="mx-auto flex w-full max-w-funnel items-center justify-between gap-3 px-4 py-3.5 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3">
             {onBack && (
               <button
@@ -64,7 +64,7 @@ export default function FlowShell({
           {aside}
         </div>
 
-        <nav aria-label="Progress" className="mx-auto max-w-5xl px-4 pb-3 sm:px-6">
+        <nav aria-label="Progress" className="mx-auto w-full max-w-funnel px-4 pb-3 sm:px-6 lg:px-8">
           <ol className="flex items-center gap-1.5 sm:gap-2">
             {steps.map((step, index) => {
               const done = index < current;
@@ -108,7 +108,7 @@ export default function FlowShell({
         </nav>
       </header>
 
-      <main className={cx('mx-auto px-4 py-8 sm:px-6', wide ? 'max-w-5xl' : 'max-w-3xl')}>
+      <main className={cx('mx-auto w-full px-4 py-8 sm:px-6 lg:px-8', wide ? 'max-w-content' : 'max-w-funnel')}>
         <div className="animate-fade-in">
           {eyebrow && (
             <p className="text-xs font-semibold uppercase tracking-wide text-neutral-600">
