@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "EnerOS — the AI energy manager for UK SMEs. Energy billing, bill auditing and optimisation console.",
+  "description": "EnerOS \u2014 the AI energy manager for UK SMEs. Energy billing, bill auditing and optimisation console.",
   "scripts": {
     "setup": "node scripts/setup.mjs",
     "dev": "next dev",
@@ -17,7 +17,8 @@
     "typecheck": "tsc --noEmit",
     "lint": "next lint",
     "verify:connector": "tsx scripts/verify-connector.ts",
-    "verify:theme": "tsx scripts/theme-check.tsx"
+    "verify:theme": "tsx scripts/theme-check.tsx",
+    "doctor": "node scripts/doctor.mjs"
   },
   "dependencies": {
     "@clerk/clerk-react": "^5.61.3",

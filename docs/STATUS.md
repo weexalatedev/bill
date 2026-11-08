@@ -276,3 +276,18 @@ logged for Phase 3.
 | Provider credentials | — | **deliberately not editable**: keys are validated at connect time; the safe action is remove + reconnect |
 
 Verified: build clean · theme 39/39 (the guard caught an `uppercase` I introduced in the postcode field) · smoke 24/24 · browser **8/8**: 12 edit actions, modal opens in edit mode, form prefilled, edit persists, edit reversed, business details load, save and confirm.
+
+---
+
+## 13. Getting the connector running (this increment)
+
+| Item | What it does |
+| --- | --- |
+| `npm run doctor` (`scripts/doctor.mjs`, new) | Preflight for all three processes: Node version, `.env`, `APP_API_TOKEN`, **Fernet key shape**, `backend/.venv`, the four Python imports, the connector's `/openapi.json`, **whether it accepts the token** (probes an authenticated route and distinguishes 401), and the Node API's `/api/health`. Every failure prints the exact command that fixes it. Blocking failures exit 1; missing services are warnings unless `-- --strict`. |
+| `docs/RUNNING_THE_CONNECTOR.md` (new) | Prerequisites, the one command (`npm run setup`), how to start (`dev:all` or three terminals), how to prove it (`doctor`, `verify:connector`, `/docs`), the env table, the request path, and an 11-row symptom → cause → fix table. Linked from `README.md` and `backend/README.md`. |
+
+**What the doctor proves here:** Node ✓, `.env` ✓, token ✓, Fernet key ✓, API ✓; `backend/.venv` ✗ and the
+connector unreachable — because this sandbox cannot reach PyPI. That is the honest state, and the doctor
+names the fix rather than pretending. `python3 -m compileall backend/app backend/tests` passes, so the
+connector source is syntactically sound; its behaviour stays **unverified** until the pytest suite runs
+where packages can be installed.
