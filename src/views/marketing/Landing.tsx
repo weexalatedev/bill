@@ -113,7 +113,7 @@ export default function Landing() {
         <div className="mt-16 text-center">
           {error && (
             <div className="rounded-xl border border-neutral-200 bg-white p-6 text-sm text-neutral-600">
-              We could not load live pricing just now. The plans start at £49 per site per month —
+              We could not load live pricing just now. The plans start at £29 per site per month —
               <Link href="/pricing" className="font-semibold text-ink-900 underline">try the pricing page</Link>.
             </div>
           )}
@@ -352,7 +352,7 @@ function Pricing({ catalogue, error }: { catalogue: PlansResponse | null; error:
         <div className="mt-8">
           {error && (
             <div className="rounded-xl border border-neutral-200 bg-white p-6 text-sm text-neutral-600">
-              We could not load live pricing just now. The plans start at £49 per site per month —
+              We could not load live pricing just now. The plans start at £29 per site per month —
               <Link href="/pricing" className="font-semibold text-ink-900 underline">try the pricing page</Link>.
             </div>
           )}

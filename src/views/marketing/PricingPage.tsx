@@ -37,7 +37,7 @@ export default function PricingPage() {
       <section className="mx-auto max-w-content px-4 py-12 sm:px-6 lg:px-8">
         {error && (
           <div className="rounded-xl border border-neutral-200 bg-white p-6 text-sm text-neutral-600">
-            Live pricing could not be loaded ({error}). Plans start at £49 per site per month.
+            Live pricing could not be loaded ({error}). Plans start at £29 per site per month.
           </div>
         )}
         {!error && !catalogue && (
