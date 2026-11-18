@@ -32,12 +32,14 @@ export interface CheckoutError {
 }
 
 /**
- * Create a Stripe Checkout Session for a monthly subscription at
- * `plan.pricePerSite` per site, with `sites` as the quantity.
+ * Create a Stripe Checkout Session for a subscription at the plan's per-site
+ * price, with `sites` as the quantity. Billing is monthly by default and flips
+ * to annual (interval `year`, unit `annualPricePerSite`) when requested.
  */
 export async function createCheckoutSession(options: {
   plan: Plan;
   sites: number;
+  billingPeriod?: 'monthly' | 'annual';
   ownerId: string;
   email?: string;
   /** Where the hosted checkout returns on success. */
@@ -53,6 +55,8 @@ export async function createCheckoutSession(options: {
     });
   }
 
+  const annual = options.billingPeriod === 'annual';
+  const unitAmountPence = (annual ? options.plan.annualPricePerSite ?? 0 : options.plan.pricePerSite) * 100;
   const quantity = Math.max(1, Math.round(options.sites));
   const body = new URLSearchParams();
   body.set('mode', 'subscription');
@@ -67,8 +71,8 @@ export async function createCheckoutSession(options: {
   if (options.email) body.set('customer_email', options.email);
   body.set('line_items[0][quantity]', String(quantity));
   body.set('line_items[0][price_data][currency]', 'gbp');
-  body.set('line_items[0][price_data][unit_amount]', String(options.plan.pricePerSite * 100));
-  body.set('line_items[0][price_data][recurring][interval]', 'month');
+  body.set('line_items[0][price_data][unit_amount]', String(Math.round(unitAmountPence)));
+  body.set('line_items[0][price_data][recurring][interval]', annual ? 'year' : 'month');
   body.set('line_items[0][price_data][product_data][name]', `EnerOS ${options.plan.name}`);
 
   const controller = new AbortController();

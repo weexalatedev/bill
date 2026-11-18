@@ -104,6 +104,10 @@ export interface Plan {
   tagline: string;
   features: string[];
   highlight?: boolean;
+  /** Annual price per site, in pounds. */
+  annualPricePerSite?: number;
+  /** The handful of features shown on the pricing card. */
+  keyFeatures?: string[];
   /** Sites included in the subscription (enforced server-side). */
   siteLimit?: number;
   /** Maximum number of connected devices the plan supports. */
@@ -243,8 +247,14 @@ export type SubscriptionStatus =
 /** A plan as published by `/api/plans` — the only source of pricing truth. */
 export interface PlanDefinition extends Plan {
   siteLimit: number;
+  /** Maximum number of connected devices the plan supports. */
+  deviceLimit: number;
+  /** The handful of features shown on the pricing card. */
+  keyFeatures: string[];
   restrictions: string[];
-  annualPricePerSite: number | null;
+  annualPricePerSite: number;
+  /** Whole-percentage saving of annual billing over monthly. */
+  annualSavingsPct?: number;
   active: boolean;
 }
 
@@ -293,6 +303,8 @@ export interface SubscriptionView {
   billingPeriod: BillingPeriod;
   siteLimit: number;
   siteLimitSource: string;
+  /** Maximum number of connected devices the plan supports. */
+  deviceLimit: number;
   sitesUsed: number;
   remainingSites: number;
   canAddSite: boolean;

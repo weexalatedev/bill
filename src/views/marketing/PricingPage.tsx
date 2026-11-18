@@ -63,7 +63,7 @@ export default function PricingPage() {
             {[
               'Check a bill free — no account, nothing stored.',
               'Create an account to save the audit.',
-              'Choose a plan and pay per site, per month.',
+              'Choose a plan and pay per site, monthly or annually.',
               'Your dashboard opens once the payment is verified.',
             ].map((line, index) => (
               <li key={line} className="rounded-lg border border-neutral-200 bg-white p-4">

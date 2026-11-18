@@ -29,6 +29,7 @@ const plan = {
   id: 'growth',
   name: 'Growth',
   pricePerSite: 149,
+  annualPricePerSite: 1490,
   tagline: 'x',
   features: [],
 } as unknown as Plan;
@@ -63,6 +64,12 @@ async function runCheckout(): Promise<void> {
   check('returns to the payment-status page', (params.get('success_url') ?? '').includes('/onboarding/payment-status'), params.get('success_url') ?? '');
   check('cancel path carries the cancelled state', (params.get('cancel_url') ?? '').includes('state=cancelled'), params.get('cancel_url') ?? '');
   check('never sends the secret in the body', !capturedBody.includes('sk_test_123'));
+
+  // Annual billing — same helper, yearly interval and annual per-site price.
+  await createCheckoutSession({ plan, sites: 5, billingPeriod: 'annual', ownerId: 'clerk:abc', email: 'a@b.com' });
+  const annualParams = new URLSearchParams(capturedBody);
+  check('annual bills the annual per-site price', annualParams.get('line_items[0][price_data][unit_amount]') === '149000', annualParams.get('line_items[0][price_data][unit_amount]') ?? '');
+  check('annual uses a yearly interval', annualParams.get('line_items[0][price_data][recurring][interval]') === 'year');
 
   // Stripe error path
   globalThis.fetch = (async () => ({

@@ -26,7 +26,6 @@ export default function SubscriptionStep() {
 
   const [catalogue, setCatalogue] = useState<PlansResponse | null>(null);
   const [catalogueError, setCatalogueError] = useState<string | null>(null);
-  const [billingPeriod, setBillingPeriod] = useState<BillingPeriod>('monthly');
   const [order, setOrder] = useState<OrderSummary | null>(null);
   const [busyPlan, setBusyPlan] = useState<string | null>(null);
   const [paying, setPaying] = useState(false);
@@ -45,13 +44,13 @@ export default function SubscriptionStep() {
       );
   }, []);
 
-  const choosePlan = async (planId: Plan['id']) => {
+  const choosePlan = async (planId: Plan['id'], period: BillingPeriod) => {
     setError(null);
     setBusyPlan(planId);
     try {
       const token = await getToken();
       if (!token) throw new Error('Please sign in again.');
-      const result = await api.selectPlan(token, planId, billingPeriod);
+      const result = await api.selectPlan(token, planId, period);
       setOrder(result.order);
       await refresh();
     } catch (err) {
@@ -71,7 +70,7 @@ export default function SubscriptionStep() {
       if (!token) throw new Error('Please sign in again.');
       const checkout = await api.startCheckout(token, {
         ...(order ? { planId: order.planId } : {}),
-        billingPeriod,
+        billingPeriod: order?.billingPeriod ?? 'monthly',
       });
       if (checkout.mode === 'stripe' && checkout.url) {
         window.location.href = checkout.url;
@@ -208,25 +207,6 @@ export default function SubscriptionStep() {
           </Card>
         )}
 
-        {catalogue && catalogue.annualBillingAvailable && (
-          <div className="flex justify-center gap-2">
-            {(['monthly', 'annual'] as BillingPeriod[]).map((period) => (
-              <button
-                key={period}
-                type="button"
-                onClick={() => setBillingPeriod(period)}
-                className={
-                  billingPeriod === period
-                    ? 'rounded-md bg-accent px-4 py-2 text-sm font-semibold text-white'
-                    : 'rounded-md border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700'
-                }
-              >
-                {period === 'monthly' ? 'Monthly' : 'Annual'}
-              </button>
-            ))}
-          </div>
-        )}
-
         {catalogueError && (
           <Card>
             <p className="text-sm font-semibold text-neutral-900">Plans could not be loaded</p>
@@ -250,7 +230,6 @@ export default function SubscriptionStep() {
         {catalogue && (
           <PlansGrid
             plans={catalogue.plans}
-            billingPeriod={billingPeriod}
             annualAvailable={catalogue.annualBillingAvailable}
             recommendedId={catalogue.recommendedPlanId}
             currentPlanId={subscription?.isActive ? subscription.planId : undefined}
@@ -259,7 +238,7 @@ export default function SubscriptionStep() {
             ctaLabel="Choose"
             footnote={
               catalogue.siteLimitSource === 'provisional'
-                ? 'Site caps per plan are provisional; the price is per site, per month, as defined in the README.'
+                ? 'Site caps per plan are provisional; the price is per site, monthly or annually.'
                 : undefined
             }
           />
