@@ -567,7 +567,7 @@ export const plans: Plan[] = [
   {
     id: 'starter',
     name: 'Starter',
-    pricePerSite: 49,
+    pricePerSite: 29,
     tagline: 'Find and fix what you are wasting.',
     features: [
       'Bill auditing and error detection',
@@ -580,7 +580,7 @@ export const plans: Plan[] = [
   {
     id: 'growth',
     name: 'Growth',
-    pricePerSite: 149,
+    pricePerSite: 99,
     tagline: 'Continuously reduce what you spend.',
     highlight: true,
     features: [
@@ -595,7 +595,7 @@ export const plans: Plan[] = [
   {
     id: 'autonomous',
     name: 'Autonomous',
-    pricePerSite: 249,
+    pricePerSite: 199,
     tagline: 'Let EnerOS run the eligible assets for you.',
     features: [
       'Everything in Growth',

@@ -183,7 +183,7 @@ export default function BillCheckFlow() {
               </p>
               <p className="mt-1.5 max-w-2xl text-xs leading-relaxed text-neutral-300">
                 EnerOS stores this audit against your site, re-checks every future bill against the
-                same UK reference rate, and verifies the money you recover — from £49 per site per
+                same UK reference rate, and verifies the money you recover — from £29 per site per
                 month.
               </p>
               <div className="mt-4 flex flex-wrap gap-2">

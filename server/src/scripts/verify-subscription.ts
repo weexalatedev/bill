@@ -140,8 +140,8 @@ console.log('\n1. Public plan catalogue');
     plans.map((p) => p.id).join(',') === 'starter,growth,autonomous',
   );
   check(
-    'prices match README (£49/£149/£249)',
-    plans.map((p) => p.pricePerSite).join(',') === '49,149,249',
+    'prices match README (£29/£99/£199)',
+    plans.map((p) => p.pricePerSite).join(',') === '29,99,199',
   );
   check(
     'site caps come from the catalogue',
@@ -191,8 +191,8 @@ console.log('\n3. Select a plan — pending, not active');
   const order = res.body.order as Record<string, number>;
   const sub = res.body.subscription as Record<string, unknown>;
   check('selection returns an order summary', res.status === 200);
-  check('order bills per site, per month', order.pricePerSite === 149 && order.subtotal === 149);
-  check('order adds VAT at 20%', order.vat === 29.8 && order.total === 178.8);
+  check('order bills per site, per month', order.pricePerSite === 99 && order.subtotal === 99);
+  check('order adds VAT at 20%', order.vat === 19.8 && order.total === 118.8);
   check('selection is pending', sub.status === 'pending');
   check('selection does not activate', sub.isActive === false);
   check('plan capacity is staged but unusable', sub.canAddSite === false);
@@ -215,7 +215,7 @@ let aliceSiteIds: string[] = [];
   const payment = checkout.body.payment as { id: string; status: string; amountPence: number };
   check('checkout creates a pending payment', checkout.status === 200 && payment.status === 'pending');
   check('test-mode checkout is labelled', checkout.body.mode === 'dev' && Boolean(checkout.body.note));
-  check('amount charged matches the order (incl. VAT)', payment.amountPence === 17880, String(payment.amountPence));
+  check('amount charged matches the order (incl. VAT)', payment.amountPence === 11880, String(payment.amountPence));
 
   const stillLocked = await call('GET', '/api/workspace', { token: alice.token });
   check('dashboard still locked while payment is pending', stillLocked.status === 402, String(stillLocked.status));
@@ -273,7 +273,7 @@ console.log('\n5. Site cap on the paid plan');
 }
 
 // ── 6. Concurrency: parallel adds cannot exceed the cap ──────────────────────
-console.log('\n6. Concurrent site creation on a 3-site plan');
+console.log('\n6. Concurrent site creation on a 1-site plan');
 const bob = await registerUser('bob');
 {
   await subscribe(bob.token, 'starter');
@@ -284,9 +284,9 @@ const bob = await registerUser('bob');
   );
   const created = attempts.filter((r) => r.status === 201).length;
   const blocked = attempts.filter((r) => r.status === 403).length;
-  check('exactly the plan cap succeeds', created === 3, `created=${created}`);
-  check('the rest are rejected', blocked === 5, `blocked=${blocked}`);
-  check('stored sites match the cap', (await SiteModel.countDocuments({ ownerId: `user:${bob.email}` })) === 3);
+  check('exactly the plan cap succeeds', created === 1, `created=${created}`);
+  check('the rest are rejected', blocked === 7, `blocked=${blocked}`);
+  check('stored sites match the cap', (await SiteModel.countDocuments({ ownerId: `user:${bob.email}` })) === 1);
 }
 
 // ── 7. Failed and cancelled payments unlock nothing ─────────────────────────
@@ -389,11 +389,11 @@ console.log('\n9. Upgrade / downgrade');
   check('the pending change is visible', (staged.pendingChange as { planId: string }).planId === 'autonomous');
 
   const upgraded = await subscribe(alice.token, 'autonomous');
-  check('upgrade activates after payment', upgraded.planId === 'autonomous' && upgraded.siteLimit === 25);
+  check('upgrade activates after payment', upgraded.planId === 'autonomous' && upgraded.siteLimit === 10);
   check('upgrade keeps the existing sites', upgraded.sitesUsed === 10);
 
   const downgraded = await subscribe(alice.token, 'starter');
-  check('downgrade activates after payment', downgraded.planId === 'starter' && downgraded.siteLimit === 3);
+  check('downgrade activates after payment', downgraded.planId === 'starter' && downgraded.siteLimit === 1);
   check('downgrade keeps every site (no silent deletion)',
     (await SiteModel.countDocuments({ ownerId: `user:${alice.email}` })) === 10);
   check('over-cap after downgrade blocks new sites', downgraded.canAddSite === false);
@@ -412,7 +412,7 @@ console.log('\n10. Expiry');
   check('an elapsed period resolves to expired', sub.status === 'expired' && sub.isActive === false);
   const locked = await call('GET', '/api/workspace', { token: bob.token });
   check('expired subscriptions lose dashboard access', locked.status === 402);
-  check('sites survive expiry', (await SiteModel.countDocuments({ ownerId })) === 3);
+  check('sites survive expiry', (await SiteModel.countDocuments({ ownerId })) === 1);
 
   const renewed = await subscribe(bob.token, 'starter');
   check('renewal works from expired', renewed.isActive === true && renewed.planId === 'starter');
@@ -450,7 +450,7 @@ console.log('\n12. Payment history');
   const payments = (await call('GET', '/api/subscription/payments', { token: alice.token })).body
     .payments as { status: string; amountPence: number; planId: string }[];
   check('history lists every attempt', payments.length >= 3, String(payments.length));
-  check('history records the verified amount', payments.some((p) => p.status === 'succeeded' && p.amountPence === 58800));
+  check('history records the verified amount', payments.some((p) => p.status === 'succeeded' && p.amountPence === 34800));
   check('history is newest first', payments[0].status === 'succeeded' && payments[0].planId === 'starter');
 }
 

@@ -1,11 +1,10 @@
 'use client';
-
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Calculator, Check, CreditCard, Percent, ShieldCheck } from 'lucide-react';
 import { useApp } from '../store';
 import { Badge, Card, SectionHeading, StatCard } from '../components/ui';
-import { gbp, inr } from '../lib/format';
+import { gbp } from '../lib/format';
 
 export default function Plans() {
   const { plans, account, sites, metrics } = useApp();
@@ -14,7 +13,22 @@ export default function Plans() {
 
   const currentPlan = plans.find((p) => p.id === account.planId) ?? plans[0];
   const siteCount = sites.length;
+  const monthlySub = siteCount * currentPlan.pricePerSite;
+  const annualSub = monthlySub * 12;
+  const annualSavings = Math.round(metrics.savings * 12);
+  const flexibilityGross = 60000;
+  const flexibilityShare = Math.round((flexibilityGross * account.flexibilitySharePct) / 100);
 
+  const [verifiedSavings, setVerifiedSavings] = useState<number>(annualSavings);
+  const performanceFee = Math.round((verifiedSavings * account.performanceFeePct) / 100);
+  const totalEnerOSFee = annualSub + performanceFee + flexibilityShare;
+  const customerRetains = verifiedSavings - performanceFee + flexibilityShare;
+
+  /**
+   * Plan changes go through the same order-summary + payment flow as sign-up:
+   * nothing here may activate a plan directly, because activation is a server
+   * decision made only after a verified payment.
+   */
   const choosePlan = (planId: string) => {
     setBusyPlan(planId);
     router.push(`/onboarding/subscription?plan=${planId}`);
@@ -28,14 +42,14 @@ export default function Plans() {
           value={currentPlan.name}
           icon={<CreditCard className="h-5 w-5" />}
           tone="muted"
-          sub={`${inr(currentPlan.monthlyPrice)}/month · ${currentPlan.deviceLimit} devices max`}
+          sub={`${gbp(currentPlan.pricePerSite)}/site/month`}
         />
         <StatCard
           label="Subscription"
-          value={`${siteCount} sites included`}
+          value={`${gbp(monthlySub)}/mo`}
           icon={<CreditCard className="h-5 w-5" />}
           tone="muted"
-          sub={`£${metrics.savings} verified annual saving potential`}
+          sub={`${siteCount} sites · ${gbp(annualSub)}/yr`}
         />
         <StatCard
           label="Performance fee"
@@ -61,7 +75,7 @@ export default function Plans() {
               key={plan.id}
               className={
                 'relative flex flex-col ' +
-                  (plan.highlight ? 'ring-2 ring-ink-900 bg-raised' : 'border border-neutral-200 bg-white')
+                (plan.highlight ? 'ring-2 ring-ink-900' : '')
               }
             >
               {plan.highlight && (
@@ -77,23 +91,18 @@ export default function Plans() {
                 {isCurrent && <Badge tone="solid">Current</Badge>}
               </div>
 
-              <div className="mt-4 flex items-baseline gap-1.5">
-                <span className="text-2xl font-semibold tabular-nums text-neutral-900">
-                  {inr(plan.pricePerSite)}/mo
+              <p className="mt-4 flex items-baseline gap-1">
+                <span className="text-3xl font-semibold tracking-tight text-neutral-900">
+                  {gbp(plan.pricePerSite)}
                 </span>
-                <span className="text-xs text-neutral-500 /mo">
-                  {plan.siteLimit} sites · {plan.deviceLimit} devices max
-                </span>
-              </div>
+                <span className="text-sm text-neutral-600">/site/month</span>
+              </p>
 
-              <ul className="mt-4 space-y-2.5 text-sm text-neutral-600">
+              <ul className="mt-4 flex-1 space-y-2.5">
                 {plan.features.map((feature) => (
-                  <li key={feature} className="flex items-start gap-2">
-                    <Check
-                      className="mt-0.5 h-3.5 w-3.5 shrink-0 text-ink-900"
-                      strokeWidth={3}
-                    />
-                    <span>{feature}</span>
+                  <li key={feature} className="flex items-start gap-2 text-sm text-neutral-600">
+                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-neutral-600" />
+                    {feature}
                   </li>
                 ))}
               </ul>
@@ -106,14 +115,10 @@ export default function Plans() {
                   'mt-5 w-full rounded-md px-4 py-2.5 text-sm font-semibold transition-colors ' +
                   (isCurrent
                     ? 'cursor-default bg-neutral-100 text-neutral-600'
-                    : 'bg-ink-900 text-white hover:bg-neutral-800')
+                    : 'bg-neutral-900 text-white hover:bg-neutral-800')
                 }
               >
-                {isCurrent
-                  ? 'Your current plan'
-                  : busyPlan === plan.id
-                    ? 'Starting…'
-                    : `Move to ${plan.name}`}
+                {isCurrent ? 'Your current plan' : busyPlan === plan.id ? 'Starting…' : `Move to ${plan.name}`}
               </button>
             </Card>
           );
@@ -134,49 +139,68 @@ export default function Plans() {
             <span className="text-sm font-semibold text-neutral-600">£</span>
             <input
               type="number"
-              value={metrics.savings}
-              onChange={(e) => /* store not exposed, skip setState */}
+              value={verifiedSavings}
+              onChange={(e) => setVerifiedSavings(Number(e.target.value) || 0)}
               className="w-full bg-transparent text-sm font-semibold text-neutral-800 focus:outline-none"
             />
           </div>
-          <p className="mt-2 text-xs text-neutral-600">
-            That is {(1 - account.performanceFeePct / 100) * 100}% of verified savings kept by the customer — EnerOS earns more only when the customer saves more.
+          <input
+            type="range"
+            min={0}
+            max={Math.max(400000, annualSavings * 2)}
+            step={1000}
+            value={verifiedSavings}
+            onChange={(e) => setVerifiedSavings(Number(e.target.value))}
+            className="mt-4 w-full accent-neutral-600"
+          />
+          <div className="mt-1 flex justify-between text-[11px] text-neutral-600">
+            <span>£0</span>
+            <span>£{Math.round(Math.max(400000, annualSavings * 2) / 1000)}k</span>
+          </div>
+
+          <div className="mt-5 grid grid-cols-2 gap-3">
+            <div className="rounded-lg bg-neutral-50 p-3">
+              <p className="text-xs font-medium text-neutral-600">
+                EnerOS fee ({account.performanceFeePct}%)
+              </p>
+              <p className="mt-1 text-xl font-semibold text-neutral-700">{gbp(performanceFee)}</p>
+            </div>
+            <div className="rounded-lg bg-neutral-50 p-3">
+              <p className="text-xs font-medium text-neutral-600">You retain</p>
+              <p className="mt-1 text-xl font-semibold text-neutral-700">
+                {gbp(verifiedSavings - performanceFee)}
+              </p>
+            </div>
+          </div>
+          <p className="mt-3 text-xs text-neutral-600">
+            That is {((1 - account.performanceFeePct / 100) * 100).toFixed(0)}% of verified savings
+            kept by the customer — EnerOS earns more only when the customer saves more.
           </p>
         </Card>
 
         <Card>
           <SectionHeading
             title="Annual value summary"
-            subtitle={`${account.name} · ${siteCount} sites on the ${currentPlan.name} plan`}
+            subtitle={`${account.name} · ${siteCount} sites on the ${currentPlan.name} plan.`}
           />
           <dl className="space-y-2.5 text-sm">
             <div className="flex items-center justify-between">
-              <dt className="text-neutral-600">Subscription</dt>
-              <dd className="font-semibold text-neutral-900">
-                {inr(currentPlan.pricePerSite)}/mo · {siteCount} sites included
-              </dd>
+              <dt className="text-neutral-600">Subscription ({siteCount} × {gbp(currentPlan.pricePerSite)} × 12)</dt>
+              <dd className="font-semibold text-neutral-900">{gbp(annualSub)}</dd>
             </div>
             <div className="flex items-center justify-between">
-              <dt className="text-neutral-600">
-                Performance fee ({account.performanceFeePct}%)
-              </dt>
-              <dd className="font-semibold text-neutral-900">
-                {gbp(metrics.performanceFeePct > 0 ? metrics.savings * account.performanceFeePct / 100 : 0)}
-              </dd>
+              <dt className="text-neutral-600">Performance fee ({account.performanceFeePct}%)</dt>
+              <dd className="font-semibold text-neutral-900">{gbp(performanceFee)}</dd>
             </div>
             <div className="flex items-center justify-between">
               <dt className="text-neutral-600">
                 Flexibility revenue ({account.flexibilitySharePct}% share)
               </dt>
-              <dd className="font-semibold text-neutral-900">
-                {gbp(metrics.flexibilitySharePct > 0 ? 6000 : 0)}
-              </dd>
+              <dd className="font-semibold text-neutral-900">{gbp(flexibilityShare)}</dd>
             </div>
             <div className="flex items-center justify-between border-t border-neutral-200 pt-3">
               <dt className="font-semibold text-neutral-700">Total EnerOS cost / year</dt>
-              <dd className="text-lg font-semibold text-neutral-900">
-                {gbp(metrics.totalEnerOSFee)}
-              </dd>
+              <dd className="text-lg font-semibold text-neutral-900">{gbp(totalEnerOSFee)}</dd>
             </div>
           </dl>
 
@@ -185,14 +209,11 @@ export default function Plans() {
               Customer outcome
             </p>
             <p className="mt-1 text-sm text-neutral-300">
-              Verified savings plus flexibility revenue, net of fees.
+              Verified savings of {gbp(verifiedSavings)} plus flexibility revenue of{' '}
+              {gbp(flexibilityShare)}, net of fees.
             </p>
-            <p className="mt-2 text-2xl font-semibold text-white">
-              {gbp(metrics.customerRetains)}
-            </p>
-            <p className="text-xs text-neutral-600">
-              net annual benefit retained by the customer
-            </p>
+            <p className="mt-2 text-2xl font-semibold text-white">{gbp(customerRetains)}</p>
+            <p className="text-xs text-neutral-600">net annual benefit retained by the customer</p>
           </div>
         </Card>
       </div>
@@ -200,7 +221,7 @@ export default function Plans() {
       <Card className="bg-white">
         <SectionHeading
           title="Illustrative business case"
-          subtitle="This is the shape of deal EnerOS is selling — a quantified outcome, not 'AI software.'"
+          subtitle="This is the shape of deal EnerOS is selling — a quantified outcome, not “AI software”."
           action={<Badge tone="solid">35-site restaurant group</Badge>}
         />
         <div className="grid gap-4 sm:grid-cols-4">
