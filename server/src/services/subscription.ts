@@ -77,6 +77,8 @@ export interface SubscriptionView {
   billingPeriod: BillingPeriod;
   siteLimit: number;
   siteLimitSource: string;
+  /** Maximum number of connected devices the plan supports. */
+  deviceLimit: number;
   sitesUsed: number;
   remainingSites: number;
   canAddSite: boolean;
@@ -97,6 +99,7 @@ interface AccountRow {
   sites?: number;
   siteLimit?: number;
   siteLimitSource?: string;
+  deviceLimit?: number;
   subscriptionStatus?: string;
   billingPeriod?: string;
   currentPeriodStart?: string;
@@ -244,6 +247,7 @@ export async function resolveSubscription(ownerId: string): Promise<Subscription
 
   const plan = planById(account.planId);
   const siteLimit = typeof account.siteLimit === 'number' ? account.siteLimit : plan.siteLimit;
+  const deviceLimit = typeof account.deviceLimit === 'number' ? account.deviceLimit : plan.deviceLimit;
   const billingPeriod = asPeriod(account.billingPeriod);
 
   const latest = (await PaymentModel.findOne({ ownerId })
@@ -264,6 +268,7 @@ export async function resolveSubscription(ownerId: string): Promise<Subscription
     billingPeriod,
     siteLimit,
     siteLimitSource: account.siteLimitSource ?? SITE_LIMIT_PROVENANCE,
+    deviceLimit,
     sitesUsed,
     remainingSites: Math.max(0, siteLimit - usedSlots),
     canAddSite: isActive && usedSlots < siteLimit,
@@ -330,6 +335,7 @@ export async function selectPlan(
           billingPeriod,
           siteLimit: plan.siteLimit,
           siteLimitSource: SITE_LIMIT_PROVENANCE,
+          deviceLimit: plan.deviceLimit,
           subscriptionStatus: 'pending',
           pendingPlanId: null,
           pendingBillingPeriod: null,
@@ -419,6 +425,7 @@ export async function startCheckout(
     const session = await createCheckoutSession({
       plan,
       sites: order.sites,
+      billingPeriod: period,
       ownerId,
       email: options.email,
       successUrl: `${options.baseUrl}/onboarding/payment-status?payment=${paymentId}`,
@@ -464,6 +471,7 @@ async function activateSubscription(
         billingPeriod: opts.billingPeriod,
         siteLimit: plan.siteLimit,
         siteLimitSource: SITE_LIMIT_PROVENANCE,
+        deviceLimit: plan.deviceLimit,
         currentPeriodStart: start.toISOString(),
         currentPeriodEnd: end.toISOString(),
         cancelAtPeriodEnd: false,

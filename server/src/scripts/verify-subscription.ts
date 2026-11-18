@@ -112,10 +112,11 @@ async function subscribe(
   token: string,
   planId: string,
   action: 'confirm' | 'fail' | 'cancel' = 'confirm',
+  billingPeriod: 'monthly' | 'annual' = 'monthly',
 ): Promise<Record<string, unknown>> {
   const selected = await call('POST', '/api/subscription/select', {
     token,
-    body: { planId, billingPeriod: 'monthly' },
+    body: { planId, billingPeriod },
   });
   assert.equal(selected.status, 200, `select ${planId} → ${selected.status}`);
   const checkout = await call('POST', '/api/subscription/checkout', { token, body: {} });
@@ -147,7 +148,21 @@ console.log('\n1. Public plan catalogue');
     'site caps come from the catalogue',
     plans.every((p) => typeof p.siteLimit === 'number' && p.siteLimit > 0),
   );
-  check('annual billing reported as unavailable (not invented)', res.body.annualBillingAvailable === false);
+  check('annual billing is available', res.body.annualBillingAvailable === true);
+  const planDefs = res.body.plans as {
+    annualPricePerSite: number;
+    annualSavingsPct: number;
+    deviceLimit: number;
+  }[];
+  check(
+    'annual per-site prices match (£329/£999/£1999)',
+    planDefs.map((p) => p.annualPricePerSite).join(',') === '329,999,1999',
+  );
+  check(
+    'annual savings are computed per plan',
+    planDefs.every((p) => typeof p.annualSavingsPct === 'number' && p.annualSavingsPct > 0),
+  );
+  check('device limits come from the catalogue', planDefs.map((p) => p.deviceLimit).join(',') === '2,5,7');
   check('the recommended plan is explicit', res.body.recommendedPlanId === 'growth');
   check('site caps are labelled provisional', res.body.siteLimitSource === 'provisional');
 }
@@ -204,7 +219,23 @@ console.log('\n3. Select a plan — pending, not active');
     token: alice.token,
     body: { planId: 'growth', billingPeriod: 'annual' },
   });
-  check('annual billing is refused, not invented', annual.status === 400, String(annual.status));
+  const annualOrder = annual.body.order as {
+    subtotal: number;
+    vat: number;
+    total: number;
+    billingPeriod: string;
+  };
+  check(
+    'annual billing uses the catalogue price',
+    annual.status === 200 && annualOrder.subtotal === 999 && annualOrder.billingPeriod === 'annual',
+  );
+  check('annual VAT totals correctly', annualOrder.vat === 199.8 && annualOrder.total === 1198.8);
+
+  // Restore monthly so the payment flow below bills monthly.
+  await call('POST', '/api/subscription/select', {
+    token: alice.token,
+    body: { planId: 'growth', billingPeriod: 'monthly' },
+  });
 }
 
 // ── 4. Verified payment unlocks the dashboard ────────────────────────────────
@@ -227,6 +258,8 @@ let aliceSiteIds: string[] = [];
   const sub = confirmed.body.subscription as Record<string, unknown>;
   check('confirmation activates the subscription', sub.status === 'active' && sub.isActive === true);
   check('plan is recorded', sub.planId === 'growth');
+  check('billing period is monthly', sub.billingPeriod === 'monthly');
+  check('device limit copied from the plan', sub.deviceLimit === 5);
   check('renewal date is one month ahead', (() => {
     const end = new Date(String(sub.currentPeriodEnd)).getTime();
     const days = (end - Date.now()) / 86_400_000;
@@ -399,6 +432,20 @@ console.log('\n9. Upgrade / downgrade');
   check('over-cap after downgrade blocks new sites', downgraded.canAddSite === false);
   const blocked = await call('POST', '/api/workspace/sites', { token: alice.token, body: site('After downgrade') });
   check('the API refuses to add while over cap', blocked.status === 403);
+}
+
+// ── 9b. Annual billing ────────────────────────────────────────────────────────
+console.log('\n9b. Annual billing');
+{
+  const grace = await registerUser('grace');
+  await subscribe(grace.token, 'growth', 'confirm', 'annual');
+  const annualSub = (await call('GET', '/api/subscription/status', { token: grace.token })).body
+    .subscription as Record<string, unknown>;
+  check('annual billing period is recorded', annualSub.billingPeriod === 'annual');
+  check('device limit copied from the catalogue', annualSub.deviceLimit === 5);
+  const periodEnd = String(annualSub.currentPeriodEnd ?? '');
+  const days = (new Date(periodEnd).getTime() - Date.now()) / 86_400_000;
+  check('annual grants about a year of access', days > 340 && days < 380, String(days));
 }
 
 // ── 10. Expiry ──────────────────────────────────────────────────────────────

@@ -18,11 +18,24 @@ import { PLAN_CATALOG } from './plans.js';
  * payload carries so the existing console keeps working unchanged.
  */
 export const PLANS: Plan[] = PLAN_CATALOG.map(
-  ({ id, name, pricePerSite, tagline, features, highlight, siteLimit, deviceLimit }) => ({
+  ({
     id,
     name,
     pricePerSite,
+    annualPricePerSite,
     tagline,
+    keyFeatures,
+    features,
+    highlight,
+    siteLimit,
+    deviceLimit,
+  }) => ({
+    id,
+    name,
+    pricePerSite,
+    annualPricePerSite,
+    tagline,
+    keyFeatures,
     features,
     siteLimit,
     deviceLimit,

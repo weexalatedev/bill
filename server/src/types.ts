@@ -111,6 +111,10 @@ export interface Plan {
   tagline: string;
   features: string[];
   highlight?: boolean;
+  /** Annual price per site, in pounds. */
+  annualPricePerSite?: number;
+  /** The handful of features shown on the pricing card. */
+  keyFeatures?: string[];
   /** Sites included in the subscription (enforced server-side). */
   siteLimit?: number;
   /** Maximum number of connected devices the plan supports. */

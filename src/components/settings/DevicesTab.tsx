@@ -34,6 +34,8 @@ interface Props {
   homeId: string;
   devices: Device[];
   statuses: Record<string, DeviceStatusRow>;
+  /** Plan-based device capacity caption, e.g. "Growth plan · up to 5 devices". */
+  deviceNote?: string;
   /** Cheap reload: settings + device list, no provider calls. */
   onReload: () => Promise<void>;
   /** The Refresh button: probes every provider. */
@@ -46,6 +48,7 @@ export default function DevicesTab({
   homeId,
   devices,
   statuses,
+  deviceNote,
   onReload,
   onRefresh,
   onOpenRatePlan,
@@ -100,6 +103,11 @@ export default function DevicesTab({
             use its readings. Keys are encrypted by the connector service and never reach this
             browser.
           </p>
+          {deviceNote && (
+            <p className="mt-1.5 text-xs font-medium text-neutral-500">
+              {deviceNote} · {devices.length} connected on this site
+            </p>
+          )}
         </div>
         <button
           type="button"

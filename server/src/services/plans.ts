@@ -4,20 +4,17 @@
  * feature list; the API serves this file and every client renders it.
  *
  * ── Where this comes from ────────────────────────────────────────────────────
- * README.md §"Feature overview" → "Plans & Billing":
- *   "Starter £29 / Growth £99 / Autonomous £199 per site/month, an interactive
- *    performance-fee calculator (15% of verified savings), flexibility revenue
- *    share, annual value summary and the plan's worked business case."
+ * The commercial plan fixed by the founder:
+ *   House        (Starter)    £29 /site/month  · £329 /site/year
+ *   Medium scale (Growth)     £99 /site/month  · £999 /site/year
+ *   Large scale  (Autonomous) £199 /site/month · £1,999 /site/year
  *
- * So the README fixes the names, the three prices and the billing frequency
- * (per site, per month). Feature copy is the shipped feature set.
+ * Both billing periods are defined, so annual billing is available and the
+ * pricing UI shows the annual saving against paying monthly (see
+ * `annualSavingsPct`). Feature copy is the shipped feature set.
  *
- * ── What the README does NOT define (and is therefore marked, not invented) ──
- *  • ANNUAL PRICING — the README only prices per site per **month**. There is no
- *    annual price, so `annualPricePerSite` is `null` and the API reports
- *    `annualBillingAvailable: false`. Today the product is monthly-only; add a
- *    number here (and nothing else) when the commercial team publishes one.
- *  • SITE CAPS — the README prices *per site* and does not cap sites per plan.
+ * ── What is marked, not invented ─────────────────────────────────────────────
+ *  • SITE CAPS — the founder prices *per site* and does not cap sites per plan.
  *    The caps below are therefore PROVISIONAL commercial assumptions, marked
  *    with `SITE_LIMIT_PROVENANCE` and surfaced as such in the API payload, so
  *    the enforcement layer can be switched to the real numbers in one edit.
@@ -31,11 +28,11 @@ export const PLAN_IDS: readonly PlanId[] = ['starter', 'growth', 'autonomous'] a
 
 export const BILLING_PERIODS: readonly BillingPeriod[] = ['monthly', 'annual'] as const;
 
-/** `provisional` = not specified by the README; see the file header. */
+/** `provisional` = not specified by the founder plan; see the file header. */
 export const SITE_LIMIT_PROVENANCE = 'provisional' as const;
 
-/** `null` = the README defines no annual price, so annual billing is off. */
-export const ANNUAL_BILLING_AVAILABLE = false;
+/** Annual prices are defined for every plan, so annual billing is on. */
+export const ANNUAL_BILLING_AVAILABLE = true;
 
 export interface PlanDefinition extends Plan {
   id: PlanId;
@@ -43,10 +40,12 @@ export interface PlanDefinition extends Plan {
   siteLimit: number;
   /** Maximum number of connected devices (EVs, batteries, heat pumps) the plan supports. */
   deviceLimit: number;
+  /** The handful of features shown on the pricing card; full list is `features`. */
+  keyFeatures: string[];
   /** What the plan deliberately does not include. */
   restrictions: string[];
-  /** Annual price per site. `null` until the README/business defines one. */
-  annualPricePerSite: number | null;
+  /** Annual price per site, in pounds. */
+  annualPricePerSite: number;
   /** Plans stay listed but cannot be bought when inactive. */
   active: boolean;
 }
@@ -56,10 +55,15 @@ export const PLAN_CATALOG: readonly PlanDefinition[] = [
     id: 'starter',
     name: 'Starter',
     pricePerSite: 29,
-    annualPricePerSite: null,
+    annualPricePerSite: 329,
     siteLimit: 1,
     deviceLimit: 2,
     tagline: 'Find and fix what you are wasting.',
+    keyFeatures: [
+      'Bill auditing and error detection',
+      'Live monitoring dashboard',
+      'AI energy assistant (Copilot)',
+    ],
     features: [
       'Bill auditing and error detection',
       'Live monitoring dashboard',
@@ -78,11 +82,17 @@ export const PLAN_CATALOG: readonly PlanDefinition[] = [
     id: 'growth',
     name: 'Growth',
     pricePerSite: 99,
-    annualPricePerSite: null,
+    annualPricePerSite: 999,
     siteLimit: 10,
     deviceLimit: 5,
     tagline: 'Continuously reduce what you spend.',
     highlight: true,
+    keyFeatures: [
+      'Everything in Starter',
+      'Half-hourly consumption analysis',
+      'Verified savings reports',
+      'Multi-site management',
+    ],
     features: [
       'Everything in Starter',
       'Half-hourly consumption analysis',
@@ -98,10 +108,16 @@ export const PLAN_CATALOG: readonly PlanDefinition[] = [
     id: 'autonomous',
     name: 'Autonomous',
     pricePerSite: 199,
-    annualPricePerSite: null,
+    annualPricePerSite: 1999,
     siteLimit: 10,
     deviceLimit: 7,
     tagline: 'Let EnerOS run the eligible assets for you.',
+    keyFeatures: [
+      'Everything in Growth',
+      'Automated EV charger control (with approval)',
+      'Battery optimisation',
+      'Flexibility market participation',
+    ],
     features: [
       'Everything in Growth',
       'Automated EV charger control (with approval)',
@@ -164,10 +180,16 @@ export function planError(message: string): Error & { code: 'plan' } {
   return Object.assign(new Error(message), { code: 'plan' as const });
 }
 
+/** Whole-percentage saving of annual billing over paying monthly, 0 when it would not save. */
+export function annualSavingsPct(plan: Pick<PlanDefinition, 'pricePerSite' | 'annualPricePerSite'>): number {
+  const monthlyYearly = plan.pricePerSite * 12;
+  if (monthlyYearly <= 0 || plan.annualPricePerSite >= monthlyYearly) return 0;
+  return Math.round((1 - plan.annualPricePerSite / monthlyYearly) * 100);
+}
+
 /**
- * Price a subscription order. `monthly` bills one month; `annual` is rejected
- * while the catalogue has no annual price, so the UI can never show a number
- * the business has not defined.
+ * Price a subscription order. `monthly` bills one month at `pricePerSite ÷ 1`;
+ * `annual` bills a year at `annualPricePerSite` per site.
  */
 export function priceOrder(
   planId: string,
@@ -177,18 +199,13 @@ export function priceOrder(
   const plan = planById(planId);
   if (!plan.active) throw planError('That plan is not available.');
   if (!isBillingPeriod(billingPeriod)) throw planError('Choose a billing period.');
-  if (billingPeriod === 'annual' && plan.annualPricePerSite === null) {
-    throw planError(
-      'Annual billing is not defined for this plan — EnerOS is priced per site, per month.',
-    );
-  }
+
   // Bill for the sites the customer actually has (minimum 1). The plan's cap
   // limits how many sites they may *add*; it must not silently under-bill an
   // account that is temporarily over the cap after a downgrade.
   const quantity = Math.max(1, Math.round(sites) || 1);
-  const monthly = quantity * plan.pricePerSite;
-  const subtotal =
-    billingPeriod === 'annual' ? quantity * (plan.annualPricePerSite ?? 0) : monthly;
+  const perSite = billingPeriod === 'annual' ? plan.annualPricePerSite : plan.pricePerSite;
+  const subtotal = round2(quantity * perSite);
   const vat = round2(subtotal * 0.2);
   const total = round2(subtotal + vat);
   const periodLabel = billingPeriod === 'annual' ? 'year' : 'month';
@@ -205,7 +222,7 @@ export function priceOrder(
     totalPence: Math.round(total * 100),
     lines: [
       {
-        label: `${plan.name} — ${quantity} site${quantity > 1 ? 's' : ''} × £${plan.pricePerSite}/site/${periodLabel}`,
+        label: `${plan.name} — ${quantity} site${quantity > 1 ? 's' : ''} × £${perSite}/site/${periodLabel}`,
         amount: subtotal,
       },
       { label: 'VAT (20%)', amount: vat },
@@ -217,4 +234,12 @@ export function priceOrder(
 export function monthlyRunRate(planId: string, sites: number): number {
   const plan = planById(planId);
   return round2(Math.max(1, Math.round(sites) || 1) * plan.pricePerSite);
+}
+
+/** The per-period recurring amount for a plan and site count, before VAT. */
+export function recurringAmount(planId: string, sites: number, billingPeriod: BillingPeriod): number {
+  const plan = planById(planId);
+  const quantity = Math.max(1, Math.round(sites) || 1);
+  const perSite = billingPeriod === 'annual' ? plan.annualPricePerSite : plan.pricePerSite;
+  return round2(quantity * perSite);
 }

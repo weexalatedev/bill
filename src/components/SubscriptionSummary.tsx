@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import { ArrowRight, Building2, CreditCard } from 'lucide-react';
+import { ArrowRight, Building2, CreditCard, PlugZap } from 'lucide-react';
 import { Badge, Card, ProgressBar } from './ui';
 import { gbp } from '../lib/format';
 import { renewalLabel, useSubscription } from '../lib/subscription';
@@ -58,6 +58,13 @@ export default function SubscriptionSummary() {
       </div>
       <div className="mt-2">
         <ProgressBar value={pct} />
+      </div>
+
+      <div className="mt-3 flex items-center gap-2">
+        <PlugZap className="h-3.5 w-3.5 text-neutral-600" />
+        <p className="text-xs font-medium text-neutral-700">
+          Devices: up to {subscription.deviceLimit} connected across all sites
+        </p>
       </div>
 
       {atCap && (

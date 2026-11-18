@@ -66,9 +66,11 @@ subscriptionRouter.post('/checkout', requireUser, async (req: AuthedRequest, res
       res.status(400).json({ error: 'Choose a valid plan.' });
       return;
     }
+    const billingPeriod =
+      body.billingPeriod === 'annual' ? 'annual' : body.billingPeriod === 'monthly' ? 'monthly' : undefined;
     const result = await startCheckout(req.ownerId!, {
       planId: body.planId,
-      billingPeriod: body.billingPeriod === 'annual' ? 'annual' : 'monthly',
+      billingPeriod,
       email: req.userEmail,
       baseUrl: req.header('origin') || env.stripe.appBaseUrl,
     });

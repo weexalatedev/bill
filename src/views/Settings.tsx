@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { useApp } from '../store';
 import { useAuth } from '../lib/auth';
+import { useSubscription } from '../lib/subscription';
 import {
   ConnectorApi,
   errorGuidance,
@@ -42,6 +43,7 @@ const TABS: { id: TabId; label: string; icon: typeof PlugZap }[] = [
 export default function Settings() {
   const { sites } = useApp();
   const { getToken } = useAuth();
+  const { subscription } = useSubscription();
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -203,6 +205,11 @@ export default function Settings() {
               homeId={homeId}
               devices={devices}
               statuses={statuses}
+              deviceNote={
+                subscription
+                  ? `${subscription.planName} plan · up to ${subscription.deviceLimit} connected devices across all sites`
+                  : undefined
+              }
               onReload={load}
               onRefresh={refreshStatuses}
               onOpenRatePlan={() => goToTab('rate-plan')}
