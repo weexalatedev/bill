@@ -1,4 +1,5 @@
 'use client';
+
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
@@ -36,6 +37,7 @@ export default function Landing() {
 
   return (
     <>
+
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
       <section className="relative overflow-hidden border-b border-neutral-200">
         <div className="relative mx-auto grid max-w-content gap-10 px-4 py-16 sm:px-6 lg:px-8 md:grid-cols-2 md:items-center md:py-28">
@@ -50,7 +52,7 @@ export default function Landing() {
             </h1>
             <p className="mt-5 max-w-lg text-base leading-relaxed text-neutral-600">
               EnerOS reads your bills, checks every line against your contract and a published domestic reference, and
-              watches your sites so waste shows up before it reaches your P&amp;L. Start with a
+              watches your sites so waste shows up before it reaches your P&L. Start with a
               free bill check — no account needed.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
@@ -61,10 +63,10 @@ export default function Landing() {
                 Check your bill free <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
-                href="/features"
+                href="/pricing"
                 className="inline-flex items-center gap-2 rounded-md border border-neutral-300 bg-white/70 px-5 py-3 text-sm font-semibold text-ink-900 backdrop-blur transition-colors hover:bg-white"
               >
-                Explore features
+                Compare plans
               </Link>
             </div>
             <p className="mt-4 flex items-center gap-1.5 text-xs text-neutral-600">
@@ -96,14 +98,40 @@ export default function Landing() {
       </section>
 
       <Features />
-      <HowItWorks />
-      <Pricing catalogue={catalogue} error={error} />
+
+      {/* ── Plans section ───────────────────────────────────────────────── */}
+      {catalogue ? (
+        <PlansGrid
+          plans={catalogue.plans}
+          billingPeriod="monthly"
+          annualAvailable={catalogue.annualBillingAvailable}
+          recommendedId={catalogue.recommendedPlanId}
+          ctaHref="/start"
+          footnote={`${catalogue.priceBasis}. VAT at ${catalogue.vatRatePct}% is added at checkout.`}
+        />
+      ) : (
+        <div className="mt-16 text-center">
+          {error && (
+            <div className="rounded-xl border border-neutral-200 bg-white p-6 text-sm text-neutral-600">
+              We could not load live pricing just now. The plans start at £49 per site per month —
+              <Link href="/pricing" className="font-semibold text-ink-900 underline">try the pricing page</Link>.
+            </div>
+          )}
+          {!error && !catalogue && (
+            <div className="flex items-center justify-center gap-2 rounded-xl border border-neutral-200 bg-white py-16 text-sm text-neutral-600">
+              <Loader2 className="h-4 w-4 animate-spin" /> Loading plans…
+            </div>
+          )}
+        </div>
+      )}
+
       <FinalCta />
+
     </>
   );
 }
 
-/** Illustrative product vignette — clearly labelled, never a customer claim. */
+/* ── illustrative product vignette ─────────────────────────────────────── */
 function HeroVisual() {
   return (
     <div className="relative">
@@ -130,11 +158,9 @@ function HeroVisual() {
               className="flex items-start gap-3 rounded-md border border-neutral-200 px-3 py-2.5"
             >
               <span
-                className={
-                  flagged
-                    ? 'mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-ink-900 text-[10px] font-semibold text-white'
-                    : 'mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full border border-neutral-300 text-[10px] text-neutral-600'
-                }
+                className={flagged
+                  ? 'mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-ink-900 text-[10px] font-semibold text-white'
+                  : 'mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full border border-neutral-300 text-[10px] text-neutral-600'}
               >
                 {flagged ? '!' : '✓'}
               </span>
@@ -155,6 +181,12 @@ function HeroVisual() {
             <p className="text-[11px] tracking-wide text-neutral-600">Confidence</p>
             <p className="text-sm font-semibold text-ink-900">Deterministic</p>
           </div>
+        </div>
+
+        <div className="absolute -bottom-5 -left-3 hidden rounded-lg border border-neutral-200 bg-white px-3 py-2 shadow-sm sm:block">
+          <p className="flex items-center gap-1.5 text-[11px] font-medium text-neutral-700">
+            <Zap className="h-3.5 w-3.5" /> Priced off the live Agile curve
+          </p>
         </div>
       </div>
 
@@ -181,7 +213,7 @@ export const FEATURES = [
   {
     icon: TrendingDown,
     title: 'Smart Analysis against the cap',
-    body: 'Every bill benchmarked against the published price cap and your own history, so “normal” becomes a number you can act on rather than a feeling.',
+    body: 'Every bill benchmarked against the published price cap and your own history, so "normal" becomes a number you can act on rather than a feeling.',
   },
   {
     icon: CircuitBoard,
@@ -206,9 +238,9 @@ export const FEATURES = [
   {
     icon: ShieldCheck,
     title: 'Connections you can pause',
-    body: 'Connect Octopus or a Solis inverter once per site, see readiness and yesterday’s findings, and pause a feed at any time.',
+    body: 'Connect Octopus or a Solis inverter once per site, see readiness and yesterday\'s findings, and pause a feed at any time.',
   },
-] as const;
+];
 
 function Features() {
   return (
@@ -263,11 +295,11 @@ const STEPS = [
   },
   {
     title: 'Run your sites',
-    body: 'Upload bills, import half-hourly data, approve savings actions and watch the verified £ accumulate. Add sites up to your plan’s limit; upgrade whenever you need more.',
+    body: 'Upload bills, import half-hourly data, approve savings actions and watch the verified £ accumulate. Add sites up to your plan\'s limit; upgrade whenever you need more.',
     href: '/dashboard',
     cta: 'Open the dashboard',
   },
-] as const;
+];
 
 function HowItWorks() {
   return (
@@ -320,11 +352,8 @@ function Pricing({ catalogue, error }: { catalogue: PlansResponse | null; error:
         <div className="mt-8">
           {error && (
             <div className="rounded-xl border border-neutral-200 bg-white p-6 text-sm text-neutral-600">
-              We could not load live pricing just now. The plans start at £49 per site per month —{' '}
-              <Link href="/pricing" className="font-semibold text-ink-900 underline">
-                try the pricing page
-              </Link>
-              .
+              We could not load live pricing just now. The plans start at £49 per site per month —
+              <Link href="/pricing" className="font-semibold text-ink-900 underline">try the pricing page</Link>.
             </div>
           )}
           {!error && !catalogue && (
@@ -335,14 +364,11 @@ function Pricing({ catalogue, error }: { catalogue: PlansResponse | null; error:
           {catalogue && (
             <PlansGrid
               plans={catalogue.plans}
+              billingPeriod="monthly"
               annualAvailable={catalogue.annualBillingAvailable}
               recommendedId={catalogue.recommendedPlanId}
               ctaHref="/start"
-              footnote={
-                catalogue.siteLimitSource === 'provisional'
-                  ? 'Site caps per plan are provisional commercial settings; pricing follows the README (per site, per month).'
-                  : undefined
-              }
+              footnote={`${catalogue.priceBasis}. VAT at ${catalogue.vatRatePct}% is added at checkout.`}
             />
           )}
         </div>
