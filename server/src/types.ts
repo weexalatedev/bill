@@ -111,6 +111,10 @@ export interface Plan {
   tagline: string;
   features: string[];
   highlight?: boolean;
+  /** Sites included in the subscription (enforced server-side). */
+  siteLimit?: number;
+  /** Maximum number of connected devices the plan supports. */
+  deviceLimit?: number;
 }
 
 export interface MonthlyPoint {

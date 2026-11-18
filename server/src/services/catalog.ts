@@ -17,14 +17,18 @@ import { PLAN_CATALOG } from './plans.js';
  * single source of truth; this is the read-only projection the workspace
  * payload carries so the existing console keeps working unchanged.
  */
-export const PLANS: Plan[] = PLAN_CATALOG.map(({ id, name, pricePerSite, tagline, features, highlight }) => ({
-  id,
-  name,
-  pricePerSite,
-  tagline,
-  features,
-  ...(highlight ? { highlight } : {}),
-}));
+export const PLANS: Plan[] = PLAN_CATALOG.map(
+  ({ id, name, pricePerSite, tagline, features, highlight, siteLimit, deviceLimit }) => ({
+    id,
+    name,
+    pricePerSite,
+    tagline,
+    features,
+    siteLimit,
+    deviceLimit,
+    ...(highlight ? { highlight } : {}),
+  }),
+);
 
 /** Supplier names offered when uploading a new invoice. */
 export const SUPPLIERS: string[] = [

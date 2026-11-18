@@ -42,7 +42,9 @@ export default function Plans() {
           value={currentPlan.name}
           icon={<CreditCard className="h-5 w-5" />}
           tone="muted"
-          sub={`${gbp(currentPlan.pricePerSite)}/site/month`}
+          sub={`${gbp(currentPlan.pricePerSite)}/site/month${
+            currentPlan.deviceLimit ? ` · ${currentPlan.deviceLimit} devices max` : ''
+          }`}
         />
         <StatCard
           label="Subscription"
@@ -91,12 +93,20 @@ export default function Plans() {
                 {isCurrent && <Badge tone="solid">Current</Badge>}
               </div>
 
-              <p className="mt-4 flex items-baseline gap-1">
-                <span className="text-3xl font-semibold tracking-tight text-neutral-900">
-                  {gbp(plan.pricePerSite)}
-                </span>
-                <span className="text-sm text-neutral-600">/site/month</span>
-              </p>
+              <div className="mt-4">
+                <p className="flex items-baseline gap-1">
+                  <span className="text-3xl font-semibold tracking-tight text-neutral-900">
+                    {gbp(plan.pricePerSite)}
+                  </span>
+                  <span className="text-sm text-neutral-600">/site/month</span>
+                </p>
+                {plan.siteLimit !== undefined && plan.deviceLimit !== undefined && (
+                  <p className="mt-1 text-xs text-neutral-500">
+                    Up to {plan.siteLimit} site{plan.siteLimit === 1 ? '' : 's'} ·{' '}
+                    {plan.deviceLimit} devices max
+                  </p>
+                )}
+              </div>
 
               <ul className="mt-4 flex-1 space-y-2.5">
                 {plan.features.map((feature) => (
